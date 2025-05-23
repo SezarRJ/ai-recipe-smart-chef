@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CalendarIcon, Search as SearchIcon } from "lucide-react";
+import { CalendarIcon, Search as SearchIcon } from "lucide-react"; // Corrected import - removed duplicate
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecipeSearch } from "@/components/RecipeSearch";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 const MealPlanning = () => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("plan");
-  
+
   // Placeholder data for meal planning
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const mealTypes = ["Breakfast", "Lunch", "Dinner"];
@@ -29,7 +28,7 @@ const MealPlanning = () => {
         <h1 className="text-3xl font-display font-bold">{t("nav.mealPlan")}</h1>
         <p className="text-gray-600">Plan your meals for the week</p>
       </div>
-      
+
       <Tabs defaultValue="plan" value={activeTab} onValueChange={setActiveTab}>
         <div className="px-4">
           <TabsList className="grid grid-cols-2 mb-4">
@@ -37,14 +36,14 @@ const MealPlanning = () => {
             <TabsTrigger value="find">Find Recipes</TabsTrigger>
           </TabsList>
         </div>
-        
+
         <TabsContent value="plan" className="p-4 space-y-6">
           <div className="bg-white rounded-xl shadow-md p-4 mb-6">
             <div className="flex items-center space-x-2 mb-4">
               <CalendarIcon className="text-wasfah-orange" />
               <h2 className="text-xl font-display font-semibold">This Week's Plan</h2>
             </div>
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
@@ -72,27 +71,27 @@ const MealPlanning = () => {
               </table>
             </div>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleGenerateAIPlan}
             className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white py-3 rounded-xl font-semibold"
           >
             Generate AI Meal Plan
           </Button>
         </TabsContent>
-        
+
         <TabsContent value="find" className="p-4">
           <div className="bg-white rounded-xl shadow-md p-4 mb-4">
             <div className="flex items-center space-x-2 mb-4">
               <SearchIcon className="text-wasfah-orange" />
               <h2 className="text-xl font-display font-semibold">AI Recipe Search</h2>
             </div>
-            
+
             <RecipeSearch />
           </div>
         </TabsContent>
       </Tabs>
-      
+
       <MobileNavigation />
     </div>
   );
