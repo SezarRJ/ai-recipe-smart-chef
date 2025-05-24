@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { recipeService, Recipe } from '@/services/recipeService';
+import { recipeService, Recipe, PantryItemWithIngredient } from '@/services/recipeService';
 import { toast } from '@/hooks/use-toast';
 
 type SearchFilters = {
@@ -100,10 +101,9 @@ export const useRecipeSearch = () => {
   const loadPantryItems = async () => {
     try {
       await pantryQuery.refetch();
-      // Extract ingredient names from pantry items
-      // FIX: Assert that 'ingredient' property exists and has a 'name'
+      // Extract ingredient names from pantry items with proper typing
       const pantryIngredients = pantryQuery.data
-        ?.map(item => ((item as any).ingredient?.name as string || '')) // <-- FIX APPLIED HERE (Line 106)
+        ?.map((item: PantryItemWithIngredient) => item.ingredient?.name || '')
         .filter(name => name.length > 0);
 
       if (pantryIngredients && pantryIngredients.length) {

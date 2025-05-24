@@ -8,6 +8,11 @@ export type RecipeCategory = Database['public']['Tables']['recipe_categories']['
 export type RecipeIngredient = Database['public']['Tables']['recipe_ingredients']['Row'];
 export type PantryItem = Database['public']['Tables']['pantry_items']['Row'];
 
+// Type for pantry items with ingredient information
+export type PantryItemWithIngredient = PantryItem & {
+  ingredient: Ingredient;
+};
+
 export const recipeService = {
   async getCategories(): Promise<RecipeCategory[]> {
     const { data, error } = await supabase
@@ -67,16 +72,16 @@ export const recipeService = {
     })) || [];
   },
 
-  async getUserPantryItems(): Promise<PantryItem[]> {
+  async getUserPantryItems(): Promise<PantryItemWithIngredient[]> {
     const { data, error } = await supabase
       .from('pantry_items')
       .select(`
         *,
-        ingredient:ingredients(name)
+        ingredient:ingredients(*)
       `);
     
     if (error) throw error;
-    return data || [];
+    return data as PantryItemWithIngredient[] || [];
   },
 
   async searchRecipesByIngredients(ingredients: string[]): Promise<Recipe[]> {
