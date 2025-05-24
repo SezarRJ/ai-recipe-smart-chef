@@ -7,9 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Search, Plus, Filter, Mic, Camera } from 'lucide-react';
 import { RecipeCard } from '@/components/RecipeCard';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AdvancedFilters } from '@/components/AdvancedFilters';
+import { IngredientSelector } from '@/components/IngredientSelector';
 
 export const RecipeSearch = () => {
   const [showFilters, setShowFilters] = useState(false);
+  const [showIngredientSelector, setShowIngredientSelector] = useState(false);
   const [newIngredient, setNewIngredient] = useState('');
   const { t } = useLanguage();
   
@@ -32,14 +35,18 @@ export const RecipeSearch = () => {
     }
   };
 
-  const handleVoiceInput = () => {
-    // TODO: Implement voice recognition
-    console.log('Voice input feature coming soon');
+  const handleFiltersChange = (filters: any) => {
+    console.log('Filters changed:', filters);
+    // Implement filter logic here
   };
 
-  const handleImageInput = () => {
-    // TODO: Implement image recognition
-    console.log('Image recognition feature coming soon');
+  const handleIngredientsChange = (ingredients: any[]) => {
+    // Convert ingredients to selected format
+    ingredients.forEach(ing => {
+      if (!selectedIngredients.includes(ing.name)) {
+        handleIngredientAdd(ing.name);
+      }
+    });
   };
 
   return (
@@ -66,161 +73,57 @@ export const RecipeSearch = () => {
           </Button>
         </div>
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <div className="bg-white p-4 rounded-lg shadow-md border animate-fade-in">
-            <h3 className="font-semibold mb-3">{t("search.filters")}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Dietary Preferences */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Dietary</label>
-                <select className="w-full p-2 border rounded-md text-sm">
-                  <option value="">Any</option>
-                  <option value="vegetarian">Vegetarian</option>
-                  <option value="vegan">Vegan</option>
-                  <option value="gluten-free">Gluten-free</option>
-                  <option value="keto">Keto</option>
-                  <option value="paleo">Paleo</option>
-                </select>
-              </div>
+        {/* Quick Actions */}
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowIngredientSelector(!showIngredientSelector)}
+          >
+            <Plus size={16} className="mr-1" />
+            Add Ingredients
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={loadPantryItems} 
+            disabled={isPantryLoading}
+          >
+            {isPantryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Load from {t("nav.pantry")}
+          </Button>
+        </div>
 
-              {/* Cooking Time */}
-              <div>
-                <label className="block text-sm font-medium mb-1">{t("recipe.cookingTime")}</label>
-                <select className="w-full p-2 border rounded-md text-sm">
-                  <option value="">Any time</option>
-                  <option value="15">Under 15 min</option>
-                  <option value="30">Under 30 min</option>
-                  <option value="60">Under 1 hour</option>
-                  <option value="120">Under 2 hours</option>
-                </select>
-              </div>
-
-              {/* Difficulty */}
-              <div>
-                <label className="block text-sm font-medium mb-1">{t("recipe.difficulty")}</label>
-                <select className="w-full p-2 border rounded-md text-sm">
-                  <option value="">Any level</option>
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-              </div>
-
-              {/* Cuisine Type */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Cuisine</label>
-                <select className="w-full p-2 border rounded-md text-sm">
-                  <option value="">Any cuisine</option>
-                  <option value="italian">Italian</option>
-                  <option value="chinese">Chinese</option>
-                  <option value="mexican">Mexican</option>
-                  <option value="indian">Indian</option>
-                  <option value="japanese">Japanese</option>
-                  <option value="french">French</option>
-                  <option value="mediterranean">Mediterranean</option>
-                  <option value="middle-eastern">Middle Eastern</option>
-                </select>
-              </div>
-
-              {/* Meal Type */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Meal Type</label>
-                <select className="w-full p-2 border rounded-md text-sm">
-                  <option value="">Any meal</option>
-                  <option value="breakfast">Breakfast</option>
-                  <option value="lunch">Lunch</option>
-                  <option value="dinner">Dinner</option>
-                  <option value="snack">Snack</option>
-                  <option value="dessert">Dessert</option>
-                </select>
-              </div>
-
-              {/* Health Goal */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Health Goal</label>
-                <select className="w-full p-2 border rounded-md text-sm">
-                  <option value="">Any goal</option>
-                  <option value="weight-loss">Weight Loss</option>
-                  <option value="muscle-gain">Muscle Gain</option>
-                  <option value="heart-healthy">Heart Healthy</option>
-                  <option value="low-sodium">Low Sodium</option>
-                  <option value="high-protein">High Protein</option>
-                  <option value="low-carb">Low Carb</option>
-                </select>
-              </div>
-            </div>
+        {/* Ingredient Selector */}
+        {showIngredientSelector && (
+          <div className="animate-fade-in">
+            <IngredientSelector 
+              onIngredientsChange={handleIngredientsChange}
+            />
           </div>
         )}
 
-        {/* Ingredient Search */}
-        <div className="space-y-3">
-          <h3 className="font-semibold text-lg">{t("search.ingredients")}</h3>
-          
-          {/* Ingredient Input with Multiple Options */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Input
-                placeholder={t("action.add") + " ingredient..."}
-                value={newIngredient}
-                onChange={(e) => setNewIngredient(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddIngredient();
-                  }
-                }}
-                className="pr-20"
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-                <button
-                  onClick={handleVoiceInput}
-                  className="p-1 text-gray-400 hover:text-wasfah-orange transition-colors"
-                  title="Voice input"
-                >
-                  <Mic size={16} />
+        {/* Selected Ingredients */}
+        {selectedIngredients.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedIngredients.map((ingredient) => (
+              <Badge key={ingredient} variant="secondary" className="gap-1 py-1 px-3">
+                {ingredient}
+                <button onClick={() => handleIngredientRemove(ingredient)}>
+                  <X size={14} />
                 </button>
-                <button
-                  onClick={handleImageInput}
-                  className="p-1 text-gray-400 hover:text-wasfah-orange transition-colors"
-                  title="Image recognition"
-                >
-                  <Camera size={16} />
-                </button>
-              </div>
-            </div>
-            <Button size="icon" onClick={handleAddIngredient}>
-              <Plus size={18} />
-            </Button>
+              </Badge>
+            ))}
           </div>
-
-          {/* Selected Ingredients */}
-          {selectedIngredients.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {selectedIngredients.map((ingredient) => (
-                <Badge key={ingredient} variant="secondary" className="gap-1 py-1 px-3">
-                  {ingredient}
-                  <button onClick={() => handleIngredientRemove(ingredient)}>
-                    <X size={14} />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={loadPantryItems} 
-              disabled={isPantryLoading}
-            >
-              {isPantryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Load from {t("nav.pantry")}
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
+
+      {/* Advanced Filters Modal */}
+      <AdvancedFilters 
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        onFiltersChange={handleFiltersChange}
+      />
 
       {/* Search Results */}
       <div className="mt-8">

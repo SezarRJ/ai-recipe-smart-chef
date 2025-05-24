@@ -7,7 +7,8 @@ export const CategoryCards = () => {
       subcategories: ["Main Dishes", "Appetizers", "Pickles", "Soups", "Sauces", "Others"],
       gradient: "from-wasfah-orange to-red-500",
       emoji: "🍽️",
-      delay: "0s"
+      delay: "0s",
+      link: "/global-cuisine"
     },
     {
       title: "Desserts",
@@ -15,7 +16,8 @@ export const CategoryCards = () => {
       subcategories: ["Traditional", "Western", "Pastries", "Ice Cream", "Others"],
       gradient: "from-pink-500 to-wasfah-green",
       emoji: "🍰",
-      delay: "0.2s"
+      delay: "0.2s",
+      link: "/explore"
     },
     {
       title: "Drinks",
@@ -23,7 +25,8 @@ export const CategoryCards = () => {
       subcategories: ["Detox", "Cocktails", "Alcoholic", "Hot Drinks", "Others"],
       gradient: "from-blue-500 to-wasfah-green",
       emoji: "🥤",
-      delay: "0.4s"
+      delay: "0.4s",
+      link: "/explore"
     }
   ];
 
@@ -43,7 +46,7 @@ export const CategoryCards = () => {
           {categories.map((category, index) => (
             <div
               key={category.title}
-              className="group relative overflow-hidden rounded-3xl bg-white shadow-xl hover:shadow-2xl transition-all duration-500 hover-scale animate-fade-in"
+              className="group relative overflow-hidden rounded-3xl bg-white shadow-xl hover:shadow-2xl transition-all duration-500 hover-scale animate-fade-in cursor-pointer"
               style={{ animationDelay: category.delay }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-10 group-hover:opacity-20 transition-opacity`} />
@@ -71,13 +74,48 @@ export const CategoryCards = () => {
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-gray-100">
-                  <button className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
-                    Explore {category.title}
-                  </button>
+                  <a href={category.link} className="block">
+                    <button className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
+                      Explore {category.title}
+                    </button>
+                  </a>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Additional Features */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="text-4xl">📱</div>
+              <div>
+                <h3 className="text-xl font-bold">Dish Scanner</h3>
+                <p className="text-gray-600">Scan any dish to get ingredients and nutrition</p>
+              </div>
+            </div>
+            <a href="/dish-scanner">
+              <button className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white py-2 rounded-lg font-semibold">
+                Try Scanner
+              </button>
+            </a>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="text-4xl">🌍</div>
+              <div>
+                <h3 className="text-xl font-bold">Global Cuisine</h3>
+                <p className="text-gray-600">Browse recipes from around the world</p>
+              </div>
+            </div>
+            <a href="/global-cuisine">
+              <button className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white py-2 rounded-lg font-semibold">
+                Explore World
+              </button>
+            </a>
+          </div>
         </div>
       </div>
     </section>

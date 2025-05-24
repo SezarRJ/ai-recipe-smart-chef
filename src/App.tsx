@@ -25,6 +25,8 @@ import About from "./pages/About";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Settings from "./pages/Settings";
+import GlobalCuisine from "./pages/GlobalCuisine";
+import DishScanner from "./pages/DishScanner";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
@@ -77,6 +79,8 @@ const AppContent = () => {
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/global-cuisine" element={<GlobalCuisine />} />
+        <Route path="/dish-scanner" element={<DishScanner />} />
         <Route path="/recipe/:id" element={<RecipeDetail />} />
         <Route path="/cooking/:id" element={<CookingMode />} />
         <Route path="/meal-planning" element={
