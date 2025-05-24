@@ -7,8 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Globe } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +24,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, session } = useAuth();
-  const { t } = useLanguage();
+  const { t, language, setLanguage, availableLanguages } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,8 +37,8 @@ const Auth = () => {
     e.preventDefault();
     if (!email || !password) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: t("error.title") || "Error",
+        description: t("error.fillFields") || "Please fill in all fields",
         variant: "destructive",
       });
       return;
@@ -42,13 +48,13 @@ const Auth = () => {
     try {
       await signIn(email, password);
       toast({
-        title: "Success",
-        description: "Signed in successfully!",
+        title: t("success.title") || "Success",
+        description: t("success.signedIn") || "Signed in successfully!",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to sign in",
+        title: t("error.title") || "Error",
+        description: error.message || t("error.signInFailed") || "Failed to sign in",
         variant: "destructive",
       });
     } finally {
@@ -60,8 +66,8 @@ const Auth = () => {
     e.preventDefault();
     if (!email || !password || !confirmPassword || !fullName) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: t("error.title") || "Error",
+        description: t("error.fillFields") || "Please fill in all fields",
         variant: "destructive",
       });
       return;
@@ -69,8 +75,8 @@ const Auth = () => {
 
     if (password !== confirmPassword) {
       toast({
-        title: "Error",
-        description: "Passwords do not match",
+        title: t("error.title") || "Error",
+        description: t("error.passwordMismatch") || "Passwords do not match",
         variant: "destructive",
       });
       return;
@@ -78,8 +84,8 @@ const Auth = () => {
 
     if (password.length < 6) {
       toast({
-        title: "Error",
-        description: "Password must be at least 6 characters",
+        title: t("error.title") || "Error",
+        description: t("error.passwordLength") || "Password must be at least 6 characters",
         variant: "destructive",
       });
       return;
@@ -89,13 +95,13 @@ const Auth = () => {
     try {
       await signUp(email, password);
       toast({
-        title: "Success",
-        description: "Account created successfully! Please check your email for verification.",
+        title: t("success.title") || "Success",
+        description: t("success.accountCreated") || "Account created successfully! Please check your email for verification.",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create account",
+        title: t("error.title") || "Error",
+        description: error.message || t("error.accountCreationFailed") || "Failed to create account",
         variant: "destructive",
       });
     } finally {
@@ -106,29 +112,55 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="mb-4 flex items-center gap-2"
-        >
-          <ArrowLeft size={16} />
-          Back to Home
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft size={16} />
+            {t("action.backHome") || "Back to Home"}
+          </Button>
+
+          {/* Language Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Globe size={16} />
+                <span className="hidden sm:inline">
+                  {availableLanguages.find(lang => lang.code === language)?.nativeName || 'English'}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {availableLanguages.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => setLanguage(lang.code)}
+                  className={language === lang.code ? "bg-wasfah-orange/10" : ""}
+                >
+                  <span className="flex-1">{lang.nativeName}</span>
+                  <span className="text-sm text-gray-500">{lang.name}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-wasfah-orange to-wasfah-green rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white font-bold text-2xl">W</span>
             </div>
-            <CardTitle className="text-2xl font-display">Welcome to Wasfah AI</CardTitle>
-            <CardDescription>Your AI-powered cooking companion</CardDescription>
+            <CardTitle className="text-2xl font-display">{t("app.name")}</CardTitle>
+            <CardDescription>{t("app.tagline")}</CardDescription>
           </CardHeader>
 
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin">{t("action.login")}</TabsTrigger>
+                <TabsTrigger value="signup">{t("action.register")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -138,7 +170,7 @@ const Auth = () => {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type="email"
-                        placeholder="Email"
+                        placeholder={t("auth.email") || "Email"}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
@@ -152,7 +184,7 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder={t("auth.password") || "Password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
@@ -173,7 +205,7 @@ const Auth = () => {
                     className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green"
                     disabled={loading}
                   >
-                    {loading ? "Signing In..." : "Sign In"}
+                    {loading ? t("auth.signingIn") || "Signing In..." : t("action.login")}
                   </Button>
                 </form>
               </TabsContent>
@@ -185,7 +217,7 @@ const Auth = () => {
                       <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type="text"
-                        placeholder="Full Name"
+                        placeholder={t("auth.fullName") || "Full Name"}
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         className="pl-10"
@@ -199,7 +231,7 @@ const Auth = () => {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type="email"
-                        placeholder="Email"
+                        placeholder={t("auth.email") || "Email"}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
@@ -213,7 +245,7 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder={t("auth.password") || "Password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
@@ -227,7 +259,7 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type="password"
-                        placeholder="Confirm Password"
+                        placeholder={t("auth.confirmPassword") || "Confirm Password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="pl-10"
@@ -241,7 +273,7 @@ const Auth = () => {
                     className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green"
                     disabled={loading}
                   >
-                    {loading ? "Creating Account..." : "Create Account"}
+                    {loading ? t("auth.creatingAccount") || "Creating Account..." : t("action.register")}
                   </Button>
                 </form>
               </TabsContent>

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,7 +29,9 @@ import DishScanner from "./pages/DishScanner";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import HealthTracking from "./pages/HealthTracking";
+import { SplashScreen } from "./components/SplashScreen";
 
 const queryClient = new QueryClient();
 
@@ -71,7 +72,20 @@ const usePWA = () => {
 };
 
 const AppContent = () => {
+  const [showSplash, setShowSplash] = useState(() => {
+    return !localStorage.getItem('wasfah-splash-completed');
+  });
+  
   usePWA();
+
+  const handleSplashComplete = () => {
+    localStorage.setItem('wasfah-splash-completed', 'true');
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
 
   return (
     <>
@@ -83,6 +97,7 @@ const AppContent = () => {
         <Route path="/dish-scanner" element={<DishScanner />} />
         <Route path="/recipe/:id" element={<RecipeDetail />} />
         <Route path="/cooking/:id" element={<CookingMode />} />
+        <Route path="/health-tracking" element={<HealthTracking />} />
         <Route path="/meal-planning" element={
           <ProtectedRoute>
             <MealPlanning />
