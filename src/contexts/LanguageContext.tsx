@@ -1,8 +1,7 @@
-
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 
 // Define available languages
-type LanguageCode = 'en' | 'ar' | 'fr' | 'es';
+type LanguageCode = 'en' | 'ar' | 'fr' | 'es' | 'de' | 'it' | 'pt' | 'ru' | 'zh' | 'ja';
 
 // Translations interface
 interface Translations {
@@ -18,55 +17,326 @@ interface LanguageContextType {
   t: (key: string) => string;
   translations: Translations;
   isRTL: boolean;
+  availableLanguages: { code: LanguageCode; name: string; nativeName: string }[];
 }
 
-// Sample translations - this would be expanded with many more keys
+// Comprehensive translations
 const translations: Translations = {
+  // App branding
   "app.name": {
     en: "Wasfah AI",
     ar: "وصفة الذكاء الاصطناعي",
     fr: "Wasfah AI",
     es: "Wasfah AI",
+    de: "Wasfah AI",
+    it: "Wasfah AI",
+    pt: "Wasfah AI",
+    ru: "Wasfah AI",
+    zh: "Wasfah AI",
+    ja: "Wasfah AI",
   },
+  "app.tagline": {
+    en: "AI-Powered Recipe Discovery & Meal Planning",
+    ar: "اكتشاف الوصفات وتخطيط الوجبات بالذكاء الاصطناعي",
+    fr: "Découverte de recettes et planification de repas alimentée par l'IA",
+    es: "Descubrimiento de recetas y planificación de comidas con IA",
+    de: "KI-gestützte Rezeptentdeckung & Mahlzeitenplanung",
+    it: "Scoperta di ricette e pianificazione pasti alimentata dall'IA",
+    pt: "Descoberta de receitas e planejamento de refeições alimentado por IA",
+    ru: "Поиск рецептов и планирование питания на основе ИИ",
+    zh: "AI驱动的食谱发现和膳食规划",
+    ja: "AI搭載のレシピ発見と食事計画",
+  },
+
+  // Navigation
   "nav.home": {
     en: "Home",
     ar: "الرئيسية",
     fr: "Accueil",
     es: "Inicio",
+    de: "Startseite",
+    it: "Home",
+    pt: "Início",
+    ru: "Главная",
+    zh: "首页",
+    ja: "ホーム",
   },
   "nav.explore": {
     en: "Explore",
     ar: "استكشاف",
     fr: "Explorer",
     es: "Explorar",
+    de: "Entdecken",
+    it: "Esplora",
+    pt: "Explorar",
+    ru: "Исследовать",
+    zh: "探索",
+    ja: "探索",
   },
   "nav.mealPlan": {
     en: "Meal Plan",
     ar: "خطة الوجبات",
     fr: "Plan de repas",
     es: "Plan de comidas",
+    de: "Essensplan",
+    it: "Piano pasti",
+    pt: "Plano de refeições",
+    ru: "План питания",
+    zh: "膳食计划",
+    ja: "食事プラン",
   },
   "nav.pantry": {
     en: "Pantry",
     ar: "المخزن",
     fr: "Garde-manger",
     es: "Despensa",
+    de: "Speisekammer",
+    it: "Dispensa",
+    pt: "Despensa",
+    ru: "Кладовая",
+    zh: "储藏室",
+    ja: "パントリー",
   },
   "nav.profile": {
     en: "Profile",
     ar: "الملف الشخصي",
     fr: "Profil",
     es: "Perfil",
+    de: "Profil",
+    it: "Profilo",
+    pt: "Perfil",
+    ru: "Профиль",
+    zh: "个人资料",
+    ja: "プロフィール",
   },
-  // Add more translations as needed
+
+  // Search and filters
+  "search.placeholder": {
+    en: "Search recipes...",
+    ar: "البحث عن الوصفات...",
+    fr: "Rechercher des recettes...",
+    es: "Buscar recetas...",
+    de: "Rezepte suchen...",
+    it: "Cerca ricette...",
+    pt: "Pesquisar receitas...",
+    ru: "Поиск рецептов...",
+    zh: "搜索食谱...",
+    ja: "レシピを検索...",
+  },
+  "search.filters": {
+    en: "Filters",
+    ar: "المرشحات",
+    fr: "Filtres",
+    es: "Filtros",
+    de: "Filter",
+    it: "Filtri",
+    pt: "Filtros",
+    ru: "Фильтры",
+    zh: "筛选",
+    ja: "フィルター",
+  },
+  "search.ingredients": {
+    en: "Search by ingredients",
+    ar: "البحث بالمكونات",
+    fr: "Rechercher par ingrédients",
+    es: "Buscar por ingredientes",
+    de: "Nach Zutaten suchen",
+    it: "Cerca per ingredienti",
+    pt: "Pesquisar por ingredientes",
+    ru: "Поиск по ингредиентам",
+    zh: "按成分搜索",
+    ja: "材料で検索",
+  },
+
+  // Categories
+  "category.food": {
+    en: "Food",
+    ar: "طعام",
+    fr: "Nourriture",
+    es: "Comida",
+    de: "Essen",
+    it: "Cibo",
+    pt: "Comida",
+    ru: "Еда",
+    zh: "食物",
+    ja: "料理",
+  },
+  "category.desserts": {
+    en: "Desserts",
+    ar: "حلويات",
+    fr: "Desserts",
+    es: "Postres",
+    de: "Desserts",
+    it: "Dolci",
+    pt: "Sobremesas",
+    ru: "Десерты",
+    zh: "甜点",
+    ja: "デザート",
+  },
+  "category.drinks": {
+    en: "Drinks",
+    ar: "مشروبات",
+    fr: "Boissons",
+    es: "Bebidas",
+    de: "Getränke",
+    it: "Bevande",
+    pt: "Bebidas",
+    ru: "Напитки",
+    zh: "饮品",
+    ja: "飲み物",
+  },
+
+  // Common actions
+  "action.add": {
+    en: "Add",
+    ar: "إضافة",
+    fr: "Ajouter",
+    es: "Agregar",
+    de: "Hinzufügen",
+    it: "Aggiungi",
+    pt: "Adicionar",
+    ru: "Добавить",
+    zh: "添加",
+    ja: "追加",
+  },
+  "action.save": {
+    en: "Save",
+    ar: "حفظ",
+    fr: "Enregistrer",
+    es: "Guardar",
+    de: "Speichern",
+    it: "Salva",
+    pt: "Salvar",
+    ru: "Сохранить",
+    zh: "保存",
+    ja: "保存",
+  },
+  "action.cancel": {
+    en: "Cancel",
+    ar: "إلغاء",
+    fr: "Annuler",
+    es: "Cancelar",
+    de: "Abbrechen",
+    it: "Annulla",
+    pt: "Cancelar",
+    ru: "Отмена",
+    zh: "取消",
+    ja: "キャンセル",
+  },
+  "action.login": {
+    en: "Sign In",
+    ar: "تسجيل الدخول",
+    fr: "Se connecter",
+    es: "Iniciar sesión",
+    de: "Anmelden",
+    it: "Accedi",
+    pt: "Entrar",
+    ru: "Войти",
+    zh: "登录",
+    ja: "ログイン",
+  },
+  "action.register": {
+    en: "Get Started",
+    ar: "ابدأ الآن",
+    fr: "Commencer",
+    es: "Comenzar",
+    de: "Loslegen",
+    it: "Inizia",
+    pt: "Começar",
+    ru: "Начать",
+    zh: "开始",
+    ja: "始める",
+  },
+
+  // Recipe details
+  "recipe.cookingTime": {
+    en: "Cooking Time",
+    ar: "وقت الطبخ",
+    fr: "Temps de cuisson",
+    es: "Tiempo de cocción",
+    de: "Kochzeit",
+    it: "Tempo di cottura",
+    pt: "Tempo de cozimento",
+    ru: "Время приготовления",
+    zh: "烹饪时间",
+    ja: "調理時間",
+  },
+  "recipe.difficulty": {
+    en: "Difficulty",
+    ar: "الصعوبة",
+    fr: "Difficulté",
+    es: "Dificultad",
+    de: "Schwierigkeit",
+    it: "Difficoltà",
+    pt: "Dificuldade",
+    ru: "Сложность",
+    zh: "难度",
+    ja: "難易度",
+  },
+  "recipe.servings": {
+    en: "Servings",
+    ar: "الحصص",
+    fr: "Portions",
+    es: "Porciones",
+    de: "Portionen",
+    it: "Porzioni",
+    pt: "Porções",
+    ru: "Порции",
+    zh: "份量",
+    ja: "人分",
+  },
+  "recipe.ingredients": {
+    en: "Ingredients",
+    ar: "المكونات",
+    fr: "Ingrédients",
+    es: "Ingredientes",
+    de: "Zutaten",
+    it: "Ingredienti",
+    pt: "Ingredientes",
+    ru: "Ингредиенты",
+    zh: "配料",
+    ja: "材料",
+  },
 };
+
+// Available languages with their native names
+const availableLanguages = [
+  { code: 'en' as LanguageCode, name: 'English', nativeName: 'English' },
+  { code: 'ar' as LanguageCode, name: 'Arabic', nativeName: 'العربية' },
+  { code: 'fr' as LanguageCode, name: 'French', nativeName: 'Français' },
+  { code: 'es' as LanguageCode, name: 'Spanish', nativeName: 'Español' },
+  { code: 'de' as LanguageCode, name: 'German', nativeName: 'Deutsch' },
+  { code: 'it' as LanguageCode, name: 'Italian', nativeName: 'Italiano' },
+  { code: 'pt' as LanguageCode, name: 'Portuguese', nativeName: 'Português' },
+  { code: 'ru' as LanguageCode, name: 'Russian', nativeName: 'Русский' },
+  { code: 'zh' as LanguageCode, name: 'Chinese', nativeName: '中文' },
+  { code: 'ja' as LanguageCode, name: 'Japanese', nativeName: '日本語' },
+];
 
 // Create the context
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 // Provider component
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<LanguageCode>('en');
+  const [language, setLanguage] = useState<LanguageCode>(() => {
+    // Try to get saved language from localStorage
+    const savedLanguage = localStorage.getItem('wasfah-language');
+    if (savedLanguage && availableLanguages.some(lang => lang.code === savedLanguage)) {
+      return savedLanguage as LanguageCode;
+    }
+    // Otherwise, try to detect browser language
+    const browserLang = navigator.language.split('-')[0];
+    if (availableLanguages.some(lang => lang.code === browserLang)) {
+      return browserLang as LanguageCode;
+    }
+    return 'en';
+  });
+
+  // Save language preference
+  useEffect(() => {
+    localStorage.setItem('wasfah-language', language);
+    document.documentElement.lang = language;
+  }, [language]);
 
   // Function to get translation
   const t = (key: string): string => {
@@ -80,8 +350,15 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const isRTL = language === 'ar';
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, translations, isRTL }}>
-      <div dir={isRTL ? 'rtl' : 'ltr'}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      t, 
+      translations, 
+      isRTL, 
+      availableLanguages 
+    }}>
+      <div dir={isRTL ? 'rtl' : 'ltr'} className={isRTL ? 'font-arabic' : ''}>
         {children}
       </div>
     </LanguageContext.Provider>
