@@ -2,13 +2,25 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Globe, Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Globe, Menu, X, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const { t, language, setLanguage, availableLanguages } = useLanguage();
+  const { session, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-white/20 shadow-sm">
@@ -38,18 +50,22 @@ export const Navigation = () => {
             >
               {t("nav.explore")}
             </Link>
-            <Link 
-              to="/meal-planning" 
-              className="text-gray-600 hover:text-wasfah-orange transition-colors text-sm font-medium"
-            >
-              {t("nav.mealPlan")}
-            </Link>
-            <Link 
-              to="/pantry" 
-              className="text-gray-600 hover:text-wasfah-orange transition-colors text-sm font-medium"
-            >
-              {t("nav.pantry")}
-            </Link>
+            {session && (
+              <>
+                <Link 
+                  to="/meal-planning" 
+                  className="text-gray-600 hover:text-wasfah-orange transition-colors text-sm font-medium"
+                >
+                  {t("nav.mealPlan")}
+                </Link>
+                <Link 
+                  to="/pantry" 
+                  className="text-gray-600 hover:text-wasfah-orange transition-colors text-sm font-medium"
+                >
+                  {t("nav.pantry")}
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Desktop Actions */}
@@ -86,19 +102,44 @@ export const Navigation = () => {
               )}
             </div>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="border-wasfah-orange text-wasfah-orange hover:bg-wasfah-orange hover:text-white"
-            >
-              {t("action.login")}
-            </Button>
-            <Button 
-              size="sm"
-              className="bg-gradient-to-r from-wasfah-orange to-wasfah-green hover:from-wasfah-orange-dark hover:to-wasfah-green-dark"
-            >
-              {t("action.register")}
-            </Button>
+            {session ? (
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="flex items-center space-x-1"
+                >
+                  <User size={16} />
+                  <span>Profile</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSignOut}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-wasfah-orange text-wasfah-orange hover:bg-wasfah-orange hover:text-white"
+                  onClick={() => navigate("/auth")}
+                >
+                  {t("action.login")}
+                </Button>
+                <Button 
+                  size="sm"
+                  className="bg-gradient-to-r from-wasfah-orange to-wasfah-green hover:from-wasfah-orange-dark hover:to-wasfah-green-dark"
+                  onClick={() => navigate("/auth")}
+                >
+                  {t("action.register")}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -166,15 +207,47 @@ export const Navigation = () => {
               
               {/* Mobile Action Buttons */}
               <div className="flex flex-col space-y-2 pt-2">
-                <Button 
-                  variant="outline" 
-                  className="border-wasfah-orange text-wasfah-orange hover:bg-wasfah-orange hover:text-white"
-                >
-                  {t("action.login")}
-                </Button>
-                <Button className="bg-gradient-to-r from-wasfah-orange to-wasfah-green hover:from-wasfah-orange-dark hover:to-wasfah-green-dark">
-                  {t("action.register")}
-                </Button>
+                {session ? (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        navigate("/profile");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Profile
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleSignOut}
+                    >
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="border-wasfah-orange text-wasfah-orange hover:bg-wasfah-orange hover:text-white"
+                      onClick={() => {
+                        navigate("/auth");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      {t("action.login")}
+                    </Button>
+                    <Button 
+                      className="bg-gradient-to-r from-wasfah-orange to-wasfah-green hover:from-wasfah-orange-dark hover:to-wasfah-green-dark"
+                      onClick={() => {
+                        navigate("/auth");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      {t("action.register")}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
