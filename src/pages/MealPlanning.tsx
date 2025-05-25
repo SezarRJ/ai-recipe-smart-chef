@@ -1,96 +1,199 @@
+
 import { useState } from "react";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CalendarIcon, Search as SearchIcon } from "lucide-react"; // Corrected import - removed duplicate
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RecipeSearch } from "@/components/RecipeSearch";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, Plus, ChefHat, Clock, Users, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+
+interface MealPlan {
+  id: string;
+  day: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  recipeName: string;
+  cookingTime: number;
+  servings: number;
+}
 
 const MealPlanning = () => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("plan");
+  const navigate = useNavigate();
+  
+  const [mealPlans, setMealPlans] = useState<MealPlan[]>([
+    {
+      id: "1",
+      day: "Monday",
+      mealType: "breakfast",
+      recipeName: "Overnight Oats",
+      cookingTime: 5,
+      servings: 2
+    },
+    {
+      id: "2",
+      day: "Monday",
+      mealType: "lunch",
+      recipeName: "Mediterranean Salad",
+      cookingTime: 15,
+      servings: 2
+    }
+  ]);
 
-  // Placeholder data for meal planning
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  const mealTypes = ["Breakfast", "Lunch", "Dinner"];
+  const mealTypes = [
+    { key: "breakfast", label: "Breakfast", icon: "🌅" },
+    { key: "lunch", label: "Lunch", icon: "🌞" },
+    { key: "dinner", label: "Dinner", icon: "🌙" },
+    { key: "snack", label: "Snack", icon: "🍎" }
+  ];
 
-  const handleGenerateAIPlan = () => {
+  const getMealForDayAndType = (day: string, mealType: string) => {
+    return mealPlans.find(meal => meal.day === day && meal.mealType === mealType);
+  };
+
+  const addMeal = (day: string, mealType: string) => {
+    const newMeal: MealPlan = {
+      id: Date.now().toString(),
+      day,
+      mealType: mealType as any,
+      recipeName: "Click to add recipe",
+      cookingTime: 30,
+      servings: 2
+    };
+    setMealPlans(prev => [...prev, newMeal]);
     toast({
-      title: "AI Plan Generation",
-      description: "This feature will be available in the premium version"
+      title: "Meal slot added",
+      description: `Added ${mealType} for ${day}`
     });
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20">
-      <div className="pt-4 px-4 pb-2">
-        <h1 className="text-3xl font-display font-bold">{t("nav.mealPlan")}</h1>
-        <p className="text-gray-600">Plan your meals for the week</p>
-      </div>
+  const removeMeal = (id: string) => {
+    setMealPlans(prev => prev.filter(meal => meal.id !== id));
+    toast({
+      title: "Meal removed",
+      description: "Meal has been removed from your plan"
+    });
+  };
 
-      <Tabs defaultValue="plan" value={activeTab} onValueChange={setActiveTab}>
-        <div className="px-4">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="plan">Meal Plan</TabsTrigger>
-            <TabsTrigger value="find">Find Recipes</TabsTrigger>
-          </TabsList>
+  const generateWeeklyPlan = () => {
+    toast({
+      title: "AI Weekly Plan",
+      description: "This feature will generate a complete weekly meal plan based on your preferences"
+    });
+  };
+
+  const generateShoppingList = () => {
+    toast({
+      title: "Shopping List Generated",
+      description: "Created shopping list from your meal plan"
+    });
+    navigate("/shopping-lists");
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft size={20} />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2 flex items-center gap-2">
+              <CalendarIcon className="text-wasfah-orange" size={28} />
+              {t("nav.mealPlan")}
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base">
+              Plan your meals for the week ahead
+            </p>
+          </div>
         </div>
 
-        <TabsContent value="plan" className="p-4 space-y-6">
-          <div className="bg-white rounded-xl shadow-md p-4 mb-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <CalendarIcon className="text-wasfah-orange" />
-              <h2 className="text-xl font-display font-semibold">This Week's Plan</h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-2 px-3 text-left"></th>
-                    {daysOfWeek.map(day => (
-                      <th key={day} className="py-2 px-3 text-left text-sm font-medium">{day}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {mealTypes.map(mealType => (
-                    <tr key={mealType} className="border-b">
-                      <td className="py-2 px-3 font-medium text-sm">{mealType}</td>
-                      {daysOfWeek.map(day => (
-                        <td key={`${mealType}-${day}`} className="py-2 px-3">
-                          <div className="bg-gray-100 rounded-lg p-2 text-xs h-16 flex items-center justify-center text-center">
-                            Tap to add {mealType}
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <Button
-            onClick={handleGenerateAIPlan}
-            className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white py-3 rounded-xl font-semibold"
-          >
-            Generate AI Meal Plan
+        {/* Action Buttons */}
+        <div className="flex gap-2 mb-6 overflow-x-auto">
+          <Button onClick={generateWeeklyPlan} className="flex items-center gap-2 whitespace-nowrap">
+            <ChefHat size={18} />
+            Generate AI Plan
           </Button>
-        </TabsContent>
+          <Button onClick={generateShoppingList} variant="outline" className="flex items-center gap-2 whitespace-nowrap">
+            <Plus size={18} />
+            Create Shopping List
+          </Button>
+        </div>
 
-        <TabsContent value="find" className="p-4">
-          <div className="bg-white rounded-xl shadow-md p-4 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <SearchIcon className="text-wasfah-orange" />
-              <h2 className="text-xl font-display font-semibold">AI Recipe Search</h2>
-            </div>
-
-            <RecipeSearch />
-          </div>
-        </TabsContent>
-      </Tabs>
+        {/* Weekly Meal Plan Grid */}
+        <div className="space-y-4">
+          {daysOfWeek.map((day) => (
+            <Card key={day}>
+              <CardHeader>
+                <CardTitle className="text-lg">{day}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {mealTypes.map((mealType) => {
+                    const meal = getMealForDayAndType(day, mealType.key);
+                    return (
+                      <div key={mealType.key} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium flex items-center gap-2">
+                            <span>{mealType.icon}</span>
+                            {mealType.label}
+                          </h4>
+                          {meal && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeMeal(meal.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              ×
+                            </Button>
+                          )}
+                        </div>
+                        {meal ? (
+                          <div className="space-y-2">
+                            <p className="font-medium text-sm">{meal.recipeName}</p>
+                            <div className="flex items-center gap-4 text-xs text-gray-600">
+                              <span className="flex items-center gap-1">
+                                <Clock size={12} />
+                                {meal.cookingTime}m
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Users size={12} />
+                                {meal.servings}
+                              </span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              Planned
+                            </Badge>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addMeal(day, mealType.key)}
+                            className="w-full h-16 text-gray-500 border-dashed"
+                          >
+                            <Plus size={16} className="mr-2" />
+                            Add {mealType.label}
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       <MobileNavigation />
     </div>
