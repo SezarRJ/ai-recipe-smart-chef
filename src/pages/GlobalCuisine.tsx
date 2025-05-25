@@ -5,14 +5,20 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Clock, Users, Star, Search } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Star, Search, Filter, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const GlobalCuisine = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [dietaryFilter, setDietaryFilter] = useState<string>("");
+  const [cookingTimeFilter, setCookingTimeFilter] = useState<string>("");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
 
   const cuisineCountries = [
     { code: "all", name: "All Countries", flag: "🌍" },
@@ -38,7 +44,12 @@ const GlobalCuisine = () => {
   ];
 
   const foodCategories = [
-    { code: "all", name: "All Categories", icon: "🍽️", subcategories: [] },
+    { 
+      code: "all", 
+      name: "All Categories", 
+      icon: "🍽️", 
+      subcategories: [] 
+    },
     { 
       code: "food", 
       name: "Food", 
@@ -59,57 +70,20 @@ const GlobalCuisine = () => {
     }
   ];
 
-  // Sample recipes data
-  const sampleRecipes = [
-    {
-      id: "1",
-      title: "Spaghetti Carbonara",
-      description: "Classic Italian pasta with eggs, cheese, and pancetta",
-      image: "/placeholder.svg",
-      cookingTime: 30,
-      servings: 4,
-      difficulty: "Medium",
-      cuisine: "Italian",
-      rating: 4.8,
-      country: "it",
-      category: "food"
-    },
-    {
-      id: "2",
-      title: "Kung Pao Chicken",
-      description: "Spicy Chinese stir-fry with peanuts and vegetables",
-      image: "/placeholder.svg",
-      cookingTime: 25,
-      servings: 3,
-      difficulty: "Medium",
-      cuisine: "Chinese",
-      rating: 4.6,
-      country: "cn",
-      category: "food"
-    },
-    {
-      id: "3",
-      title: "Tacos al Pastor",
-      description: "Traditional Mexican tacos with marinated pork",
-      image: "/placeholder.svg",
-      cookingTime: 45,
-      servings: 6,
-      difficulty: "Hard",
-      cuisine: "Mexican",
-      rating: 4.9,
-      country: "mx",
-      category: "food"
-    }
-  ];
-
-  const filteredRecipes = sampleRecipes.filter(recipe => {
-    const matchesCountry = selectedCountry === "all" || recipe.country === selectedCountry;
-    const matchesCategory = selectedCategory === "all" || recipe.category === selectedCategory;
-    return matchesCountry && matchesCategory;
-  });
+  const getSubcategories = () => {
+    const category = foodCategories.find(cat => cat.code === selectedCategory);
+    return category?.subcategories || [];
+  };
 
   const handleSearch = () => {
-    console.log('Searching with filters:', { selectedCountry, selectedCategory });
+    console.log('Searching with filters:', { 
+      selectedCountry, 
+      selectedCategory, 
+      selectedSubcategory,
+      dietaryFilter,
+      cookingTimeFilter,
+      difficultyFilter
+    });
   };
 
   return (
@@ -155,10 +129,10 @@ const GlobalCuisine = () => {
           </div>
         </div>
 
-        {/* Categories Filter */}
+        {/* Categories and Subcategories */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Select Category</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             {foodCategories.map((category) => (
               <Card
                 key={category.code}
@@ -167,20 +141,108 @@ const GlobalCuisine = () => {
                     ? 'ring-2 ring-wasfah-orange bg-orange-50' 
                     : 'hover:bg-gray-50'
                 }`}
-                onClick={() => setSelectedCategory(category.code)}
+                onClick={() => {
+                  setSelectedCategory(category.code);
+                  setSelectedSubcategory("all");
+                }}
               >
                 <CardContent className="p-4 text-center">
                   <div className="text-3xl mb-2">{category.icon}</div>
                   <h4 className="font-semibold mb-1">{category.name}</h4>
-                  {category.subcategories.length > 0 && (
-                    <div className="text-xs text-gray-600">
-                      {category.subcategories.length} subcategories
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* Subcategories */}
+          {selectedCategory !== "all" && getSubcategories().length > 0 && (
+            <div>
+              <h4 className="font-medium mb-3">Select Subcategory</h4>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={selectedSubcategory === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedSubcategory("all")}
+                >
+                  All
+                </Button>
+                {getSubcategories().map((sub) => (
+                  <Button
+                    key={sub}
+                    variant={selectedSubcategory === sub ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedSubcategory(sub)}
+                  >
+                    {sub}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Advanced Filters */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 mb-4"
+          >
+            <Filter size={16} />
+            Advanced Filters
+          </Button>
+
+          {showFilters && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Dietary Preferences</label>
+                    <Select value={dietaryFilter} onValueChange={setDietaryFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select dietary type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                        <SelectItem value="vegan">Vegan</SelectItem>
+                        <SelectItem value="gluten-free">Gluten-Free</SelectItem>
+                        <SelectItem value="keto">Keto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Cooking Time</label>
+                    <Select value={cookingTimeFilter} onValueChange={setCookingTimeFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select cooking time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="under-30">Under 30 mins</SelectItem>
+                        <SelectItem value="30-60">30-60 mins</SelectItem>
+                        <SelectItem value="over-60">Over 1 hour</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Difficulty</label>
+                    <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select difficulty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="expert">Expert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Search Button */}
@@ -194,74 +256,12 @@ const GlobalCuisine = () => {
           </Button>
         </div>
 
-        {/* Results Count */}
-        <div className="mb-4">
-          <p className="text-gray-600">
-            {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
-            {selectedCountry !== "all" && (
-              <span className="ml-2">
-                from {cuisineCountries.find(c => c.code === selectedCountry)?.name}
-              </span>
-            )}
-            {selectedCategory !== "all" && (
-              <span className="ml-2">
-                in {foodCategories.find(c => c.code === selectedCategory)?.name}
-              </span>
-            )}
-          </p>
+        {/* Placeholder Results */}
+        <div className="text-center py-12">
+          <MapPin size={48} className="mx-auto mb-4 text-gray-400" />
+          <h3 className="text-xl font-semibold mb-2">Search for recipes</h3>
+          <p className="text-gray-600">Use the filters above and click search to find recipes</p>
         </div>
-
-        {/* Recipes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredRecipes.map((recipe) => (
-            <Card key={recipe.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="relative h-48 bg-gray-200">
-                <img
-                  src={recipe.image}
-                  alt={recipe.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-white text-gray-800">
-                    {cuisineCountries.find(c => c.code === recipe.country)?.flag}
-                  </Badge>
-                </div>
-                <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/70 text-white px-2 py-1 rounded-md text-sm">
-                  <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                  {recipe.rating}
-                </div>
-              </div>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">{recipe.title}</CardTitle>
-                <p className="text-sm text-gray-600">{recipe.description}</p>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {recipe.cookingTime} min
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users size={14} />
-                    {recipe.servings} servings
-                  </div>
-                  <Badge variant="secondary">{recipe.difficulty}</Badge>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-wasfah-orange to-wasfah-green">
-                  View Recipe
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredRecipes.length === 0 && (
-          <div className="text-center py-12">
-            <MapPin size={48} className="mx-auto mb-4 text-gray-400" />
-            <h3 className="text-xl font-semibold mb-2">No recipes found</h3>
-            <p className="text-gray-600">Try selecting different country or category</p>
-          </div>
-        )}
       </div>
 
       <MobileNavigation />

@@ -6,31 +6,55 @@ import { Input } from "@/components/ui/input";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Activity, Heart, Scale, Target, TrendingUp, Calendar, Plus } from "lucide-react";
+import { ArrowLeft, Activity, Heart, Scale, Target, TrendingUp, Calendar, Plus, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const HealthTracking = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [weight, setWeight] = useState("");
+  const [weight, setWeight] = useState("74.6");
+  const [height, setHeight] = useState("175");
   const [heartRate, setHeartRate] = useState("");
   const [bloodPressure, setBloodPressure] = useState("");
   const [selectedGoal, setSelectedGoal] = useState("");
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
 
   const healthGoals = [
     "Weight Loss", "Muscle Gain", "Heart Healthy", "Low Sodium", 
     "High Protein", "Low Carb", "High Fiber", "Diabetes Management"
   ];
 
-  const weeklyData = [
-    { day: "Mon", weight: 75.2, steps: 8500, calories: 2100 },
-    { day: "Tue", weight: 75.0, steps: 9200, calories: 2050 },
-    { day: "Wed", weight: 74.8, steps: 7800, calories: 2200 },
-    { day: "Thu", weight: 74.9, steps: 10500, calories: 1950 },
-    { day: "Fri", weight: 74.7, steps: 9800, calories: 2150 },
-    { day: "Sat", weight: 74.5, steps: 12000, calories: 2300 },
-    { day: "Sun", weight: 74.6, steps: 6500, calories: 2000 }
+  const allergens = [
+    "Dairy", "Gluten", "Tree Nuts", "Shellfish", "Soy", "Eggs", 
+    "Fish", "Peanuts", "Sesame", "Sulfites"
   ];
+
+  const calculateBMI = () => {
+    const weightKg = parseFloat(weight);
+    const heightM = parseFloat(height) / 100;
+    if (weightKg && heightM) {
+      return (weightKg / (heightM * heightM)).toFixed(1);
+    }
+    return "0";
+  };
+
+  const getBMICategory = (bmi: number) => {
+    if (bmi < 18.5) return { category: "Underweight", color: "text-blue-600" };
+    if (bmi < 25) return { category: "Normal", color: "text-green-600" };
+    if (bmi < 30) return { category: "Overweight", color: "text-yellow-600" };
+    return { category: "Obese", color: "text-red-600" };
+  };
+
+  const handleAllergenToggle = (allergen: string) => {
+    setSelectedAllergens(prev => 
+      prev.includes(allergen) 
+        ? prev.filter(a => a !== allergen)
+        : [...prev, allergen]
+    );
+  };
+
+  const bmi = parseFloat(calculateBMI());
+  const bmiInfo = getBMICategory(bmi);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
@@ -55,14 +79,22 @@ const HealthTracking = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats with BMI */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="p-4 text-center">
               <Scale className="mx-auto mb-2 text-wasfah-orange" size={24} />
               <p className="text-sm text-gray-600">Weight</p>
-              <p className="text-xl font-bold">74.6 kg</p>
+              <p className="text-xl font-bold">{weight} kg</p>
               <p className="text-xs text-green-600">-0.6 kg this week</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Target className="mx-auto mb-2 text-purple-500" size={24} />
+              <p className="text-sm text-gray-600">BMI</p>
+              <p className="text-xl font-bold">{calculateBMI()}</p>
+              <p className={`text-xs ${bmiInfo.color}`}>{bmiInfo.category}</p>
             </CardContent>
           </Card>
           <Card>
@@ -81,15 +113,45 @@ const HealthTracking = () => {
               <p className="text-xs text-green-600">+15% today</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Target className="mx-auto mb-2 text-purple-500" size={24} />
-              <p className="text-sm text-gray-600">Calories</p>
-              <p className="text-xl font-bold">2,050</p>
-              <p className="text-xs text-gray-600">Target: 2,000</p>
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Allergen-Free Preferences */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="text-wasfah-orange" size={20} />
+              Allergen-Free Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">Select allergens you want to avoid in your recipes</p>
+            <div className="flex flex-wrap gap-2">
+              {allergens.map((allergen) => (
+                <Button
+                  key={allergen}
+                  variant={selectedAllergens.includes(allergen) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleAllergenToggle(allergen)}
+                  className="flex items-center gap-1"
+                >
+                  {allergen}
+                </Button>
+              ))}
+            </div>
+            {selectedAllergens.length > 0 && (
+              <div className="mt-4 p-3 bg-red-50 rounded-lg">
+                <p className="text-sm font-medium text-red-800">Active Allergen Restrictions:</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {selectedAllergens.map((allergen) => (
+                    <Badge key={allergen} variant="destructive" className="text-xs">
+                      {allergen}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Health Goals */}
         <Card className="mb-6">
@@ -121,51 +183,6 @@ const HealthTracking = () => {
           </CardContent>
         </Card>
 
-        {/* Weekly Progress */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="text-wasfah-orange" size={20} />
-              Weekly Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {weeklyData.map((day, index) => (
-                <div key={day.day} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 text-center">
-                      <p className="font-semibold">{day.day}</p>
-                    </div>
-                    <div className="flex gap-6">
-                      <div>
-                        <p className="text-xs text-gray-600">Weight</p>
-                        <p className="font-semibold">{day.weight} kg</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Steps</p>
-                        <p className="font-semibold">{day.steps.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Calories</p>
-                        <p className="font-semibold">{day.calories}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {index < weeklyData.length - 1 && day.weight > weeklyData[index + 1]?.weight && (
-                      <Badge variant="secondary" className="text-green-600">↓</Badge>
-                    )}
-                    {index < weeklyData.length - 1 && day.weight < weeklyData[index + 1]?.weight && (
-                      <Badge variant="secondary" className="text-red-600">↑</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Add New Entry */}
         <Card>
           <CardHeader>
@@ -175,7 +192,7 @@ const HealthTracking = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Weight (kg)</label>
                 <Input
@@ -183,6 +200,15 @@ const HealthTracking = () => {
                   placeholder="75.0"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Height (cm)</label>
+                <Input
+                  type="number"
+                  placeholder="175"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
                 />
               </div>
               <div>
