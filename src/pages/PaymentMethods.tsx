@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Plus } from 'lucide-react';
@@ -155,7 +156,7 @@ const PaymentMethods = () => {
   };
 
   const getCardIcon = (brand?: string) => {
-    // ... (same as original)
+    return <CreditCard size={20} className="text-wasfah-orange" />;
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { RecipeSearch } from "@/components/RecipeSearch";
@@ -5,8 +6,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { CategoryExplorer } from "@/components/CategoryExplorer";
-import { IngredientSelector } from "@/components/IngredientSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -28,6 +27,82 @@ const Explore = () => {
 
   const handleSubcategoryChange = (subcategory: string) => {
     setSelectedSubcategory(subcategory);
+  };
+
+  // Simple category explorer component
+  const SimpleCategoryExplorer = () => {
+    const categories = [
+      { id: 'breakfast', name: 'Breakfast', subcategories: ['Pancakes', 'Eggs', 'Cereal'] },
+      { id: 'lunch', name: 'Lunch', subcategories: ['Sandwiches', 'Salads', 'Soups'] },
+      { id: 'dinner', name: 'Dinner', subcategories: ['Pasta', 'Grilled', 'Stir-fry'] },
+      { id: 'dessert', name: 'Dessert', subcategories: ['Cakes', 'Ice Cream', 'Cookies'] }
+    ];
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {categories.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id ? "default" : "outline"}
+              onClick={() => handleCategoryChange(category.id)}
+              className="h-auto p-3"
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
+        {selectedCategory && (
+          <div className="grid grid-cols-3 gap-2">
+            {categories.find(c => c.id === selectedCategory)?.subcategories.map((sub) => (
+              <Button
+                key={sub}
+                variant={selectedSubcategory === sub ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleSubcategoryChange(sub)}
+              >
+                {sub}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Simple ingredient selector component
+  const SimpleIngredientSelector = () => {
+    const commonIngredients = [
+      'Chicken', 'Beef', 'Fish', 'Rice', 'Pasta', 'Tomatoes', 
+      'Onions', 'Garlic', 'Cheese', 'Eggs', 'Milk', 'Flour'
+    ];
+
+    const toggleIngredient = (ingredient: string) => {
+      const exists = selectedIngredients.find(ing => ing.name === ingredient);
+      if (exists) {
+        setSelectedIngredients(prev => prev.filter(ing => ing.name !== ingredient));
+      } else {
+        setSelectedIngredients(prev => [...prev, { name: ingredient, quantity: 1, unit: 'piece' }]);
+      }
+    };
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {commonIngredients.map((ingredient) => {
+          const isSelected = selectedIngredients.some(ing => ing.name === ingredient);
+          return (
+            <Button
+              key={ingredient}
+              variant={isSelected ? "default" : "outline"}
+              size="sm"
+              onClick={() => toggleIngredient(ingredient)}
+            >
+              {ingredient}
+            </Button>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -59,12 +134,7 @@ const Explore = () => {
             <CardTitle>Choose Category & Subcategory</CardTitle>
           </CardHeader>
           <CardContent>
-            <CategoryExplorer
-              selectedCategory={selectedCategory}
-              selectedSubcategory={selectedSubcategory}
-              onCategorySelect={handleCategoryChange}
-              onSubcategorySelect={handleSubcategoryChange}
-            />
+            <SimpleCategoryExplorer />
           </CardContent>
         </Card>
 
@@ -74,10 +144,7 @@ const Explore = () => {
             <CardTitle>Select Ingredients</CardTitle>
           </CardHeader>
           <CardContent>
-            <IngredientSelector
-              onIngredientsChange={handleIngredientsChange}
-              existingIngredients={selectedIngredients}
-            />
+            <SimpleIngredientSelector />
           </CardContent>
         </Card>
 
@@ -99,14 +166,21 @@ const Explore = () => {
           </Card>
         )}
 
-        {/* Filtered Recipe Results */}
-        <RecipeSearch
-          filters={{
-            category: selectedCategory,
-            subcategory: selectedSubcategory,
-            ingredients: selectedIngredients,
-          }}
-        />
+        {/* Simple Recipe Results */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recipe Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <p className="text-gray-600">
+                {selectedCategory || selectedIngredients.length > 0 
+                  ? "Recipes matching your filters will appear here" 
+                  : "Select categories or ingredients to see recipes"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <MobileNavigation />
