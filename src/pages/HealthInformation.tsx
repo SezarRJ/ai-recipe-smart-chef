@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import { Heart, Activity, User, Calendar, Save, AlertCircle } from 'lucide-react';
+import { Activity, User, Save, AlertCircle } from 'lucide-react';
 
 interface HealthProfile {
   personalInfo: {
@@ -33,24 +32,28 @@ const HealthInformation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [healthProfile, setHealthProfile] = useState<HealthProfile>({
-    personalInfo: {
-      age: "28",
-      gender: "female",
-      height: "165",
-      weight: "65",
-      activityLevel: "moderate"
-    },
-    medicalInfo: {
-      conditions: ["None"],
-      medications: [],
-      notes: ""
-    },
-    goals: {
-      weightGoal: "maintain",
-      fitnessGoal: "general_health",
-      timeframe: "6_months"
-    }
+  const [healthProfile, setHealthProfile] = useState<HealthProfile>(() => {
+    // Attempt to load from localStorage, otherwise use default
+    const savedProfile = localStorage.getItem('healthInformation');
+    return savedProfile ? JSON.parse(savedProfile) : {
+      personalInfo: {
+        age: "28",
+        gender: "female",
+        height: "165",
+        weight: "65",
+        activityLevel: "moderate"
+      },
+      medicalInfo: {
+        conditions: ["None"],
+        medications: [],
+        notes: ""
+      },
+      goals: {
+        weightGoal: "maintain",
+        fitnessGoal: "general_health",
+        timeframe: "6_months"
+      }
+    };
   });
 
   const [newCondition, setNewCondition] = useState("");
@@ -78,76 +81,63 @@ const HealthInformation = () => {
     { value: "strength", label: "Build Strength" }
   ];
 
-  const updatePersonalInfo = (field: string, value: string) => {
+  const timeframes = [ // Centralized timeframes
+    { value: "1_month", label: "1 Month" },
+    { value: "3_months", label: "3 Months" },
+    { value: "6_months", label: "6 Months" },
+    { value: "1_year", label: "1 Year" },
+    { value: "long_term", label: "Long Term" }
+  ];
+
+  const updateProfileField = (section: keyof HealthProfile, field: string, value: string) => {
     setHealthProfile(prev => ({
       ...prev,
-      personalInfo: { ...prev.personalInfo, [field]: value }
+      [section]: { ...prev[section], [field]: value }
     }));
   };
 
-  const updateGoals = (field: string, value: string) => {
-    setHealthProfile(prev => ({
-      ...prev,
-      goals: { ...prev.goals, [field]: value }
-    }));
-  };
-
-  const addCondition = () => {
-    if (newCondition.trim()) {
-      setHealthProfile(prev => ({
-        ...prev,
-        medicalInfo: {
-          ...prev.medicalInfo,
-          conditions: [...prev.medicalInfo.conditions.filter(c => c !== "None"), newCondition.trim()]
-        }
-      }));
-      setNewCondition("");
+  const addMedicalItem = (type: 'conditions' | 'medications') => {
+    const newItem = type === 'conditions' ? newCondition : newMedication;
+    if (newItem.trim()) {
+      setHealthProfile(prev => {
+        const currentItems = prev.medicalInfo[type];
+        const updatedItems = type === 'conditions'
+          ? [...currentItems.filter(c => c !== "None"), newItem.trim()]
+          : [...currentItems, newItem.trim()];
+        return {
+          ...prev,
+          medicalInfo: {
+            ...prev.medicalInfo,
+            [type]: updatedItems
+          }
+        };
+      });
+      if (type === 'conditions') setNewCondition("");
+      else setNewMedication("");
     }
   };
 
-  const removeCondition = (condition: string) => {
-    setHealthProfile(prev => ({
-      ...prev,
-      medicalInfo: {
-        ...prev.medicalInfo,
-        conditions: prev.medicalInfo.conditions.filter(c => c !== condition).length > 0 
-          ? prev.medicalInfo.conditions.filter(c => c !== condition)
-          : ["None"]
-      }
-    }));
-  };
-
-  const addMedication = () => {
-    if (newMedication.trim()) {
-      setHealthProfile(prev => ({
+  const removeMedicalItem = (type: 'conditions' | 'medications', itemToRemove: string) => {
+    setHealthProfile(prev => {
+      const updatedItems = prev.medicalInfo[type].filter(item => item !== itemToRemove);
+      return {
         ...prev,
         medicalInfo: {
           ...prev.medicalInfo,
-          medications: [...prev.medicalInfo.medications, newMedication.trim()]
+          [type]: type === 'conditions' && updatedItems.length === 0 ? ["None"] : updatedItems
         }
-      }));
-      setNewMedication("");
-    }
+      };
+    });
   };
 
-  const removeMedication = (medication: string) => {
-    setHealthProfile(prev => ({
-      ...prev,
-      medicalInfo: {
-        ...prev.medicalInfo,
-        medications: prev.medicalInfo.medications.filter(m => m !== medication)
-      }
-    }));
-  };
-
-  const calculateBMI = () => {
+  const calculateBMI = useMemo(() => {
     const weight = parseFloat(healthProfile.personalInfo.weight);
     const height = parseFloat(healthProfile.personalInfo.height) / 100; // convert cm to m
-    if (weight && height) {
+    if (weight > 0 && height > 0) {
       return (weight / (height * height)).toFixed(1);
     }
     return "0";
-  };
+  }, [healthProfile.personalInfo.weight, healthProfile.personalInfo.height]);
 
   const getBMICategory = (bmi: number) => {
     if (bmi < 18.5) return { category: "Underweight", color: "text-blue-600" };
@@ -156,18 +146,16 @@ const HealthInformation = () => {
     return { category: "Obese", color: "text-red-600" };
   };
 
+  const bmiValue = parseFloat(calculateBMI);
+  const bmiInfo = getBMICategory(bmiValue);
+
   const saveHealthInfo = () => {
-    // Save to localStorage for demo
     localStorage.setItem('healthInformation', JSON.stringify(healthProfile));
-    
     toast({
       title: "Health information saved",
-      description: "Your health profile has been updated successfully",
+      description: "Your health profile has been updated successfully.",
     });
   };
-
-  const bmi = parseFloat(calculateBMI());
-  const bmiInfo = getBMICategory(bmi);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
@@ -183,34 +171,32 @@ const HealthInformation = () => {
 
         <div className="space-y-6">
           {/* Personal Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="text-wasfah-orange" size={20} />
-                  Personal Information
+                  Personal & Activity
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Age</label>
+                    <label className="block text-sm font-medium mb-1" htmlFor="age">Age</label>
                     <Input
+                      id="age"
                       type="number"
                       value={healthProfile.personalInfo.age}
-                      onChange={(e) => updatePersonalInfo('age', e.target.value)}
+                      onChange={(e) => updateProfileField('personalInfo', 'age', e.target.value)}
                       placeholder="Enter your age"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Gender</label>
+                    <label className="block text-sm font-medium mb-1" htmlFor="gender">Gender</label>
                     <select
+                      id="gender"
                       value={healthProfile.personalInfo.gender}
-                      onChange={(e) => updatePersonalInfo('gender', e.target.value)}
+                      onChange={(e) => updateProfileField('personalInfo', 'gender', e.target.value)}
                       className="w-full px-3 py-2 border rounded-md bg-white"
                     >
                       <option value="female">Female</option>
@@ -220,44 +206,45 @@ const HealthInformation = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Height (cm)</label>
+                    <label className="block text-sm font-medium mb-1" htmlFor="height">Height (cm)</label>
                     <Input
+                      id="height"
                       type="number"
                       value={healthProfile.personalInfo.height}
-                      onChange={(e) => updatePersonalInfo('height', e.target.value)}
+                      onChange={(e) => updateProfileField('personalInfo', 'height', e.target.value)}
                       placeholder="Enter your height"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Weight (kg)</label>
+                    <label className="block text-sm font-medium mb-1" htmlFor="weight">Weight (kg)</label>
                     <Input
+                      id="weight"
                       type="number"
                       value={healthProfile.personalInfo.weight}
-                      onChange={(e) => updatePersonalInfo('weight', e.target.value)}
+                      onChange={(e) => updateProfileField('personalInfo', 'weight', e.target.value)}
                       placeholder="Enter your weight"
                     />
                   </div>
+                  <div className="sm:col-span-2"> {/* Takes full width on small screens and up */}
+                    <label className="block text-sm font-medium mb-1" htmlFor="activityLevel">Activity Level</label>
+                    <select
+                      id="activityLevel"
+                      value={healthProfile.personalInfo.activityLevel}
+                      onChange={(e) => updateProfileField('personalInfo', 'activityLevel', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md bg-white"
+                    >
+                      {activityLevels.map(level => (
+                        <option key={level.value} value={level.value}>{level.label}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-1">Activity Level</label>
-                  <select
-                    value={healthProfile.personalInfo.activityLevel}
-                    onChange={(e) => updatePersonalInfo('activityLevel', e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md bg-white"
-                  >
-                    {activityLevels.map(level => (
-                      <option key={level.value} value={level.value}>{level.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* BMI Display */}
-                {bmi > 0 && (
+                {bmiValue > 0 && (
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="font-medium mb-2">Body Mass Index (BMI)</h3>
                     <div className="flex items-center gap-4">
-                      <span className="text-2xl font-bold">{calculateBMI()}</span>
+                      <span className="text-2xl font-bold">{calculateBMI}</span>
                       <span className={`font-medium ${bmiInfo.color}`}>{bmiInfo.category}</span>
                     </div>
                   </div>
@@ -266,12 +253,63 @@ const HealthInformation = () => {
             </Card>
           </motion.div>
 
+          {/* Health Goals */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="text-wasfah-green" size={20} />
+                  Health Goals
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="weightGoal">Weight Goal</label>
+                    <select
+                      id="weightGoal"
+                      value={healthProfile.goals.weightGoal}
+                      onChange={(e) => updateProfileField('goals', 'weightGoal', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md bg-white"
+                    >
+                      {weightGoals.map(goal => (
+                        <option key={goal.value} value={goal.value}>{goal.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="fitnessGoal">Fitness Goal</label>
+                    <select
+                      id="fitnessGoal"
+                      value={healthProfile.goals.fitnessGoal}
+                      onChange={(e) => updateProfileField('goals', 'fitnessGoal', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md bg-white"
+                    >
+                      {fitnessGoals.map(goal => (
+                        <option key={goal.value} value={goal.value}>{goal.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2"> {/* Takes full width on small screens and up */}
+                    <label className="block text-sm font-medium mb-1" htmlFor="timeframe">Timeframe</label>
+                    <select
+                      id="timeframe"
+                      value={healthProfile.goals.timeframe}
+                      onChange={(e) => updateProfileField('goals', 'timeframe', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md bg-white"
+                    >
+                      {timeframes.map(frame => (
+                        <option key={frame.value} value={frame.value}>{frame.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Medical Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -288,9 +326,9 @@ const HealthInformation = () => {
                       value={newCondition}
                       onChange={(e) => setNewCondition(e.target.value)}
                       placeholder="Add a medical condition"
-                      onKeyPress={(e) => e.key === 'Enter' && addCondition()}
+                      onKeyPress={(e) => e.key === 'Enter' && addMedicalItem('conditions')}
                     />
-                    <Button onClick={addCondition}>Add</Button>
+                    <Button onClick={() => addMedicalItem('conditions')}>Add</Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {healthProfile.medicalInfo.conditions.map((condition, index) => (
@@ -301,7 +339,7 @@ const HealthInformation = () => {
                         {condition}
                         {condition !== "None" && (
                           <button
-                            onClick={() => removeCondition(condition)}
+                            onClick={() => removeMedicalItem('conditions', condition)}
                             className="text-red-600 hover:text-red-800"
                           >
                             ×
@@ -320,9 +358,9 @@ const HealthInformation = () => {
                       value={newMedication}
                       onChange={(e) => setNewMedication(e.target.value)}
                       placeholder="Add a medication"
-                      onKeyPress={(e) => e.key === 'Enter' && addMedication()}
+                      onKeyPress={(e) => e.key === 'Enter' && addMedicalItem('medications')}
                     />
-                    <Button onClick={addMedication}>Add</Button>
+                    <Button onClick={() => addMedicalItem('medications')}>Add</Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {healthProfile.medicalInfo.medications.map((medication, index) => (
@@ -332,7 +370,7 @@ const HealthInformation = () => {
                       >
                         {medication}
                         <button
-                          onClick={() => removeMedication(medication)}
+                          onClick={() => removeMedicalItem('medications', medication)}
                           className="text-blue-600 hover:text-blue-800"
                         >
                           ×
@@ -341,80 +379,20 @@ const HealthInformation = () => {
                     ))}
                   </div>
                   {healthProfile.medicalInfo.medications.length === 0 && (
-                    <p className="text-gray-500 text-sm">No medications added</p>
+                    <p className="text-gray-500 text-sm mt-2">No medications added.</p>
                   )}
                 </div>
 
                 {/* Additional Notes */}
                 <div>
-                  <label className="block text-sm font-medium mb-2">Additional Notes</label>
+                  <label className="block text-sm font-medium mb-2" htmlFor="notes">Additional Notes</label>
                   <Textarea
+                    id="notes"
                     value={healthProfile.medicalInfo.notes}
-                    onChange={(e) => setHealthProfile(prev => ({
-                      ...prev,
-                      medicalInfo: { ...prev.medicalInfo, notes: e.target.value }
-                    }))}
+                    onChange={(e) => updateProfileField('medicalInfo', 'notes', e.target.value)}
                     placeholder="Any additional health information, allergies, or notes..."
                     rows={3}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Health Goals */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="text-wasfah-green" size={20} />
-                  Health Goals
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Weight Goal</label>
-                    <select
-                      value={healthProfile.goals.weightGoal}
-                      onChange={(e) => updateGoals('weightGoal', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md bg-white"
-                    >
-                      {weightGoals.map(goal => (
-                        <option key={goal.value} value={goal.value}>{goal.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Fitness Goal</label>
-                    <select
-                      value={healthProfile.goals.fitnessGoal}
-                      onChange={(e) => updateGoals('fitnessGoal', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md bg-white"
-                    >
-                      {fitnessGoals.map(goal => (
-                        <option key={goal.value} value={goal.value}>{goal.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Timeframe</label>
-                    <select
-                      value={healthProfile.goals.timeframe}
-                      onChange={(e) => updateGoals('timeframe', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-md bg-white"
-                    >
-                      <option value="1_month">1 Month</option>
-                      <option value="3_months">3 Months</option>
-                      <option value="6_months">6 Months</option>
-                      <option value="1_year">1 Year</option>
-                      <option value="long_term">Long Term</option>
-                    </select>
-                  </div>
                 </div>
               </CardContent>
             </Card>
