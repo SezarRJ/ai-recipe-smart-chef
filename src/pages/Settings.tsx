@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,10 @@ import {
   Trash2, 
   Info, 
   FileText, 
-  LogOut 
+  LogOut,
+  Moon, // Added for Dark Mode
+  Fingerprint, // Added for Biometric Authentication
+  Palette // Added for Theme Customization
 } from "lucide-react";
 
 const Settings = () => {
@@ -32,11 +34,16 @@ const Settings = () => {
     notifications: true,
     sounds: true,
     darkMode: false,
-    autoSync: true
+    autoSync: true,
+    biometricAuth: false, // New setting for biometric authentication
   });
 
-  const toggleSetting = (key: keyof typeof settings) => {
+  const toggleSetting = (key) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    // Future implementation for dark mode:
+    if (key === 'darkMode') {
+      document.documentElement.classList.toggle('dark', !settings.darkMode);
+    }
   };
 
   const handleSignOut = async () => {
@@ -72,6 +79,19 @@ const Settings = () => {
           hasSwitch: true,
           value: settings.sounds,
           onToggle: () => toggleSetting("sounds")
+        },
+        {
+          icon: Moon, // Dark Mode Toggle
+          label: "Dark Mode",
+          hasSwitch: true,
+          value: settings.darkMode,
+          onToggle: () => toggleSetting("darkMode")
+        },
+        {
+          icon: Palette, // Theme Customization
+          label: "Theme Customization",
+          onClick: () => navigate("/theme-customization"),
+          hasArrow: true
         }
       ]
     },
@@ -98,9 +118,17 @@ const Settings = () => {
         },
         {
           icon: Database,
-          label: "Manage Your Data",
-          onClick: () => navigate("/data-management"),
-          hasArrow: true
+          label: "Account Backup & Sync", // Updated label
+          hasSwitch: true, // Added switch for sync
+          value: settings.autoSync,
+          onToggle: () => toggleSetting("autoSync"),
+        },
+        {
+          icon: Fingerprint, // Biometric Authentication Toggle
+          label: "Biometric Authentication",
+          hasSwitch: true,
+          value: settings.biometricAuth,
+          onToggle: () => toggleSetting("biometricAuth")
         },
         {
           icon: CreditCard,
@@ -187,7 +215,7 @@ const Settings = () => {
                     <div className="flex items-center gap-2">
                       {item.hasSwitch && (
                         <Switch
-                          checked={item.value as boolean}
+                          checked={item.value}
                           onCheckedChange={item.onToggle}
                         />
                       )}
