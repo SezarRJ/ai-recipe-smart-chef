@@ -1,10 +1,9 @@
-
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { RecipeSearch } from "@/components/RecipeSearch";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Search, Grid3X3, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CategoryExplorer } from "@/components/CategoryExplorer";
 import { IngredientSelector } from "@/components/IngredientSelector";
@@ -14,17 +13,27 @@ import { Badge } from "@/components/ui/badge";
 const Explore = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState<'categories' | 'search' | 'ingredients'>('categories');
   const [selectedIngredients, setSelectedIngredients] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   const handleIngredientsChange = (ingredients: any[]) => {
     setSelectedIngredients(ingredients);
   };
 
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setSelectedSubcategory(null); // reset subcategory when category changes
+  };
+
+  const handleSubcategoryChange = (subcategory: string) => {
+    setSelectedSubcategory(subcategory);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
       <div className="container mx-auto px-4">
-        {/* Header with Back Button */}
+        {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
@@ -39,49 +48,44 @@ const Explore = () => {
               {t("nav.explore")}
             </h1>
             <p className="text-gray-600 text-sm sm:text-base">
-              Discover recipes for any occasion
+              Filter recipes by category and ingredients
             </p>
           </div>
         </div>
 
-        {/* View Toggle */}
-        <div className="flex items-center justify-center mb-6">
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={activeView === 'categories' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveView('categories')}
-              className="flex items-center gap-2"
-            >
-              <Grid3X3 size={16} />
-              <span className="hidden sm:inline">Categories</span>
-            </Button>
-            <Button
-              variant={activeView === 'ingredients' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveView('ingredients')}
-              className="flex items-center gap-2"
-            >
-              <Plus size={16} />
-              <span className="hidden sm:inline">Ingredients</span>
-            </Button>
-            <Button
-              variant={activeView === 'search' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveView('search')}
-              className="flex items-center gap-2"
-            >
-              <Search size={16} />
-              <span className="hidden sm:inline">Search</span>
-            </Button>
-          </div>
-        </div>
+        {/* Category and Subcategory Selection */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Choose Category & Subcategory</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CategoryExplorer
+              selectedCategory={selectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              onCategorySelect={handleCategoryChange}
+              onSubcategorySelect={handleSubcategoryChange}
+            />
+          </CardContent>
+        </Card>
 
-        {/* Selected Ingredients Summary */}
+        {/* Ingredient Selector */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Select Ingredients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <IngredientSelector
+              onIngredientsChange={handleIngredientsChange}
+              existingIngredients={selectedIngredients}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Selected Ingredients Display */}
         {selectedIngredients.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg">Selected Ingredients ({selectedIngredients.length})</CardTitle>
+              <CardTitle>Selected Ingredients ({selectedIngredients.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
@@ -95,17 +99,16 @@ const Explore = () => {
           </Card>
         )}
 
-        {/* Content */}
-        {activeView === 'categories' && <CategoryExplorer />}
-        {activeView === 'ingredients' && (
-          <IngredientSelector 
-            onIngredientsChange={handleIngredientsChange}
-            existingIngredients={selectedIngredients}
-          />
-        )}
-        {activeView === 'search' && <RecipeSearch />}
+        {/* Filtered Recipe Results */}
+        <RecipeSearch
+          filters={{
+            category: selectedCategory,
+            subcategory: selectedSubcategory,
+            ingredients: selectedIngredients,
+          }}
+        />
       </div>
-      
+
       <MobileNavigation />
     </div>
   );
