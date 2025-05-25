@@ -1,335 +1,420 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { MobileNavigation } from "@/components/MobileNavigation";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Plus, ShoppingCart, Trash2, Share2, Check } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, ShoppingCart, Trash2, Edit, Check, X } from 'lucide-react';
+
+interface ShoppingItem {
+  id: string;
+  name: string;
+  quantity: string;
+  category: string;
+  checked: boolean;
+  addedDate: string;
+}
+
+interface ShoppingList {
+  id: string;
+  name: string;
+  items: ShoppingItem[];
+  createdDate: string;
+  totalItems: number;
+  completedItems: number;
+}
 
 const ShoppingLists = () => {
-  const { t } = useLanguage();
-  const [lists, setLists] = useState([
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([
     {
-      id: 1,
+      id: "1",
       name: "Weekly Groceries",
+      createdDate: "2024-01-28",
+      totalItems: 8,
+      completedItems: 3,
       items: [
-        { id: 1, name: "Milk", quantity: "1L", checked: false, category: "Dairy" },
-        { id: 2, name: "Bread", quantity: "2 loaves", checked: true, category: "Bakery" },
-        { id: 3, name: "Eggs", quantity: "12", checked: false, category: "Dairy" },
-        { id: 4, name: "Chicken breast", quantity: "1kg", checked: false, category: "Meat" },
-        { id: 5, name: "Tomatoes", quantity: "500g", checked: false, category: "Produce" }
-      ],
-      createdAt: "2024-01-15"
+        { id: "1", name: "Chicken breast", quantity: "2 lbs", category: "Meat", checked: true, addedDate: "2024-01-28" },
+        { id: "2", name: "Broccoli", quantity: "1 head", category: "Vegetables", checked: false, addedDate: "2024-01-28" },
+        { id: "3", name: "Greek yogurt", quantity: "2 cups", category: "Dairy", checked: true, addedDate: "2024-01-28" },
+        { id: "4", name: "Salmon fillet", quantity: "1 lb", category: "Meat", checked: false, addedDate: "2024-01-28" },
+        { id: "5", name: "Sweet potatoes", quantity: "3 lbs", category: "Vegetables", checked: false, addedDate: "2024-01-28" },
+        { id: "6", name: "Olive oil", quantity: "1 bottle", category: "Pantry", checked: true, addedDate: "2024-01-28" },
+        { id: "7", name: "Eggs", quantity: "1 dozen", category: "Dairy", checked: false, addedDate: "2024-01-28" },
+        { id: "8", name: "Spinach", quantity: "1 bag", category: "Vegetables", checked: false, addedDate: "2024-01-28" },
+      ]
     },
     {
-      id: 2,
-      name: "Mediterranean Recipe",
+      id: "2", 
+      name: "Party Supplies",
+      createdDate: "2024-01-25",
+      totalItems: 5,
+      completedItems: 1,
       items: [
-        { id: 6, name: "Chickpeas", quantity: "2 cans", checked: false, category: "Canned Goods" },
-        { id: 7, name: "Feta cheese", quantity: "200g", checked: false, category: "Dairy" },
-        { id: 8, name: "Olive oil", quantity: "1 bottle", checked: true, category: "Oils" },
-        { id: 9, name: "Cucumber", quantity: "2", checked: false, category: "Produce" }
-      ],
-      createdAt: "2024-01-14"
+        { id: "9", name: "Chips", quantity: "3 bags", category: "Snacks", checked: true, addedDate: "2024-01-25" },
+        { id: "10", name: "Soda", quantity: "2 liters", category: "Beverages", checked: false, addedDate: "2024-01-25" },
+        { id: "11", name: "Cake mix", quantity: "2 boxes", category: "Baking", checked: false, addedDate: "2024-01-25" },
+        { id: "12", name: "Ice cream", quantity: "1 tub", category: "Frozen", checked: false, addedDate: "2024-01-25" },
+        { id: "13", name: "Napkins", quantity: "1 pack", category: "Paper goods", checked: false, addedDate: "2024-01-25" },
+      ]
     }
   ]);
-  
-  const [newItemName, setNewItemName] = useState("");
-  const [newItemQuantity, setNewItemQuantity] = useState("");
-  const [activeList, setActiveList] = useState(0);
+
+  const [activeList, setActiveList] = useState<string | null>("1");
   const [showNewListForm, setShowNewListForm] = useState(false);
   const [newListName, setNewListName] = useState("");
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemQuantity, setNewItemQuantity] = useState("");
+  const [editingItem, setEditingItem] = useState<string | null>(null);
 
-  const toggleItem = (listIndex: number, itemId: number) => {
-    setLists(prevLists => {
-      const updatedLists = [...prevLists];
-      const item = updatedLists[listIndex].items.find(item => item.id === itemId);
-      if (item) {
-        item.checked = !item.checked;
-      }
-      return updatedLists;
+  const categories = ["Vegetables", "Fruits", "Meat", "Dairy", "Pantry", "Snacks", "Beverages", "Baking", "Frozen", "Paper goods"];
+
+  const createNewList = () => {
+    if (!newListName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a list name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newList: ShoppingList = {
+      id: Date.now().toString(),
+      name: newListName,
+      items: [],
+      createdDate: new Date().toISOString().split('T')[0],
+      totalItems: 0,
+      completedItems: 0
+    };
+
+    setShoppingLists(prev => [...prev, newList]);
+    setActiveList(newList.id);
+    setNewListName("");
+    setShowNewListForm(false);
+    
+    toast({
+      title: "List created",
+      description: `"${newListName}" has been created`,
     });
   };
 
-  const addItem = () => {
-    if (!newItemName.trim()) return;
-    
-    const newItem = {
-      id: Date.now(),
+  const addItemToList = (listId: string) => {
+    if (!newItemName.trim() || !newItemQuantity.trim()) {
+      toast({
+        title: "Error", 
+        description: "Please enter item name and quantity",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newItem: ShoppingItem = {
+      id: Date.now().toString(),
       name: newItemName,
-      quantity: newItemQuantity || "1",
+      quantity: newItemQuantity,
+      category: "Pantry",
       checked: false,
-      category: "Other"
+      addedDate: new Date().toISOString().split('T')[0]
     };
 
-    setLists(prevLists => {
-      const updatedLists = [...prevLists];
-      updatedLists[activeList].items.push(newItem);
-      return updatedLists;
-    });
+    setShoppingLists(prev => prev.map(list => {
+      if (list.id === listId) {
+        const updatedItems = [...list.items, newItem];
+        return {
+          ...list,
+          items: updatedItems,
+          totalItems: updatedItems.length,
+          completedItems: updatedItems.filter(item => item.checked).length
+        };
+      }
+      return list;
+    }));
 
     setNewItemName("");
     setNewItemQuantity("");
     
     toast({
       title: "Item added",
-      description: `${newItemName} has been added to your shopping list`,
+      description: `${newItemName} added to shopping list`,
     });
   };
 
-  const removeItem = (listIndex: number, itemId: number) => {
-    setLists(prevLists => {
-      const updatedLists = [...prevLists];
-      updatedLists[listIndex].items = updatedLists[listIndex].items.filter(item => item.id !== itemId);
-      return updatedLists;
-    });
+  const toggleItemCheck = (listId: string, itemId: string) => {
+    setShoppingLists(prev => prev.map(list => {
+      if (list.id === listId) {
+        const updatedItems = list.items.map(item => 
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        );
+        return {
+          ...list,
+          items: updatedItems,
+          completedItems: updatedItems.filter(item => item.checked).length
+        };
+      }
+      return list;
+    }));
   };
 
-  const createNewList = () => {
-    if (!newListName.trim()) return;
-
-    const newList = {
-      id: Date.now(),
-      name: newListName,
-      items: [],
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    setLists(prevLists => [...prevLists, newList]);
-    setActiveList(lists.length);
-    setNewListName("");
-    setShowNewListForm(false);
+  const removeItem = (listId: string, itemId: string) => {
+    setShoppingLists(prev => prev.map(list => {
+      if (list.id === listId) {
+        const updatedItems = list.items.filter(item => item.id !== itemId);
+        return {
+          ...list,
+          items: updatedItems,
+          totalItems: updatedItems.length,
+          completedItems: updatedItems.filter(item => item.checked).length
+        };
+      }
+      return list;
+    }));
     
     toast({
-      title: "List created",
-      description: `${newListName} has been created`,
+      title: "Item removed",
+      description: "Item removed from shopping list",
     });
   };
 
-  const shareList = (listIndex: number) => {
-    const list = lists[listIndex];
-    const shareText = `Shopping List: ${list.name}\n\n${list.items.map(item => 
-      `${item.checked ? '✓' : '○'} ${item.name} - ${item.quantity}`
-    ).join('\n')}`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: `Shopping List: ${list.name}`,
-        text: shareText,
-      });
-    } else {
-      navigator.clipboard.writeText(shareText);
-      toast({
-        title: "List copied!",
-        description: "Shopping list copied to clipboard",
-      });
+  const removeList = (listId: string) => {
+    setShoppingLists(prev => prev.filter(list => list.id !== listId));
+    if (activeList === listId) {
+      setActiveList(shoppingLists.length > 1 ? shoppingLists[0].id : null);
     }
-  };
-
-  const getItemsByCategory = (items: any[]) => {
-    const categories: { [key: string]: any[] } = {};
-    items.forEach(item => {
-      if (!categories[item.category]) {
-        categories[item.category] = [];
-      }
-      categories[item.category].push(item);
+    
+    toast({
+      title: "List deleted",
+      description: "Shopping list has been deleted",
     });
-    return categories;
   };
 
-  const completedItems = lists[activeList]?.items.filter(item => item.checked).length || 0;
-  const totalItems = lists[activeList]?.items.length || 0;
-  const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+  const clearCompletedItems = (listId: string) => {
+    setShoppingLists(prev => prev.map(list => {
+      if (list.id === listId) {
+        const updatedItems = list.items.filter(item => !item.checked);
+        return {
+          ...list,
+          items: updatedItems,
+          totalItems: updatedItems.length,
+          completedItems: 0
+        };
+      }
+      return list;
+    }));
+    
+    toast({
+      title: "Completed items cleared",
+      description: "All completed items have been removed",
+    });
+  };
+
+  const activeListData = shoppingLists.find(list => list.id === activeList);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
       <div className="container mx-auto px-4">
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">
-            Smart Shopping Lists
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            Organize your grocery shopping efficiently
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">Shopping Lists</h1>
+          <p className="text-gray-600">Organize your shopping and track your purchases</p>
+        </motion.div>
 
-        {/* List Tabs */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {lists.map((list, index) => (
-            <Button
-              key={list.id}
-              variant={activeList === index ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveList(index)}
-              className="whitespace-nowrap"
-            >
-              {list.name}
-            </Button>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowNewListForm(true)}
-            className="whitespace-nowrap"
-          >
-            <Plus size={16} className="mr-1" />
-            New List
-          </Button>
-        </div>
-
-        {/* New List Form */}
-        {showNewListForm && (
-          <Card className="mb-4">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <Input
-                  placeholder="List name"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                />
-                <div className="flex gap-2">
-                  <Button onClick={createNewList} size="sm">
-                    Create List
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Lists Sidebar */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>My Lists</span>
+                  <Button size="sm" onClick={() => setShowNewListForm(true)}>
+                    <Plus size={16} />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setShowNewListForm(false);
-                      setNewListName("");
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {lists.length > 0 && (
-          <>
-            {/* Progress */}
-            <Card className="mb-4">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">{lists[activeList].name}</h3>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => shareList(activeList)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {/* New List Form */}
+                <AnimatePresence>
+                  {showNewListForm && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-4 p-3 border rounded-lg"
                     >
-                      <Share2 size={16} />
-                    </Button>
+                      <Input
+                        placeholder="List name"
+                        value={newListName}
+                        onChange={(e) => setNewListName(e.target.value)}
+                        className="mb-2"
+                        onKeyPress={(e) => e.key === 'Enter' && createNewList()}
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={createNewList}>
+                          <Check size={14} />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setShowNewListForm(false)}>
+                          <X size={14} />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Lists */}
+                {shoppingLists.map((list) => (
+                  <div
+                    key={list.id}
+                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                      activeList === list.id ? 'border-wasfah-orange bg-orange-50' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setActiveList(list.id)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-medium">{list.name}</h3>
+                        <p className="text-sm text-gray-600">
+                          {list.completedItems}/{list.totalItems} completed
+                        </p>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                          <div
+                            className="bg-wasfah-green h-2 rounded-full transition-all"
+                            style={{ width: `${list.totalItems > 0 ? (list.completedItems / list.totalItems) * 100 : 0}%` }}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeList(list.id);
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>{completedItems} of {totalItems} items completed</span>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-wasfah-orange to-wasfah-green h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
+          </div>
 
-            {/* Add Item */}
-            <Card className="mb-4">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Item name"
-                      value={newItemName}
-                      onChange={(e) => setNewItemName(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Input
-                      placeholder="Qty"
-                      value={newItemQuantity}
-                      onChange={(e) => setNewItemQuantity(e.target.value)}
-                      className="w-20"
-                    />
-                  </div>
-                  <Button onClick={addItem} className="w-full">
-                    <Plus size={16} className="mr-2" />
-                    Add Item
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Shopping List Items */}
-            <div className="space-y-4">
-              {Object.entries(getItemsByCategory(lists[activeList].items)).map(([category, items]) => (
-                <Card key={category}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      {category}
-                      <Badge variant="secondary">{items.length}</Badge>
+          {/* Active List */}
+          <div className="lg:col-span-3">
+            {activeListData ? (
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingCart className="text-wasfah-orange" size={20} />
+                      {activeListData.name}
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      {items.map((item) => (
-                        <div
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => clearCompletedItems(activeListData.id)}
+                        disabled={activeListData.completedItems === 0}
+                      >
+                        Clear Completed
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Add Item Form */}
+                  <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Item name"
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="Quantity"
+                        value={newItemQuantity}
+                        onChange={(e) => setNewItemQuantity(e.target.value)}
+                        className="w-32"
+                      />
+                      <Button onClick={() => addItemToList(activeListData.id)}>
+                        <Plus size={16} />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Shopping Items */}
+                  <div className="space-y-2">
+                    <AnimatePresence>
+                      {activeListData.items.map((item) => (
+                        <motion.div
                           key={item.id}
-                          className={`flex items-center gap-3 p-2 rounded ${
-                            item.checked ? 'bg-green-50 text-green-800' : 'bg-white'
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className={`flex items-center gap-3 p-3 border rounded-lg ${
+                            item.checked ? 'bg-green-50 opacity-60' : 'bg-white'
                           }`}
                         >
                           <Checkbox
                             checked={item.checked}
-                            onCheckedChange={() => toggleItem(activeList, item.id)}
+                            onCheckedChange={() => toggleItemCheck(activeListData.id, item.id)}
                           />
+                          
                           <div className="flex-1">
-                            <span className={item.checked ? 'line-through' : ''}>
+                            <div className={`font-medium ${item.checked ? 'line-through text-gray-500' : ''}`}>
                               {item.name}
-                            </span>
-                            <span className="text-gray-500 ml-2">
-                              {item.quantity}
-                            </span>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {item.quantity} • {item.category}
+                            </div>
                           </div>
+                          
                           <Button
-                            variant="ghost"
                             size="sm"
-                            onClick={() => removeItem(activeList, item.id)}
-                            className="text-red-500 hover:text-red-700"
+                            variant="ghost"
+                            onClick={() => removeItem(activeListData.id, item.id)}
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </Button>
-                        </div>
+                        </motion.div>
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </AnimatePresence>
 
-            {lists[activeList].items.length === 0 && (
+                    {activeListData.items.length === 0 && (
+                      <div className="text-center py-12">
+                        <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-600 mb-2">No items yet</h3>
+                        <p className="text-gray-500">Add items to start your shopping list</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
               <Card>
-                <CardContent className="p-8 text-center">
-                  <ShoppingCart size={48} className="mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-semibold mb-2">Your list is empty</h3>
-                  <p className="text-gray-600">Add some items to get started!</p>
+                <CardContent className="text-center py-12">
+                  <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No lists yet</h3>
+                  <p className="text-gray-500 mb-4">Create your first shopping list to get started</p>
+                  <Button onClick={() => setShowNewListForm(true)}>
+                    <Plus size={16} className="mr-2" />
+                    Create List
+                  </Button>
                 </CardContent>
               </Card>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
-      
-      <MobileNavigation />
     </div>
   );
 };

@@ -1,274 +1,252 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { MobileNavigation } from "@/components/MobileNavigation";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { ArrowLeft, Save, Heart, Utensils, Shield, Leaf } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
+import { Leaf, Heart, Zap, Shield, Save } from 'lucide-react';
+
+interface DietaryPreference {
+  id: string;
+  name: string;
+  description: string;
+  icon: any;
+  selected: boolean;
+}
+
+interface NutritionalGoal {
+  id: string;
+  name: string;
+  value: number;
+  min: number;
+  max: number;
+  unit: string;
+}
 
 const DietaryPreferences = () => {
-  const { t } = useLanguage();
   const navigate = useNavigate();
-  
-  const [preferences, setPreferences] = useState({
-    dietary: [] as string[],
-    allergens: [] as string[],
-    religious: [] as string[],
-    healthGoals: [] as string[]
-  });
+  const { toast } = useToast();
 
-  const dietaryOptions = [
-    { id: "vegetarian", label: "Vegetarian", icon: "🥬", description: "No meat or fish" },
-    { id: "vegan", label: "Vegan", icon: "🌱", description: "No animal products" },
-    { id: "keto", label: "Keto", icon: "🥑", description: "Low carb, high fat" },
-    { id: "paleo", label: "Paleo", icon: "🥩", description: "Stone age diet" },
-    { id: "mediterranean", label: "Mediterranean", icon: "🫒", description: "Heart-healthy diet" },
-    { id: "gluten-free", label: "Gluten-Free", icon: "🌾", description: "No gluten" },
-    { id: "dairy-free", label: "Dairy-Free", icon: "🥛", description: "No dairy products" },
-    { id: "low-carb", label: "Low-Carb", icon: "🥒", description: "Reduced carbohydrates" }
-  ];
+  const [dietTypes, setDietTypes] = useState<DietaryPreference[]>([
+    { id: "vegetarian", name: "Vegetarian", description: "No meat or fish", icon: Leaf, selected: false },
+    { id: "vegan", name: "Vegan", description: "No animal products", icon: Leaf, selected: false },
+    { id: "keto", name: "Keto", description: "Low carb, high fat", icon: Zap, selected: false },
+    { id: "paleo", name: "Paleo", description: "Whole foods only", icon: Heart, selected: false },
+    { id: "gluten-free", name: "Gluten Free", description: "No gluten", icon: Shield, selected: true },
+    { id: "dairy-free", name: "Dairy Free", description: "No dairy products", icon: Shield, selected: false },
+  ]);
 
-  const allergenOptions = [
-    { id: "nuts", label: "Tree Nuts", icon: "🥜" },
-    { id: "peanuts", label: "Peanuts", icon: "🥜" },
-    { id: "shellfish", label: "Shellfish", icon: "🦐" },
-    { id: "fish", label: "Fish", icon: "🐟" },
-    { id: "eggs", label: "Eggs", icon: "🥚" },
-    { id: "soy", label: "Soy", icon: "🫘" },
-    { id: "sesame", label: "Sesame", icon: "🌰" }
-  ];
+  const [allergens, setAllergens] = useState<DietaryPreference[]>([
+    { id: "nuts", name: "Tree Nuts", description: "Avoid all tree nuts", icon: Shield, selected: false },
+    { id: "peanuts", name: "Peanuts", description: "Avoid peanuts", icon: Shield, selected: false },
+    { id: "shellfish", name: "Shellfish", description: "Avoid shellfish", icon: Shield, selected: false },
+    { id: "fish", name: "Fish", description: "Avoid all fish", icon: Shield, selected: false },
+    { id: "eggs", name: "Eggs", description: "Avoid eggs", icon: Shield, selected: false },
+    { id: "soy", name: "Soy", description: "Avoid soy products", icon: Shield, selected: false },
+  ]);
 
-  const religiousOptions = [
-    { id: "halal", label: "Halal", icon: "☪️", description: "Islamic dietary laws" },
-    { id: "kosher", label: "Kosher", icon: "✡️", description: "Jewish dietary laws" },
-    { id: "hindu-veg", label: "Hindu Vegetarian", icon: "🕉️", description: "Hindu dietary practices" },
-    { id: "jain-veg", label: "Jain Vegetarian", icon: "☸️", description: "Jain dietary restrictions" }
-  ];
+  const [nutritionalGoals, setNutritionalGoals] = useState<NutritionalGoal[]>([
+    { id: "calories", name: "Daily Calories", value: 2000, min: 1200, max: 3500, unit: "kcal" },
+    { id: "protein", name: "Protein", value: 150, min: 50, max: 300, unit: "g" },
+    { id: "carbs", name: "Carbohydrates", value: 200, min: 50, max: 400, unit: "g" },
+    { id: "fat", name: "Fat", value: 65, min: 20, max: 150, unit: "g" },
+    { id: "fiber", name: "Fiber", value: 25, min: 10, max: 50, unit: "g" },
+    { id: "sodium", name: "Sodium", value: 2300, min: 500, max: 4000, unit: "mg" },
+  ]);
 
-  const healthGoalOptions = [
-    { id: "weight-loss", label: "Weight Loss", icon: "⚖️", description: "Calorie controlled" },
-    { id: "muscle-gain", label: "Muscle Gain", icon: "💪", description: "High protein" },
-    { id: "heart-health", label: "Heart Health", icon: "❤️", description: "Heart-friendly foods" },
-    { id: "diabetes", label: "Diabetes Friendly", icon: "🩺", description: "Blood sugar control" },
-    { id: "low-sodium", label: "Low Sodium", icon: "🧂", description: "Reduced salt" },
-    { id: "high-fiber", label: "High Fiber", icon: "🌾", description: "Digestive health" }
-  ];
+  const toggleDietType = (id: string) => {
+    setDietTypes(prev => prev.map(diet => 
+      diet.id === id ? { ...diet, selected: !diet.selected } : diet
+    ));
+  };
 
-  const handleToggle = (category: keyof typeof preferences, value: string) => {
-    setPreferences(prev => ({
-      ...prev,
-      [category]: prev[category].includes(value)
-        ? prev[category].filter(item => item !== value)
-        : [...prev[category], value]
-    }));
+  const toggleAllergen = (id: string) => {
+    setAllergens(prev => prev.map(allergen => 
+      allergen.id === id ? { ...allergen, selected: !allergen.selected } : allergen
+    ));
+  };
+
+  const updateNutritionalGoal = (id: string, value: number[]) => {
+    setNutritionalGoals(prev => prev.map(goal => 
+      goal.id === id ? { ...goal, value: value[0] } : goal
+    ));
   };
 
   const savePreferences = () => {
-    // Save preferences logic here
-    console.log('Saving preferences:', preferences);
-    toast({
-      title: "Preferences saved!",
-      description: "Your dietary preferences have been updated successfully.",
-    });
-  };
+    const preferences = {
+      dietTypes: dietTypes.filter(diet => diet.selected),
+      allergens: allergens.filter(allergen => allergen.selected),
+      nutritionalGoals: nutritionalGoals,
+    };
 
-  const getTotalSelected = () => {
-    return Object.values(preferences).reduce((total, arr) => total + arr.length, 0);
+    // Save to localStorage for demo
+    localStorage.setItem('dietaryPreferences', JSON.stringify(preferences));
+
+    toast({
+      title: "Preferences saved",
+      description: "Your dietary preferences have been updated successfully",
+    });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2"
+      <div className="container mx-auto px-4 max-w-4xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">Dietary Preferences</h1>
+          <p className="text-gray-600">Customize your nutrition goals and dietary restrictions</p>
+        </motion.div>
+
+        <div className="space-y-6">
+          {/* Diet Types */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
           >
-            <ArrowLeft size={20} />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2 flex items-center gap-2">
-              <Utensils className="text-wasfah-orange" size={28} />
-              Dietary Preferences
-            </h1>
-            <p className="text-gray-600 text-sm sm:text-base">
-              Tell us about your dietary needs and preferences
-            </p>
-          </div>
-          {getTotalSelected() > 0 && (
-            <Badge variant="secondary" className="ml-auto">
-              {getTotalSelected()} selected
-            </Badge>
-          )}
-        </div>
-
-        {/* Dietary Preferences */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Leaf className="text-green-600" size={20} />
-              Dietary Preferences
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {dietaryOptions.map((option) => (
-                <div
-                  key={option.id}
-                  className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${
-                    preferences.dietary.includes(option.id)
-                      ? 'border-wasfah-orange bg-orange-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleToggle('dietary', option.id)}
-                >
-                  <Checkbox
-                    checked={preferences.dietary.includes(option.id)}
-                    onChange={() => {}}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{option.icon}</span>
-                      <span className="font-medium">{option.label}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                  </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Leaf className="text-wasfah-green" size={20} />
+                  Diet Types
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {dietTypes.map((diet) => {
+                    const IconComponent = diet.icon;
+                    return (
+                      <div
+                        key={diet.id}
+                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                          diet.selected 
+                            ? 'border-wasfah-orange bg-orange-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => toggleDietType(diet.id)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Checkbox checked={diet.selected} onChange={() => {}} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <IconComponent size={16} className="text-wasfah-orange" />
+                              <span className="font-medium">{diet.name}</span>
+                            </div>
+                            <p className="text-sm text-gray-600">{diet.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        {/* Allergies & Intolerances */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="text-red-600" size={20} />
-              Allergies & Intolerances
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {allergenOptions.map((option) => (
-                <div
-                  key={option.id}
-                  className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-colors cursor-pointer ${
-                    preferences.allergens.includes(option.id)
-                      ? 'border-red-400 bg-red-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleToggle('allergens', option.id)}
-                >
-                  <Checkbox
-                    checked={preferences.allergens.includes(option.id)}
-                    onChange={() => {}}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{option.icon}</span>
-                      <span className="font-medium text-sm">{option.label}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Religious Dietary Requirements */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="text-purple-600" size={20} />
-              Religious Dietary Requirements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {religiousOptions.map((option) => (
-                <div
-                  key={option.id}
-                  className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${
-                    preferences.religious.includes(option.id)
-                      ? 'border-purple-400 bg-purple-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleToggle('religious', option.id)}
-                >
-                  <Checkbox
-                    checked={preferences.religious.includes(option.id)}
-                    onChange={() => {}}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{option.icon}</span>
-                      <span className="font-medium">{option.label}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Health Goals */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="text-blue-600" size={20} />
-              Health Goals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {healthGoalOptions.map((option) => (
-                <div
-                  key={option.id}
-                  className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors cursor-pointer ${
-                    preferences.healthGoals.includes(option.id)
-                      ? 'border-blue-400 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleToggle('healthGoals', option.id)}
-                >
-                  <Checkbox
-                    checked={preferences.healthGoals.includes(option.id)}
-                    onChange={() => {}}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{option.icon}</span>
-                      <span className="font-medium">{option.label}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Save Button */}
-        <div className="flex justify-center">
-          <Button
-            onClick={savePreferences}
-            className="bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2"
+          {/* Allergens */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
           >
-            <Save size={20} />
-            Save Preferences
-          </Button>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="text-red-500" size={20} />
+                  Allergens & Restrictions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allergens.map((allergen) => (
+                    <div
+                      key={allergen.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        allergen.selected 
+                          ? 'border-red-500 bg-red-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => toggleAllergen(allergen.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Checkbox checked={allergen.selected} onChange={() => {}} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Shield size={16} className="text-red-500" />
+                            <span className="font-medium">{allergen.name}</span>
+                          </div>
+                          <p className="text-sm text-gray-600">{allergen.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Nutritional Goals */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="text-wasfah-orange" size={20} />
+                  Nutritional Goals
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {nutritionalGoals.map((goal) => (
+                    <div key={goal.id} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="font-medium">{goal.name}</label>
+                        <span className="text-sm text-gray-600">
+                          {goal.value} {goal.unit}
+                        </span>
+                      </div>
+                      <Slider
+                        value={[goal.value]}
+                        onValueChange={(value) => updateNutritionalGoal(goal.id, value)}
+                        min={goal.min}
+                        max={goal.max}
+                        step={goal.unit === 'mg' ? 100 : goal.unit === 'kcal' ? 50 : 5}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{goal.min} {goal.unit}</span>
+                        <span>{goal.max} {goal.unit}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Save Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex justify-center"
+          >
+            <Button onClick={savePreferences} size="lg" className="px-8">
+              <Save size={16} className="mr-2" />
+              Save Preferences
+            </Button>
+          </motion.div>
         </div>
       </div>
-
-      <MobileNavigation />
     </div>
   );
 };

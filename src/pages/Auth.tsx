@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Globe } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Globe, Phone } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -19,10 +19,12 @@ import {
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const { signIn, signUp, session } = useAuth();
   const { t, language, setLanguage, availableLanguages } = useLanguage();
   const navigate = useNavigate();
@@ -35,7 +37,9 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    const identifier = loginMethod === 'email' ? email : phone;
+    
+    if (!identifier || !password) {
       toast({
         title: t("error.title") || "Error",
         description: t("error.fillFields") || "Please fill in all fields",
@@ -46,7 +50,7 @@ const Auth = () => {
 
     setLoading(true);
     try {
-      await signIn(email, password);
+      await signIn(identifier, password);
       toast({
         title: t("success.title") || "Success",
         description: t("success.signedIn") || "Signed in successfully!",
@@ -64,7 +68,7 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !confirmPassword || !fullName) {
+    if (!email || !phone || !password || !confirmPassword || !fullName) {
       toast({
         title: t("error.title") || "Error",
         description: t("error.fillFields") || "Please fill in all fields",
@@ -91,6 +95,17 @@ const Auth = () => {
       return;
     }
 
+    // Phone number validation
+    const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
+    if (!phoneRegex.test(phone)) {
+      toast({
+        title: t("error.title") || "Error",
+        description: "Please enter a valid phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       await signUp(email, password);
@@ -110,7 +125,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex items-center justify-between mb-4">
           <Button
@@ -122,7 +137,6 @@ const Auth = () => {
             {t("action.backHome") || "Back to Home"}
           </Button>
 
-          {/* Language Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -147,13 +161,13 @@ const Auth = () => {
           </DropdownMenu>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg dark:bg-gray-800 dark:border-gray-700">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-gradient-to-r from-wasfah-orange to-wasfah-green rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white font-bold text-2xl">W</span>
             </div>
-            <CardTitle className="text-2xl font-display">{t("app.name")}</CardTitle>
-            <CardDescription>{t("app.tagline")}</CardDescription>
+            <CardTitle className="text-2xl font-display dark:text-white">{t("app.name")}</CardTitle>
+            <CardDescription className="dark:text-gray-300">{t("app.tagline")}</CardDescription>
           </CardHeader>
 
           <CardContent>
@@ -165,17 +179,59 @@ const Auth = () => {
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
+                  {/* Login Method Toggle */}
+                  <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-md">
+                    <button
+                      type="button"
+                      onClick={() => setLoginMethod('email')}
+                      className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
+                        loginMethod === 'email'
+                          ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                          : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Email
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLoginMethod('phone')}
+                      className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
+                        loginMethod === 'phone'
+                          ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow'
+                          : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Phone
+                    </button>
+                  </div>
+
                   <div className="space-y-2">
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        type="email"
-                        placeholder={t("auth.email") || "Email"}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
+                      {loginMethod === 'email' ? (
+                        <>
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            type="email"
+                            placeholder={t("auth.email") || "Email"}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            type="tel"
+                            placeholder="Phone Number"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -231,9 +287,23 @@ const Auth = () => {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         type="email"
-                        placeholder={t("auth.email") || "Email"}
+                        placeholder={t("auth.email") || "Email Address"}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="tel"
+                        placeholder="Mobile Number"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
                         className="pl-10"
                         required
                       />
