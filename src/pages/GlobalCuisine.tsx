@@ -5,17 +5,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, MapPin, Clock, Users, Star, Filter } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, Star, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AdvancedFilters } from "@/components/AdvancedFilters";
 
 const GlobalCuisine = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
 
   const cuisineCountries = [
     { code: "all", name: "All Countries", flag: "🌍" },
@@ -30,21 +27,36 @@ const GlobalCuisine = () => {
     { code: "tr", name: "Turkish", flag: "🇹🇷" },
     { code: "ma", name: "Moroccan", flag: "🇲🇦" },
     { code: "lb", name: "Lebanese", flag: "🇱🇧" },
+    { code: "sy", name: "Syrian", flag: "🇸🇾" },
+    { code: "iq", name: "Iraqi", flag: "🇮🇶" },
+    { code: "ye", name: "Yemeni", flag: "🇾🇪" },
     { code: "kr", name: "Korean", flag: "🇰🇷" },
     { code: "br", name: "Brazilian", flag: "🇧🇷" },
     { code: "es", name: "Spanish", flag: "🇪🇸" },
-    { code: "us", name: "American", flag: "🇺🇸" }
+    { code: "us", name: "American", flag: "🇺🇸" },
+    { code: "de", name: "German", flag: "🇩🇪" }
   ];
 
   const foodCategories = [
-    { code: "all", name: "All Categories", icon: "🍽️" },
-    { code: "main", name: "Main Dishes", icon: "🍖" },
-    { code: "appetizers", name: "Appetizers", icon: "🥗" },
-    { code: "pickles", name: "Pickles", icon: "🥒" },
-    { code: "soups", name: "Soups", icon: "🍲" },
-    { code: "sauces", name: "Sauces", icon: "🥫" },
-    { code: "desserts", name: "Desserts", icon: "🍰" },
-    { code: "drinks", name: "Drinks", icon: "🥤" }
+    { code: "all", name: "All Categories", icon: "🍽️", subcategories: [] },
+    { 
+      code: "food", 
+      name: "Food", 
+      icon: "🍖", 
+      subcategories: ["Main Dishes", "Appetizers", "Pickles", "Soups", "Sauces", "Others"]
+    },
+    { 
+      code: "desserts", 
+      name: "Desserts", 
+      icon: "🍰", 
+      subcategories: ["Traditional", "Western", "Pastries", "Ice Cream", "Others"]
+    },
+    { 
+      code: "drinks", 
+      name: "Drinks", 
+      icon: "🥤", 
+      subcategories: ["Detox", "Cocktails", "Alcoholic", "Hot Drinks", "Others"]
+    }
   ];
 
   // Sample recipes data
@@ -60,7 +72,7 @@ const GlobalCuisine = () => {
       cuisine: "Italian",
       rating: 4.8,
       country: "it",
-      category: "main"
+      category: "food"
     },
     {
       id: "2",
@@ -73,7 +85,7 @@ const GlobalCuisine = () => {
       cuisine: "Chinese",
       rating: 4.6,
       country: "cn",
-      category: "main"
+      category: "food"
     },
     {
       id: "3",
@@ -86,20 +98,18 @@ const GlobalCuisine = () => {
       cuisine: "Mexican",
       rating: 4.9,
       country: "mx",
-      category: "main"
+      category: "food"
     }
   ];
 
   const filteredRecipes = sampleRecipes.filter(recipe => {
     const matchesCountry = selectedCountry === "all" || recipe.country === selectedCountry;
     const matchesCategory = selectedCategory === "all" || recipe.category === selectedCategory;
-    const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         recipe.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCountry && matchesCategory && matchesSearch;
+    return matchesCountry && matchesCategory;
   });
 
-  const handleFiltersChange = (filters: any) => {
-    console.log('Filters changed:', filters);
+  const handleSearch = () => {
+    console.log('Searching with filters:', { selectedCountry, selectedCategory });
   };
 
   return (
@@ -126,64 +136,62 @@ const GlobalCuisine = () => {
           </div>
         </div>
 
-        {/* Search Bar with Filter Button */}
-        <div className="flex gap-2 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search recipes or cuisines..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-wasfah-orange"
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4"
-          >
-            <Filter size={18} />
-            Filters
-          </Button>
-        </div>
-
-        {/* Food Categories Filter */}
+        {/* Countries Filter */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Filter by Category</h3>
-          <div className="flex flex-wrap gap-2">
-            {foodCategories.map((category) => (
-              <Button
-                key={category.code}
-                variant={selectedCategory === category.code ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category.code)}
-                className="flex items-center gap-2"
-              >
-                <span className="text-lg">{category.icon}</span>
-                <span className="hidden sm:inline">{category.name}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Country Filter Chips */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Filter by Country</h3>
-          <div className="flex flex-wrap gap-2">
+          <h3 className="text-lg font-semibold mb-3">Select Country</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
             {cuisineCountries.map((country) => (
               <Button
                 key={country.code}
                 variant={selectedCountry === country.code ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCountry(country.code)}
-                className="flex items-center gap-2"
+                className="flex flex-col items-center gap-1 h-auto py-3"
               >
-                <span className="text-lg">{country.flag}</span>
-                <span className="hidden sm:inline">{country.name}</span>
+                <span className="text-2xl">{country.flag}</span>
+                <span className="text-xs text-center leading-tight">{country.name}</span>
               </Button>
             ))}
           </div>
+        </div>
+
+        {/* Categories Filter */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">Select Category</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {foodCategories.map((category) => (
+              <Card
+                key={category.code}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                  selectedCategory === category.code 
+                    ? 'ring-2 ring-wasfah-orange bg-orange-50' 
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => setSelectedCategory(category.code)}
+              >
+                <CardContent className="p-4 text-center">
+                  <div className="text-3xl mb-2">{category.icon}</div>
+                  <h4 className="font-semibold mb-1">{category.name}</h4>
+                  {category.subcategories.length > 0 && (
+                    <div className="text-xs text-gray-600">
+                      {category.subcategories.length} subcategories
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Search Button */}
+        <div className="mb-6 text-center">
+          <Button 
+            onClick={handleSearch}
+            className="bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto"
+          >
+            <Search size={20} />
+            Search Recipes
+          </Button>
         </div>
 
         {/* Results Count */}
@@ -251,17 +259,10 @@ const GlobalCuisine = () => {
           <div className="text-center py-12">
             <MapPin size={48} className="mx-auto mb-4 text-gray-400" />
             <h3 className="text-xl font-semibold mb-2">No recipes found</h3>
-            <p className="text-gray-600">Try adjusting your filters or search terms</p>
+            <p className="text-gray-600">Try selecting different country or category</p>
           </div>
         )}
       </div>
-
-      {/* Advanced Filters Modal */}
-      <AdvancedFilters 
-        isOpen={showFilters}
-        onClose={() => setShowFilters(false)}
-        onFiltersChange={handleFiltersChange}
-      />
 
       <MobileNavigation />
     </div>

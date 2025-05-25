@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Filter, X, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -14,25 +15,29 @@ interface AdvancedFiltersProps {
 
 export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFiltersProps) => {
   const [selectedFilters, setSelectedFilters] = useState<any>({
-    dietary: [],
+    dietary: "",
     cookingTime: "",
     difficulty: "",
-    cuisine: "",
-    allergens: [],
+    cuisineType: "",
+    allergenFree: [],
     mealType: "",
-    religious: [],
-    healthGoals: []
+    religiousDiet: "",
+    healthGoal: ""
   });
 
   const filterOptions = {
-    dietary: ["Vegetarian", "Vegan", "Keto", "Paleo", "Mediterranean", "Gluten-Free", "Dairy-Free"],
+    dietary: ["Normal", "Healthy", "Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Keto", "Low-Carb", "Paleo", "Mediterranean"],
     cookingTime: ["Under 15 min", "15-30 min", "30-60 min", "1-2 hours", "Over 2 hours"],
-    difficulty: ["Easy", "Medium", "Hard", "Expert"],
-    cuisine: ["Italian", "Chinese", "Mexican", "Indian", "Japanese", "French", "Thai", "Greek", "Turkish", "Lebanese", "Moroccan", "Korean", "Brazilian", "Spanish", "American"],
-    allergens: ["Nut-Free", "Shellfish-Free", "Egg-Free", "Soy-Free", "Fish-Free"],
-    mealType: ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Appetizer"],
-    religious: ["Halal", "Kosher", "Hindu Vegetarian", "Jain Vegetarian"],
-    healthGoals: ["Weight Loss", "Muscle Gain", "Heart Healthy", "Low Sodium", "High Protein", "Low Carb", "High Fiber"]
+    difficulty: ["Beginner", "Intermediate", "Expert"],
+    cuisineType: [
+      "Levant", "Italian", "Mexican", "Chinese", "Indian", "Japanese", "Thai", "Turkish", 
+      "Syrian", "Iraqi", "Yemeni", "American", "Moroccan", "Lebanese", "German", "French",
+      "Greek", "Korean", "Brazilian", "Spanish"
+    ],
+    allergenFree: ["Dairy", "Gluten", "Tree Nuts", "Shellfish", "Soy", "Eggs"],
+    mealType: ["Any Meal", "Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],
+    religiousDiet: ["Halal", "Kosher"],
+    healthGoal: ["Low Calorie", "Low Carb", "High Protein", "Low Fat", "Heart Healthy", "Weight Loss"]
   };
 
   const handleFilterChange = (category: string, value: string) => {
@@ -54,14 +59,14 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
 
   const clearAllFilters = () => {
     const clearedFilters = {
-      dietary: [],
+      dietary: "",
       cookingTime: "",
       difficulty: "",
-      cuisine: "",
-      allergens: [],
+      cuisineType: "",
+      allergenFree: [],
       mealType: "",
-      religious: [],
-      healthGoals: []
+      religiousDiet: "",
+      healthGoal: ""
     };
     setSelectedFilters(clearedFilters);
     onFiltersChange(clearedFilters);
@@ -83,7 +88,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -101,174 +106,142 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Dietary Preferences */}
-          <Collapsible defaultOpen>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Dietary Preferences</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.dietary.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.dietary.includes(option) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("dietary", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          {/* Filter Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Dietary Preferences */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Dietary Preferences</label>
+              <Select value={selectedFilters.dietary} onValueChange={(value) => handleFilterChange("dietary", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select dietary type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.dietary.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Cooking Time */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Cooking Time</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.cookingTime.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.cookingTime === option ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("cookingTime", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            {/* Cooking Time */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Cooking Time</label>
+              <Select value={selectedFilters.cookingTime} onValueChange={(value) => handleFilterChange("cookingTime", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cooking time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.cookingTime.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Difficulty Level */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Difficulty Level</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.difficulty.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.difficulty === option ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("difficulty", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            {/* Difficulty Level */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Difficulty Level</label>
+              <Select value={selectedFilters.difficulty} onValueChange={(value) => handleFilterChange("difficulty", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.difficulty.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Cuisine Country */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Cuisine Country</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.cuisine.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.cuisine === option ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("cuisine", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            {/* Cuisine Type */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Cuisine Type</label>
+              <Select value={selectedFilters.cuisineType} onValueChange={(value) => handleFilterChange("cuisineType", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cuisine" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.cuisineType.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Allergen-Free */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Allergen-Free</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.allergens.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.allergens.includes(option) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("allergens", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            {/* Meal Type */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Meal Type</label>
+              <Select value={selectedFilters.mealType} onValueChange={(value) => handleFilterChange("mealType", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select meal type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.mealType.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Meal Type */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Meal Type</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.mealType.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.mealType === option ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("mealType", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            {/* Religious Dietary */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Religious Dietary</label>
+              <Select value={selectedFilters.religiousDiet} onValueChange={(value) => handleFilterChange("religiousDiet", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select religious diet" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.religiousDiet.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Religious Dietary Restrictions */}
-          <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Religious Dietary</h3>
-              <ChevronDown size={16} />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions.religious.map((option) => (
-                  <Button
-                    key={option}
-                    variant={selectedFilters.religious.includes(option) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleFilterChange("religious", option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            {/* Health Goal */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Health Goals</label>
+              <Select value={selectedFilters.healthGoal} onValueChange={(value) => handleFilterChange("healthGoal", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select health goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions.healthGoal.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-          {/* Health Goals */}
+          {/* Allergen-Free Section */}
           <Collapsible>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-gray-50 rounded-lg">
-              <h3 className="font-semibold">Health Goals</h3>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded-lg">
+              <h3 className="font-semibold">Allergen-Free Options</h3>
               <ChevronDown size={16} />
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 mt-2">
               <div className="flex flex-wrap gap-2">
-                {filterOptions.healthGoals.map((option) => (
+                {filterOptions.allergenFree.map((option) => (
                   <Button
                     key={option}
-                    variant={selectedFilters.healthGoals.includes(option) ? "default" : "outline"}
+                    variant={selectedFilters.allergenFree.includes(option) ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleFilterChange("healthGoals", option)}
+                    onClick={() => handleFilterChange("allergenFree", option)}
                   >
                     {option}
                   </Button>
