@@ -16,7 +16,7 @@ export const MobileNavigation = () => {
     else if (path === "/explore") setActiveTab("explore");
     else if (path === "/meal-planning") setActiveTab("meal-planning");
     else if (path === "/pantry") setActiveTab("pantry");
-    else if (path === "/profile") setActiveTab("profile");
+    else if (path === "/profile" || path === "/settings" || path === "/health-information" || path === "/dietary-preferences") setActiveTab("profile");
   }, [location.pathname]);
 
   const navItems = [

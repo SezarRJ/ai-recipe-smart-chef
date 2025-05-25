@@ -25,6 +25,7 @@ import About from "./pages/About";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Settings from "./pages/Settings";
+import LanguageSettings from "./pages/LanguageSettings";
 import GlobalCuisine from "./pages/GlobalCuisine";
 import DishScanner from "./pages/DishScanner";
 import { LanguageProvider } from "./contexts/LanguageContext";
