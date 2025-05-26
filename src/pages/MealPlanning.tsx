@@ -401,7 +401,7 @@ const Pantry = () => {
                 <AlertCircle size={16} /> Low Stock ({pantryItems.filter(isLowStock).length})
               </Button>
               <Button variant={showExpiringSoon ? "default" : "outline"} onClick={() => setShowExpiringSoon(prev => !prev)} className="flex items-center gap-2">
-                <Flame size={16} /> Expiring Soon ({pantryItems.filter(isExpiringSoon).length})
+                <Flame size={16} /> Expiring Soon ({pantryItems.filter(item => isExpiringSoon(item.expiryDate)).length})
               </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
