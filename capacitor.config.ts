@@ -16,7 +16,37 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",
       showSpinner: true,
       spinnerColor: "#F97316",
+      androidSpinnerStyle: "large",
+      iosSpinnerStyle: "large",
+      splashFullScreen: true,
+      splashImmersive: true
+    },
+    StatusBar: {
+      style: "light",
+      backgroundColor: "#F97316"
+    },
+    Keyboard: {
+      resize: "body",
+      style: "dark",
+      resizeOnFullScreen: true
+    },
+    Camera: {
+      permissions: {
+        camera: "Camera access is needed to scan ingredients and dishes.",
+        photos: "Photo library access is needed to save recipe images."
+      }
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#F97316",
+      sound: "beep.wav"
     }
+  },
+  ios: {
+    scheme: "Wasfah AI"
+  },
+  android: {
+    allowMixedContent: true
   }
 };
 

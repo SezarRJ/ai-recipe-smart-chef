@@ -7,14 +7,17 @@ import { TechnologySection } from "@/components/TechnologySection";
 import { DownloadSection } from "@/components/DownloadSection";
 import { Footer } from "@/components/Footer";
 import { MobileNavigation } from "@/components/MobileNavigation";
+import { MobileHeader } from "@/components/MobileHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50">
-      <Navigation />
+      {isMobile ? <MobileHeader title="Home" /> : <Navigation />}
       <HeroSection />
       <CategoryCards />
       <FeaturesSection />
