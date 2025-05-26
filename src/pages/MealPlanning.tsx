@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -274,8 +273,8 @@ const Pantry = () => {
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-semibold text-lg text-gray-800">{item.name}</h3>
         <div className="flex items-center gap-2">
-          {isLowStock(item) && <AlertCircle size={18} className="text-orange-500" title="Low Stock!" />}
-          {isExpiringSoon(item.expiryDate) && <Flame size={18} className="text-red-500" title="Expiring Soon!" />}
+          {isLowStock(item) && <AlertCircle size={18} className="text-orange-500" />}
+          {isExpiringSoon(item.expiryDate) && <Flame size={18} className="text-red-500" />}
           <Badge variant="secondary">{item.category}</Badge>
         </div>
       </div>

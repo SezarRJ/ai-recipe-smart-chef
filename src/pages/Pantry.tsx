@@ -245,9 +245,7 @@ const Pantry = () => {
                 <h3 className="font-semibold text-lg text-gray-800">{item.name}</h3>
                 <div className="flex items-center gap-2">
                     {isExpiringSoon(item.expiryDate) && (
-                        <div title="Expiring Soon!">
-                            <AlertCircle size={18} className="text-red-500" />
-                        </div>
+                        <AlertCircle size={18} className="text-red-500" />
                     )}
                     <Badge variant="secondary">{item.category}</Badge>
                 </div>
@@ -357,7 +355,7 @@ const Pantry = () => {
                                         animate={{ opacity: 1 }}
                                         className="col-span-full text-center py-8 text-gray-500"
                                     >
-                                        <img src="/empty-pantry.png" alt="Empty Pantry" className="mx-auto h-24 mb-4" /> {/* Placeholder image */}
+                                        <img src="/empty-pantry.png" alt="Empty Pantry" className="mx-auto h-24 mb-4" />
                                         <p>No items found matching your filters.</p>
                                         <p className="text-sm">Try adjusting your search or filters.</p>
                                     </motion.div>
