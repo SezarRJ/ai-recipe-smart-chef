@@ -106,8 +106,8 @@ const Explore = () => {
  const [newIngredientName, setNewIngredientName] = useState("");
  const [newIngredientQuantity, setNewIngredientQuantity] = useState("");
  const [newIngredientUnit, setNewIngredientUnit] = useState("piece");
- const [activeTab, setActiveTab] = useState("manual"); // 'manual' or 'pantry'
- const [smartPantry, setSmartPantry] = useState<string[]>(["Rice", "Chicken", "Onions"]); // Mock Smart Pantry
+ const [activeTab, setActiveTab] = useState("manual");
+ const [smartPantry, setSmartPantry] = useState<string[]>(["Rice", "Chicken", "Onions"]);
  const [availablePantryIngredients, setAvailablePantryIngredients] = useState<string[]>([]);
 
  // --- Ingredient Handling ---
@@ -140,12 +140,11 @@ const Explore = () => {
  }, [smartPantry, ingredients]);
 
  const handleFindRecipes = () => {
- // Prepare filters and ingredients for API call
- const filtersToSend = { dietary, cookingTime, difficulty, cuisine, allergens: allergenFree, mealType, religion, healthGoals };
+ const filtersToSend = { dietary, cookingTime, difficulty, cuisine, allergens: allergenFree, mealType, religion, healthGoal };
  const ingredientsToSend = ingredients.map(i => ({ name: i.name, quantity: i.quantity, unit: i.unit }));
  console.log("Filters:", filtersToSend);
  console.log("Ingredients:", ingredientsToSend);
- navigate('/recipes'); // Navigate to the recipe results page
+ navigate('/recipes');
  };
 
  return (

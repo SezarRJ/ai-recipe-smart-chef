@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit, Check, X, Camera, Barcode, Flame, AlertCircle, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X, Camera, Barcode, Flame, AlertCircle, ShoppingCart, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { MobileNavigation } from "@/components/MobileNavigation"; // Assuming this component exists
+import { Badge } from '@/components/ui/badge';
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 // --- Interfaces ---
 interface PantryItem {
@@ -18,7 +19,7 @@ interface PantryItem {
     unit: string;
     category: string;
     addedDate: string;
-    expiryDate?: string; // Optional expiry date
+    expiryDate?: string;
 }
 
 // --- Mock Data & Constants ---
@@ -244,7 +245,9 @@ const Pantry = () => {
                 <h3 className="font-semibold text-lg text-gray-800">{item.name}</h3>
                 <div className="flex items-center gap-2">
                     {isExpiringSoon(item.expiryDate) && (
-                        <AlertCircle size={18} className="text-red-500" title="Expiring Soon!" />
+                        <div title="Expiring Soon!">
+                            <AlertCircle size={18} className="text-red-500" />
+                        </div>
                     )}
                     <Badge variant="secondary">{item.category}</Badge>
                 </div>

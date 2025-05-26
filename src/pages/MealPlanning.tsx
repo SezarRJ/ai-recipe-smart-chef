@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Edit, Check, X, ShoppingCart, CalendarDays, BarChart, UtensilsCrossed, Wheat, Droplet, Clock, Gauge, Target, Sparkles, SlidersHorizontal, Settings2, Scale } from 'lucide-react';
+import { Plus, Trash2, Edit, Check, X, ShoppingCart, CalendarDays, BarChart, UtensilsCrossed, Wheat, Droplet, Clock, Gauge, Target, Sparkles, SlidersHorizontal, Settings2, Scale, AlertCircle, Flame, Camera, Barcode, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Progress } from '@/components/ui/progress'; // Assuming you have a Progress component
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'; // For drag & drop placeholder
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { MobileNavigation } from "@/components/MobileNavigation";
 
 // --- Interfaces ---
@@ -21,7 +23,7 @@ interface PantryItem {
   category: string;
   addedDate: string;
   expiryDate?: string;
-  lowStockThreshold?: number; // For low stock indication
+  lowStockThreshold?: number;
 }
 
 interface MealPlan {
@@ -133,17 +135,16 @@ const Pantry = () => {
 
   const addToShoppingList = (item: PantryItem) => {
     toast({ title: "Added to Shopping List", description: `${item.name} added to your shopping list.` });
-    // In a real app, integrate with your shopping list state/API
   };
 
   // --- Meal Plan Actions ---
   const generateMealPlanSuggestion = () => {
-    const availableItems = pantryItems.filter(item => !isLowStock(item) && !isExpiringSoon(item));
+    const availableItems = pantryItems.filter(item => !isLowStock(item) && !isExpiringSoon(item.expiryDate));
     const randomRecipe = mockRecipes[Math.floor(Math.random() * mockRecipes.length)];
     const newPlan: MealPlan = {
       id: Date.now().toString(),
-      day: "Today", // Simplified: for demo
-      mealType: "Dinner", // Simplified
+      day: "Today",
+      mealType: "Dinner",
       recipeName: randomRecipe.name,
       ingredients: randomRecipe.ingredients,
     };
@@ -178,9 +179,9 @@ const Pantry = () => {
 
     if (itemsToBuy.length > 0) {
       toast({ title: "Shopping List Generated", description: `Added ${itemsToBuy.length} items to your shopping list.` });
-      console.log("Items to buy:", itemsToBuy); // Log for demonstration
+      console.log("Items to buy:", itemsToBuy);
     } else {
-      toast({ title: "Shopping List", description: "You have all ingredients for your current meal plans!", variant: "success" });
+      toast({ title: "Shopping List", description: "You have all ingredients for your current meal plans!" });
     }
   };
 
@@ -191,7 +192,7 @@ const Pantry = () => {
       (selectedCategoryFilter === 'All' || item.category === selectedCategoryFilter)
     );
     if (showLowStock) items = items.filter(isLowStock);
-    if (showExpiringSoon) items = items.filter(isExpiringSoon);
+    if (showExpiringSoon) items = items.filter(item => isExpiringSoon(item.expiryDate));
     return items.sort((a, b) => {
       if (!a.expiryDate && !b.expiryDate) return 0;
       if (!a.expiryDate) return 1;
