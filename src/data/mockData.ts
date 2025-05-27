@@ -10,11 +10,16 @@ export const mockRecipes: Recipe[] = [
     prepTime: 20,
     cookTime: 15,
     servings: 4,
-    difficulty: 'medium',
+    difficulty: 'Medium',
     cuisineType: 'italian',
     rating: 4.8,
     isFavorite: true,
-    ingredients: ['Tomatoes', 'Mozzarella', 'Basil', 'Pizza dough'],
+    ingredients: [
+      { id: '1', name: 'Tomatoes', quantity: '2', unit: 'cups', inPantry: false },
+      { id: '2', name: 'Mozzarella', quantity: '200', unit: 'g', inPantry: false },
+      { id: '3', name: 'Basil', quantity: '10', unit: 'leaves', inPantry: false },
+      { id: '4', name: 'Pizza dough', quantity: '1', unit: 'piece', inPantry: false }
+    ],
     instructions: ['Prepare dough', 'Add toppings', 'Bake in oven']
   },
   {
@@ -25,11 +30,16 @@ export const mockRecipes: Recipe[] = [
     prepTime: 30,
     cookTime: 25,
     servings: 6,
-    difficulty: 'medium',
+    difficulty: 'Medium',
     cuisineType: 'indian',
     rating: 4.7,
     isFavorite: false,
-    ingredients: ['Chicken', 'Tomatoes', 'Cream', 'Spices'],
+    ingredients: [
+      { id: '1', name: 'Chicken', quantity: '500', unit: 'g', inPantry: false },
+      { id: '2', name: 'Tomatoes', quantity: '3', unit: 'pieces', inPantry: false },
+      { id: '3', name: 'Cream', quantity: '200', unit: 'ml', inPantry: false },
+      { id: '4', name: 'Spices', quantity: '2', unit: 'tbsp', inPantry: false }
+    ],
     instructions: ['Marinate chicken', 'Cook curry', 'Serve with rice']
   },
   {
@@ -40,11 +50,16 @@ export const mockRecipes: Recipe[] = [
     prepTime: 15,
     cookTime: 20,
     servings: 4,
-    difficulty: 'easy',
+    difficulty: 'Easy',
     cuisineType: 'mexican',
     rating: 4.5,
     isFavorite: true,
-    ingredients: ['Ground beef', 'Taco shells', 'Lettuce', 'Cheese'],
+    ingredients: [
+      { id: '1', name: 'Ground beef', quantity: '400', unit: 'g', inPantry: false },
+      { id: '2', name: 'Taco shells', quantity: '8', unit: 'pieces', inPantry: false },
+      { id: '3', name: 'Lettuce', quantity: '1', unit: 'head', inPantry: false },
+      { id: '4', name: 'Cheese', quantity: '100', unit: 'g', inPantry: false }
+    ],
     instructions: ['Cook beef', 'Prepare toppings', 'Assemble tacos']
   },
   {
@@ -55,11 +70,16 @@ export const mockRecipes: Recipe[] = [
     prepTime: 15,
     cookTime: 0,
     servings: 2,
-    difficulty: 'easy',
+    difficulty: 'Easy',
     cuisineType: 'italian',
     rating: 4.3,
     isFavorite: false,
-    ingredients: ['Romaine lettuce', 'Caesar dressing', 'Croutons', 'Parmesan'],
+    ingredients: [
+      { id: '1', name: 'Romaine lettuce', quantity: '1', unit: 'head', inPantry: false },
+      { id: '2', name: 'Caesar dressing', quantity: '100', unit: 'ml', inPantry: false },
+      { id: '3', name: 'Croutons', quantity: '50', unit: 'g', inPantry: false },
+      { id: '4', name: 'Parmesan', quantity: '50', unit: 'g', inPantry: false }
+    ],
     instructions: ['Wash lettuce', 'Make dressing', 'Toss and serve']
   },
   {
@@ -70,11 +90,16 @@ export const mockRecipes: Recipe[] = [
     prepTime: 15,
     cookTime: 12,
     servings: 24,
-    difficulty: 'easy',
+    difficulty: 'Easy',
     cuisineType: 'american',
     rating: 4.9,
     isFavorite: true,
-    ingredients: ['Flour', 'Butter', 'Sugar', 'Chocolate chips'],
+    ingredients: [
+      { id: '1', name: 'Flour', quantity: '2', unit: 'cups', inPantry: false },
+      { id: '2', name: 'Butter', quantity: '100', unit: 'g', inPantry: false },
+      { id: '3', name: 'Sugar', quantity: '150', unit: 'g', inPantry: false },
+      { id: '4', name: 'Chocolate chips', quantity: '100', unit: 'g', inPantry: false }
+    ],
     instructions: ['Mix ingredients', 'Shape cookies', 'Bake until golden']
   }
 ];
