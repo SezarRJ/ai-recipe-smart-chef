@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,6 +34,12 @@ import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { useEffect, useState } from "react";
 import HealthTracking from "./pages/HealthTracking";
 import { SplashScreen } from "./components/SplashScreen";
+import FindByIngredients from "./pages/FindByIngredients";
+import EnhancedShoppingLists from "./pages/EnhancedShoppingLists";
+import { SuperAdminGuard } from "./components/SuperAdminGuard";
+import { AdminIngredientImagesManager } from "./components/AdminIngredientImagesManager";
+import { AdminTranslationsManager } from "./components/AdminTranslationsManager";
+import { DailyChallengesManager } from "./components/DailyChallengesManager";
 
 const queryClient = new QueryClient();
 
@@ -158,6 +163,36 @@ const AppContent = () => {
         <Route path="/about" element={<About />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/find-by-ingredients" element={<FindByIngredients />} />
+        <Route path="/enhanced-shopping" element={
+          <ProtectedRoute>
+            <EnhancedShoppingLists />
+          </ProtectedRoute>
+        } />
+        <Route path="/daily-challenges" element={
+          <ProtectedRoute>
+            <div className="container mx-auto px-4 py-6">
+              <DailyChallengesManager />
+            </div>
+          </ProtectedRoute>
+        } />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/ingredients" element={
+          <SuperAdminGuard>
+            <div className="container mx-auto px-4 py-6">
+              <AdminIngredientImagesManager />
+            </div>
+          </SuperAdminGuard>
+        } />
+        <Route path="/admin/translations" element={
+          <SuperAdminGuard>
+            <div className="container mx-auto px-4 py-6">
+              <AdminTranslationsManager />
+            </div>
+          </SuperAdminGuard>
+        } />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
       <PWAInstallPrompt />
