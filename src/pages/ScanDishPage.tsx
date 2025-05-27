@@ -1,52 +1,67 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+
 import { PageContainer } from '@/components/layout/PageContainer';
-// You might rename or refactor ScanDishComponent to handle both camera and upload
 import { ScanDishComponent, ScanDishResult } from '@/components/dish/ScanDishComponent';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRTL } from '@/contexts/RTLContext';
-import { CameraIcon, UploadIcon } from 'lucide-react'; // Assuming you have lucide-react for icons
 
 export default function ScanDishPage() {
   const { t } = useRTL();
   const [scanResult, setScanResult] = useState<ScanDishResult | null>(null);
-  const [scanMethod, setScanMethod] = useState<'camera' | 'upload' | null>(null); // New state for selection
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScanResult = (result: ScanDishResult) => {
     setScanResult(result);
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Replace with your image processing logic
+      console.log('Image uploaded:', file);
+      // Mocked result for demonstration
+      handleScanResult({
+        name: 'Mock Dish',
+        calories: 300,
+        protein: 15,
+        carbs: 40,
+        ingredients: ['Ingredient A', 'Ingredient B'],
+      });
+    }
+  };
+
+  const openCamera = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   const addToTracking = () => {
-    // In a real app, this would add the scanned dish to health tracking
     alert(t('Added to health tracking!', 'تمت الإضافة إلى تتبع الصحة!'));
   };
 
   return (
     <PageContainer header={{ title: t('Scan Dish', 'مسح الطبق'), showBackButton: true }}>
       <div className="space-y-6 pb-6">
-        {!scanResult && !scanMethod && ( // Show selection buttons if no result and no method chosen
-          <div className="flex flex-col space-y-4">
-            <Button
-              onClick={() => setScanMethod('camera')}
-              className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal flex items-center justify-center space-x-2"
-            >
-              <CameraIcon className="w-5 h-5" />
-              <span>{t('Open Camera', 'فتح الكاميرا')}</span>
-            </Button>
-            <Button
-              onClick={() => setScanMethod('upload')}
-              className="w-full border border-wasfah-bright-teal text-wasfah-bright-teal bg-white hover:bg-wasfah-light-gray flex items-center justify-center space-x-2"
-              variant="outline"
-            >
-              <UploadIcon className="w-5 h-5" />
-              <span>{t('Upload Image', 'تحميل صورة')}</span>
-            </Button>
-          </div>
-        )}
+        {/* Buttons to open camera or upload image */}
+        <div className="flex gap-4">
+          <Button onClick={openCamera}>{t('Open Camera', 'افتح الكاميرا')}</Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleImageUpload}
+            style={{ display: 'none' }}
+          />
+          <Button onClick={() => fileInputRef.current?.click()}>
+            {t('Upload Image', 'تحميل صورة')}
+          </Button>
+        </div>
 
-        {scanMethod && ( // Render ScanDishComponent only when a method is chosen
-          <ScanDishComponent scanMethod={scanMethod} onScanResult={handleScanResult} />
-        )}
+        {/* Optionally include ScanDishComponent if needed */}
+        {/* <ScanDishComponent onScanResult={handleScanResult} /> */}
 
         {scanResult && (
           <Card>
@@ -81,9 +96,6 @@ export default function ScanDishPage() {
 
               <Button onClick={addToTracking} className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal">
                 {t('Add to Health Tracking', 'أضف إلى تتبع الصحة')}
-              </Button>
-              <Button onClick={() => setScanResult(null)} variant="outline" className="w-full mt-2">
-                {t('Scan Another Dish', 'مسح طبق آخر')}
               </Button>
             </CardContent>
           </Card>
