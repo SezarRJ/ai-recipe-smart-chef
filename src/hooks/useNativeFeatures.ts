@@ -1,12 +1,31 @@
 
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Share } from '@capacitor/share';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
 import { Network } from '@capacitor/network';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { useEffect, useState } from 'react';
+
+// Conditional import for haptics with fallback
+let Haptics: any;
+let ImpactStyle: any;
+
+try {
+  const haptics = require('@capacitor/haptics');
+  Haptics = haptics.Haptics;
+  ImpactStyle = haptics.ImpactStyle;
+} catch (error) {
+  console.log('Haptics not available:', error);
+  Haptics = {
+    impact: async () => console.log('Haptic feedback not available')
+  };
+  ImpactStyle = {
+    Light: 'LIGHT',
+    Medium: 'MEDIUM', 
+    Heavy: 'HEAVY'
+  };
+}
 
 export const useNativeFeatures = () => {
   const [isOnline, setIsOnline] = useState(true);
