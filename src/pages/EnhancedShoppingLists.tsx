@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,13 +18,15 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 
+type Priority = 'low' | 'medium' | 'high';
+
 interface ShoppingItem {
   id: string;
   name: string;
   quantity: number;
   unit: string;
   category: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: Priority;
   completed: boolean;
   notes?: string;
   estimatedPrice?: number;
@@ -45,7 +46,7 @@ export default function EnhancedShoppingLists() {
     quantity: 1,
     unit: 'pcs',
     category: 'other',
-    priority: 'medium' as const,
+    priority: 'medium' as Priority,
     notes: '',
     estimatedPrice: 0
   });
@@ -206,7 +207,7 @@ export default function EnhancedShoppingLists() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
-      {isMobile && <MobileHeader title="Shopping Lists" showBack />}
+      {isMobile && <MobileHeader title="Shopping Lists" />}
       
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
@@ -334,7 +335,7 @@ export default function EnhancedShoppingLists() {
                       </div>
                       <div>
                         <Label htmlFor="priority">Priority</Label>
-                        <Select value={newItem.priority} onValueChange={(value: any) => setNewItem(prev => ({ ...prev, priority: value }))}>
+                        <Select value={newItem.priority} onValueChange={(value: Priority) => setNewItem(prev => ({ ...prev, priority: value }))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
