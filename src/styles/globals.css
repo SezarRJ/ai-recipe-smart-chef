@@ -1,1 +1,145 @@
 
+@import './rtl.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --wasfah-deep-teal: 175 95% 20%; /* #006566 */
+    --wasfah-bright-teal: 174 100% 29%; /* #009594 */
+    --wasfah-mint: 176 56% 55%; /* #4ec3c3 */
+    --wasfah-coral-red: 11 100% 50%; /* #ff2a00 */
+    --wasfah-light-gray: 0 0% 98%; /* #fafafa */
+    --wasfah-teal: 174 100% 25%; /* #007c7c */
+    
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    --radius: 0.5rem;
+  }
+}
+
+/* Fix dropdown transparency */
+[data-radix-popper-content-wrapper] {
+  @apply !bg-white;
+  z-index: 50 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.radix-dropdown-content,
+[data-state="open"] > div,
+[role="menu"] {
+  @apply !bg-white !shadow-lg;
+}
+
+/* Make sure all dropdowns have a white background */
+.dropdown-content, 
+.select-content, 
+.popover-content {
+  @apply bg-white border border-gray-200 shadow-lg rounded-lg overflow-hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Add 3D effect to cards */
+.card-3d {
+  @apply shadow-md border border-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  transform-style: preserve-3d;
+}
+
+.card-3d-static {
+  @apply shadow-md border border-gray-100;
+  transform-style: preserve-3d;
+}
+
+/* Improved button styles */
+.btn-primary {
+  @apply bg-wasfah-bright-teal text-white rounded-lg shadow-md transition-all duration-300 hover:bg-wasfah-teal hover:shadow-lg;
+}
+
+/* Animation for loading */
+@keyframes loadingBar {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* Add animation classes */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-scale {
+    animation: scale 0.3s ease-out;
+  }
+  
+  @keyframes scale {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  /* More pronounced 3D effect on hover */
+  .hover-3d {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-3d:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: hsl(var(--wasfah-bright-teal) / 0.3);
+  }
+}
