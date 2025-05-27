@@ -1,6 +1,7 @@
+
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ChevronRight, Globe, Bell, Moon, CreditCard, HelpCircle, LogOut } from "lucide-react";
+import { ChevronRight, Globe, Bell, Moon, CreditCard, HelpCircle, LogOut, FileText, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Profile = () => {
@@ -111,14 +112,15 @@ const Profile = () => {
           </div>
           
           <div className="flex items-center p-4 border-b">
-            <div className="text-gray-600<div className="flex-1">
+            <FileText className="text-gray-600 mr-3" size={20} />
+            <div className="flex-1">
               <h3 className="font-medium">Terms of Service</h3>
             </div>
             <ChevronRight size={18} className="text-gray-400" />
           </div>
           
           <div className="flex items-center p-4">
-            <div className="text-gray-600</div>
+            <Shield className="text-gray-600 mr-3" size={20} />
             <div className="flex-1">
               <h3 className="font-medium">Privacy Policy</h3>
             </div>

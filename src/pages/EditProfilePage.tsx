@@ -14,20 +14,22 @@ export default function EditProfilePage() {
 
   const [name, setName] = useState(mockUser.name);
   const [email, setEmail] = useState(mockUser.email);
-  const [dietaryPreferences, setDietaryPreferences] = useState(mockUser.dietaryPreferences?.join(', ') || '');
-  const [cuisinePreferences, setCuisinePreferences] = useState(mockUser.cuisinePreferences?.join(', ') || '');
-  const [allergies, setAllergies] = useState(mockUser.allergies?.join(', ') || '');
-  const [chefAvatar, setChefAvatar] = useState(mockUser.chefAvatar || '');
+  const [dietaryPreferences, setDietaryPreferences] = useState(mockUser.preferences?.dietary?.join(', ') || '');
+  const [cuisinePreferences, setCuisinePreferences] = useState(mockUser.preferences?.cuisines?.join(', ') || '');
+  const [allergies, setAllergies] = useState(mockUser.preferences?.allergies?.join(', ') || '');
+  const [bio, setBio] = useState(mockUser.bio || '');
 
   const handleSaveChanges = () => {
     const updatedUser = {
       ...mockUser,
       name,
       email,
-      dietaryPreferences: dietaryPreferences.split(',').map(s => s.trim()).filter(Boolean),
-      cuisinePreferences: cuisinePreferences.split(',').map(s => s.trim()).filter(Boolean),
-      allergies: allergies.split(',').map(s => s.trim()).filter(Boolean),
-      chefAvatar,
+      bio,
+      preferences: {
+        dietary: dietaryPreferences.split(',').map(s => s.trim()).filter(Boolean),
+        cuisines: cuisinePreferences.split(',').map(s => s.trim()).filter(Boolean),
+        allergies: allergies.split(',').map(s => s.trim()).filter(Boolean),
+      },
     };
 
     console.log("Simulating saving updated user data:", updatedUser);
@@ -74,6 +76,15 @@ export default function EditProfilePage() {
             />
           </div>
           <div>
+            <Label htmlFor="bio">Bio</Label>
+            <Input
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell us about yourself"
+            />
+          </div>
+          <div>
             <Label htmlFor="dietaryPreferences">Dietary Preferences (comma-separated)</Label>
             <Input
               id="dietaryPreferences"
@@ -98,15 +109,6 @@ export default function EditProfilePage() {
               value={allergies}
               onChange={(e) => setAllergies(e.target.value)}
               placeholder="e.g., Peanuts, Dairy"
-            />
-          </div>
-          <div>
-            <Label htmlFor="chefAvatar">Chef Personality</Label>
-            <Input
-              id="chefAvatar"
-              value={chefAvatar}
-              onChange={(e) => setChefAvatar(e.target.value)}
-              placeholder="e.g., The Grill Master"
             />
           </div>
 
