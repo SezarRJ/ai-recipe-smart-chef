@@ -1,5 +1,5 @@
 
-import { Recipe } from '@/types';
+import { Recipe, User, PantryItem } from '@/types';
 
 export const mockRecipes: Recipe[] = [
   {
@@ -157,20 +157,22 @@ export const dietaryOptions = [
   'Low-carb'
 ];
 
-export const mockUser = {
+export const mockUser: User = {
   id: '1',
   name: 'John Doe',
   email: 'john.doe@example.com',
   avatar: '/placeholder.svg',
-  bio: 'Food lover and home cook',
-  preferences: {
-    dietary: ['Vegetarian'],
-    allergies: [],
-    cuisines: ['Italian', 'Mexican']
+  dietaryPreferences: ['Vegetarian'],
+  allergies: [],
+  cuisinePreferences: ['Italian', 'Mexican'],
+  chefAvatar: 'The Grill Master',
+  nutritionalGoals: {
+    calories: 2000,
+    protein: 150
   }
 };
 
-export const mockPantryItems = [
+export const mockPantryItems: PantryItem[] = [
   {
     id: '1',
     name: 'Tomatoes',
