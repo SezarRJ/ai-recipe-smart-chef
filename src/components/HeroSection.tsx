@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Sparkles, Zap, Heart, Camera, BookOpen, Users } from "lucide-react";
+import { ChevronRight, Sparkles, Zap, Heart, Camera, BookOpen, Users, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 

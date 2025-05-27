@@ -12,11 +12,20 @@ let Haptics: any;
 let ImpactStyle: any;
 
 try {
-  const haptics = require('@capacitor/haptics');
-  Haptics = haptics.Haptics;
-  ImpactStyle = haptics.ImpactStyle;
+  if (typeof window !== 'undefined') {
+    import('@capacitor/haptics').then((haptics) => {
+      Haptics = haptics.Haptics;
+      ImpactStyle = haptics.ImpactStyle;
+    }).catch(() => {
+      console.log('Haptics not available in this environment');
+    });
+  }
 } catch (error) {
   console.log('Haptics not available:', error);
+}
+
+// Fallback haptics implementation
+if (!Haptics) {
   Haptics = {
     impact: async () => console.log('Haptic feedback not available')
   };
@@ -33,40 +42,37 @@ export const useNativeFeatures = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
 
   useEffect(() => {
+    let networkListener: any;
+    let showListener: any;
+    let hideListener: any;
+
     // Setup network monitoring
     const setupNetwork = async () => {
       try {
         const status = await Network.getStatus();
         setIsOnline(status.connected);
         
-        const listener = Network.addListener('networkStatusChange', status => {
+        networkListener = await Network.addListener('networkStatusChange', status => {
           setIsOnline(status.connected);
           console.log('Network status changed:', status);
         });
-
-        return () => listener.remove();
       } catch (error) {
         console.log('Network monitoring not available:', error);
       }
     };
 
     // Setup keyboard monitoring
-    const setupKeyboard = () => {
+    const setupKeyboard = async () => {
       try {
-        const showListener = Keyboard.addListener('keyboardWillShow', (info) => {
+        showListener = await Keyboard.addListener('keyboardWillShow', (info) => {
           setKeyboardVisible(true);
           console.log('Keyboard will show:', info);
         });
         
-        const hideListener = Keyboard.addListener('keyboardWillHide', () => {
+        hideListener = await Keyboard.addListener('keyboardWillHide', () => {
           setKeyboardVisible(false);
           console.log('Keyboard will hide');
         });
-
-        return () => {
-          showListener.remove();
-          hideListener.remove();
-        };
       } catch (error) {
         console.log('Keyboard monitoring not available:', error);
       }
@@ -97,6 +103,19 @@ export const useNativeFeatures = () => {
     setupKeyboard();
     setupStatusBar();
     setupNotifications();
+
+    // Cleanup function
+    return () => {
+      if (networkListener) {
+        networkListener.remove();
+      }
+      if (showListener) {
+        showListener.remove();
+      }
+      if (hideListener) {
+        hideListener.remove();
+      }
+    };
   }, []);
 
   const takePicture = async () => {
@@ -137,10 +156,12 @@ export const useNativeFeatures = () => {
 
   const hapticFeedback = async (style: 'light' | 'medium' | 'heavy' = 'medium') => {
     try {
-      const impactStyle = style === 'light' ? ImpactStyle.Light : 
-                         style === 'heavy' ? ImpactStyle.Heavy : ImpactStyle.Medium;
-      await Haptics.impact({ style: impactStyle });
-      console.log('Haptic feedback triggered:', style);
+      if (Haptics && ImpactStyle) {
+        const impactStyle = style === 'light' ? ImpactStyle.Light : 
+                           style === 'heavy' ? ImpactStyle.Heavy : ImpactStyle.Medium;
+        await Haptics.impact({ style: impactStyle });
+        console.log('Haptic feedback triggered:', style);
+      }
     } catch (error) {
       console.error('Haptic feedback not supported:', error);
     }
