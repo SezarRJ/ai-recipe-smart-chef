@@ -1,4 +1,3 @@
-
 import { MobileNavigation } from "@/components/MobileNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ChevronRight, Globe, Bell, Moon, CreditCard, HelpCircle, LogOut } from "lucide-react";
@@ -18,6 +17,15 @@ const Profile = () => {
     setLanguage(e.target.value as any);
   };
 
+  const handleEditProfile = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Add your edit profile logic here
+    console.log("Edit profile clicked");
+    // For example: navigate to edit profile page
+    // router.push('/profile/edit');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20">
       <div className="pt-4 px-4 pb-2">
@@ -34,7 +42,12 @@ const Profile = () => {
             <h2 className="font-semibold text-lg">User Name</h2>
             <p className="text-gray-600 text-sm">user@example.com</p>
           </div>
-          <Button variant="outline" className="ml-auto text-sm">
+          <Button 
+            variant="outline" 
+            className="ml-auto text-sm"
+            onClick={handleEditProfile}
+            type="button"
+          >
             Edit Profile
           </Button>
         </div>
@@ -98,15 +111,14 @@ const Profile = () => {
           </div>
           
           <div className="flex items-center p-4 border-b">
-            <div className="text-gray-600 mr-3">📝</div>
-            <div className="flex-1">
+            <div className="text-gray-600<div className="flex-1">
               <h3 className="font-medium">Terms of Service</h3>
             </div>
             <ChevronRight size={18} className="text-gray-400" />
           </div>
           
           <div className="flex items-center p-4">
-            <div className="text-gray-600 mr-3">🔒</div>
+            <div className="text-gray-600</div>
             <div className="flex-1">
               <h3 className="font-medium">Privacy Policy</h3>
             </div>
