@@ -13,9 +13,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface IngredientImage {
   id: string;
-  name: string;
+  ingredient_name: string;
   image_url: string;
-  category: string;
+  alt_text?: string;
   created_at: string;
   updated_at: string;
 }
@@ -28,12 +28,10 @@ export default function AdminIngredientImagesManager() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState<IngredientImage | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
+    ingredient_name: '',
     image_url: '',
-    category: ''
+    alt_text: ''
   });
-
-  const categories = ['vegetables', 'fruits', 'meat', 'grains', 'dairy', 'oils', 'spices', 'other'];
 
   useEffect(() => {
     fetchIngredients();
@@ -63,7 +61,7 @@ export default function AdminIngredientImagesManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.image_url) {
+    if (!formData.ingredient_name || !formData.image_url) {
       toast({
         title: "Validation Error",
         description: "Name and image URL are required",
@@ -77,9 +75,9 @@ export default function AdminIngredientImagesManager() {
         const { error } = await supabase
           .from('ingredient_images')
           .update({
-            name: formData.name,
+            ingredient_name: formData.ingredient_name,
             image_url: formData.image_url,
-            category: formData.category || 'other',
+            alt_text: formData.alt_text || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingIngredient.id);
@@ -94,9 +92,9 @@ export default function AdminIngredientImagesManager() {
         const { error } = await supabase
           .from('ingredient_images')
           .insert({
-            name: formData.name,
+            ingredient_name: formData.ingredient_name,
             image_url: formData.image_url,
-            category: formData.category || 'other'
+            alt_text: formData.alt_text || null
           });
 
         if (error) throw error;
@@ -107,7 +105,7 @@ export default function AdminIngredientImagesManager() {
         });
       }
 
-      setFormData({ name: '', image_url: '', category: '' });
+      setFormData({ ingredient_name: '', image_url: '', alt_text: '' });
       setEditingIngredient(null);
       setIsAddDialogOpen(false);
       fetchIngredients();
@@ -124,9 +122,9 @@ export default function AdminIngredientImagesManager() {
   const handleEdit = (ingredient: IngredientImage) => {
     setEditingIngredient(ingredient);
     setFormData({
-      name: ingredient.name,
+      ingredient_name: ingredient.ingredient_name,
       image_url: ingredient.image_url,
-      category: ingredient.category
+      alt_text: ingredient.alt_text || ''
     });
     setIsAddDialogOpen(true);
   };
@@ -159,8 +157,7 @@ export default function AdminIngredientImagesManager() {
   };
 
   const filteredIngredients = ingredients.filter(ingredient =>
-    ingredient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ingredient.category.toLowerCase().includes(searchQuery.toLowerCase())
+    ingredient.ingredient_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -171,7 +168,7 @@ export default function AdminIngredientImagesManager() {
           <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingIngredient(null);
-              setFormData({ name: '', image_url: '', category: '' });
+              setFormData({ ingredient_name: '', image_url: '', alt_text: '' });
             }}>
               <Plus className="h-4 w-4 mr-2" />
               Add Ingredient Image
@@ -185,11 +182,11 @@ export default function AdminIngredientImagesManager() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="ingredient_name">Name</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  id="ingredient_name"
+                  value={formData.ingredient_name}
+                  onChange={(e) => setFormData({ ...formData, ingredient_name: e.target.value })}
                   placeholder="Enter ingredient name"
                   required
                 />
@@ -205,19 +202,13 @@ export default function AdminIngredientImagesManager() {
                 />
               </div>
               <div>
-                <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="alt_text">Alt Text</Label>
+                <Input
+                  id="alt_text"
+                  value={formData.alt_text}
+                  onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
+                  placeholder="Enter alt text (optional)"
+                />
               </div>
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -258,7 +249,7 @@ export default function AdminIngredientImagesManager() {
                 <TableRow>
                   <TableHead>Image</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Alt Text</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -270,15 +261,13 @@ export default function AdminIngredientImagesManager() {
                       <div className="w-12 h-12 rounded-md overflow-hidden">
                         <img
                           src={ingredient.image_url}
-                          alt={ingredient.name}
+                          alt={ingredient.alt_text || ingredient.ingredient_name}
                           className="w-full h-full object-cover"
                         />
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{ingredient.name}</TableCell>
-                    <TableCell>
-                      <span className="capitalize">{ingredient.category}</span>
-                    </TableCell>
+                    <TableCell className="font-medium">{ingredient.ingredient_name}</TableCell>
+                    <TableCell>{ingredient.alt_text || '-'}</TableCell>
                     <TableCell>
                       {new Date(ingredient.created_at).toLocaleDateString()}
                     </TableCell>

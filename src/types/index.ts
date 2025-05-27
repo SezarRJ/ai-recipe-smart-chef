@@ -86,6 +86,7 @@ export interface PantryItem {
   quantity: number;
   unit: string;
   expiryDate?: string; // Change to string for easier date handling
+  addedDate: string; // Add addedDate property
   image?: string;
   location?: string; // Add location property
 }

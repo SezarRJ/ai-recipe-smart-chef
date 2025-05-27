@@ -14,7 +14,7 @@ import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useEffect } from "react";
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isMobile = useIsMobile();
   const { scheduleNotification, hapticFeedback } = useNativeFeatures();
   
@@ -51,7 +51,7 @@ const Index = () => {
       <FeaturesSection />
       <TechnologySection />
       <DownloadSection />
-      <Footer />
+      <Footer language={language} />
       <MobileNavigation />
     </div>
   );
