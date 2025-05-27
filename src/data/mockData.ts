@@ -13,7 +13,11 @@ export const mockRecipes: Recipe[] = [
     difficulty: 'Medium',
     cuisineType: 'italian',
     rating: 4.8,
+    ratingCount: 156,
+    calories: 285,
     isFavorite: true,
+    categories: ['Italian', 'Main Dishes'],
+    tags: ['pizza', 'italian', 'vegetarian'],
     ingredients: [
       { id: '1', name: 'Tomatoes', quantity: '2', unit: 'cups', inPantry: false },
       { id: '2', name: 'Mozzarella', quantity: '200', unit: 'g', inPantry: false },
@@ -33,7 +37,11 @@ export const mockRecipes: Recipe[] = [
     difficulty: 'Medium',
     cuisineType: 'indian',
     rating: 4.7,
+    ratingCount: 203,
+    calories: 420,
     isFavorite: false,
+    categories: ['Indian', 'Main Dishes'],
+    tags: ['curry', 'indian', 'spicy'],
     ingredients: [
       { id: '1', name: 'Chicken', quantity: '500', unit: 'g', inPantry: false },
       { id: '2', name: 'Tomatoes', quantity: '3', unit: 'pieces', inPantry: false },
@@ -53,7 +61,11 @@ export const mockRecipes: Recipe[] = [
     difficulty: 'Easy',
     cuisineType: 'mexican',
     rating: 4.5,
+    ratingCount: 87,
+    calories: 320,
     isFavorite: true,
+    categories: ['Mexican', 'Main Dishes'],
+    tags: ['tacos', 'mexican', 'beef'],
     ingredients: [
       { id: '1', name: 'Ground beef', quantity: '400', unit: 'g', inPantry: false },
       { id: '2', name: 'Taco shells', quantity: '8', unit: 'pieces', inPantry: false },
@@ -73,7 +85,11 @@ export const mockRecipes: Recipe[] = [
     difficulty: 'Easy',
     cuisineType: 'italian',
     rating: 4.3,
+    ratingCount: 92,
+    calories: 180,
     isFavorite: false,
+    categories: ['Italian', 'Salads'],
+    tags: ['salad', 'healthy', 'quick'],
     ingredients: [
       { id: '1', name: 'Romaine lettuce', quantity: '1', unit: 'head', inPantry: false },
       { id: '2', name: 'Caesar dressing', quantity: '100', unit: 'ml', inPantry: false },
@@ -93,7 +109,11 @@ export const mockRecipes: Recipe[] = [
     difficulty: 'Easy',
     cuisineType: 'american',
     rating: 4.9,
+    ratingCount: 312,
+    calories: 150,
     isFavorite: true,
+    categories: ['American', 'Desserts'],
+    tags: ['cookies', 'dessert', 'baking'],
     ingredients: [
       { id: '1', name: 'Flour', quantity: '2', unit: 'cups', inPantry: false },
       { id: '2', name: 'Butter', quantity: '100', unit: 'g', inPantry: false },
@@ -101,5 +121,72 @@ export const mockRecipes: Recipe[] = [
       { id: '4', name: 'Chocolate chips', quantity: '100', unit: 'g', inPantry: false }
     ],
     instructions: ['Mix ingredients', 'Shape cookies', 'Bake until golden']
+  }
+];
+
+export const categories = [
+  'Main Dishes',
+  'Appetizers', 
+  'Desserts',
+  'Salads',
+  'Soups',
+  'Beverages'
+];
+
+export const cuisines = [
+  'Italian',
+  'Mexican', 
+  'Indian',
+  'American',
+  'Chinese',
+  'Mediterranean'
+];
+
+export const difficulties = [
+  'Easy',
+  'Medium',
+  'Hard'
+];
+
+export const dietaryOptions = [
+  'Vegetarian',
+  'Vegan',
+  'Gluten-free',
+  'Dairy-free',
+  'Keto',
+  'Low-carb'
+];
+
+export const mockUser = {
+  id: '1',
+  name: 'John Doe',
+  email: 'john.doe@example.com',
+  avatar: '/placeholder.svg',
+  bio: 'Food lover and home cook',
+  preferences: {
+    dietary: ['Vegetarian'],
+    allergies: [],
+    cuisines: ['Italian', 'Mexican']
+  }
+};
+
+export const mockPantryItems = [
+  {
+    id: '1',
+    name: 'Tomatoes',
+    quantity: 5,
+    unit: 'pieces',
+    category: 'Vegetables',
+    expiryDate: '2024-02-15',
+    addedDate: '2024-02-01'
+  },
+  {
+    id: '2', 
+    name: 'Flour',
+    quantity: 2,
+    unit: 'kg',
+    category: 'Pantry',
+    expiryDate: '2024-06-30',
+    addedDate: '2024-01-15'
   }
 ];
