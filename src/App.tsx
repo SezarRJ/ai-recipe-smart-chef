@@ -101,6 +101,7 @@ const AppContent = () => {
         <Route path="/recipe/:id" element={<RecipeDetail />} />
         <Route path="/cooking/:id" element={<CookingMode />} />
         <Route path="/health-tracking" element={<HealthTracking />} />
+        <Route path="/favorites" element={<Navigate to="/profile" replace />} />
         <Route path="/meal-planning" element={
           <ProtectedRoute>
             <MealPlanning />
@@ -153,6 +154,7 @@ const AppContent = () => {
         } />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/language-settings" element={<LanguageSettings />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
