@@ -1,33 +1,21 @@
 
 {
-  "name": "Wasfah AI - Recipe Discovery & Meal Planning",
-  "short_name": "Wasfah AI",
-  "description": "AI-powered recipe discovery and meal planning app",
+  "name": "Wasfah AI Kitchen Pal",
+  "short_name": "Wasfah",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFF8F0",
-  "theme_color": "#F97316",
+  "background_color": "#ffffff",
+  "theme_color": "#44a694",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "/icon-192.png",
-      "type": "image/png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
-      "type": "image/png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "orientation": "portrait-primary",
-  "categories": ["food", "lifestyle", "health"],
-  "lang": "en-US",
-  "dir": "ltr"
+  ]
 }
