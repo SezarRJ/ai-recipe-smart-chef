@@ -140,6 +140,19 @@ export const deleteRecipeFromDB = async (id: string) => {
   if (error) throw error;
 };
 
+export const toggleFavoriteInDB = async (recipeId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // For now, we'll just return a boolean since we don't have a favorites table
+  // In a real implementation, you would check if the recipe is already favorited
+  // and either add or remove it from a favorites table
+  console.log('Toggle favorite for recipe:', recipeId);
+  
+  // Placeholder implementation - always returns true for now
+  return true;
+};
+
 // Create a simplified service object that exports the main functions
 export const recipeService = {
   searchRecipes: async (query: string) => {
