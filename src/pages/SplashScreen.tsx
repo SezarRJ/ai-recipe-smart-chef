@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -94,4 +95,10 @@ const SplashScreen = () => {
           >
             Skip for now
           </Button>
-       
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SplashScreen;
