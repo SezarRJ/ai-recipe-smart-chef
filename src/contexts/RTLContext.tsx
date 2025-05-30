@@ -1,85 +1,58 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
-interface RTLContextType {
-  language: string;
-  setLanguage: (lang: string) => void;
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+
+export interface RTLContextType {
   direction: 'ltr' | 'rtl';
-  t: (englishText: string, arabicText: string, turkishText?: string) => string;
+  language: string;
+  toggleDirection: () => void;
+  setLanguage: (lang: string) => void;
+  t: (english: string, arabic?: string, turkish?: string) => string;
 }
 
 const RTLContext = createContext<RTLContextType | undefined>(undefined);
 
-export const RTLProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState(() => {
-    return localStorage.getItem('language') || 'en';
-  });
-  const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
+export const RTLProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr');
+  const [language, setLanguageState] = useState<string>('en');
 
-  const direction = language === 'ar' ? 'rtl' : 'ltr';
-
-  useEffect(() => {
-    document.documentElement.dir = direction;
-    document.documentElement.lang = language;
-    fetchTranslations();
-  }, [direction, language]);
-
-  const fetchTranslations = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('translations')
-        .select('*');
-
-      if (error) throw error;
-
-      const translationMap: Record<string, Record<string, string>> = {};
-      data?.forEach((translation) => {
-        if (!translationMap[translation.key]) {
-          translationMap[translation.key] = {};
-        }
-        translationMap[translation.key][translation.language_code] = translation.value;
-      });
-
-      setTranslations(translationMap);
-    } catch (error) {
-      console.error('Error fetching translations:', error);
-    }
+  const toggleDirection = () => {
+    setDirection(prev => prev === 'ltr' ? 'rtl' : 'ltr');
   };
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang);
-    localStorage.setItem('language', lang);
+    // Update direction based on language
+    if (lang === 'ar') {
+      setDirection('rtl');
+    } else {
+      setDirection('ltr');
+    }
   };
 
-  const t = (englishText: string, arabicText: string = '', turkishText: string = '') => {
-    // First check database translations
-    if (translations[englishText] && translations[englishText][language]) {
-      return translations[englishText][language];
-    }
-
-    // Fallback to hardcoded translations
+  const t = (english: string, arabic?: string, turkish?: string) => {
     switch (language) {
       case 'ar':
-        return arabicText || englishText;
+        return arabic || english;
       case 'tr':
-        return turkishText || englishText;
+        return turkish || english;
       default:
-        return englishText;
+        return english;
     }
   };
 
   return (
-    <RTLContext.Provider value={{ language, setLanguage, direction, t }}>
-      {children}
+    <RTLContext.Provider value={{ direction, language, toggleDirection, setLanguage, t }}>
+      <div dir={direction}>
+        {children}
+      </div>
     </RTLContext.Provider>
   );
 };
 
-export const useRTL = () => {
+export const useRTL = (): RTLContextType => {
   const context = useContext(RTLContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useRTL must be used within an RTLProvider');
   }
   return context;
 };
-
