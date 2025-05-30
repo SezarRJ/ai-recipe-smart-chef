@@ -1,122 +1,170 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import { supabase } from '@/integrations/supabase/client';
+import { Recipe, RecipeFilters } from '@/types/recipe';
 
-export type Recipe = Database['public']['Tables']['recipes']['Row'];
-export type Ingredient = Database['public']['Tables']['ingredients']['Row'];
-export type RecipeCategory = Database['public']['Tables']['recipe_categories']['Row'];
-export type RecipeIngredient = Database['public']['Tables']['recipe_ingredients']['Row'];
-export type PantryItem = Database['public']['Tables']['pantry_items']['Row'];
+export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
+  let query = supabase
+    .from('recipes')
+    .select(`
+      *,
+      recipe_ingredients (
+        id,
+        amount,
+        unit,
+        ingredients (
+          name
+        )
+      )
+    `)
+    .eq('status', 'published');
 
-// Type for pantry items with ingredient information
-export type PantryItemWithIngredient = PantryItem & {
-  ingredient: Ingredient;
+  if (filters?.category) {
+    query = query.contains('categories', [filters.category]);
+  }
+
+  if (filters?.difficulty && ['Easy', 'Medium', 'Hard'].includes(filters.difficulty)) {
+    query = query.eq('difficulty', filters.difficulty as 'Easy' | 'Medium' | 'Hard');
+  }
+
+  if (filters?.search) {
+    query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  const formattedRecipes: Recipe[] = data?.map(recipe => ({
+    id: recipe.id,
+    title: recipe.title,
+    description: recipe.description || '',
+    image_url: recipe.image_url || '',
+    prep_time: recipe.prep_time || 0,
+    cook_time: recipe.cook_time || 0,
+    servings: recipe.servings || 1,
+    difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard',
+    calories: recipe.calories || 0,
+    cuisine_type: recipe.cuisine_type || '',
+    instructions: Array.isArray(recipe.instructions) ? recipe.instructions as string[] : 
+                 (recipe.instructions ? [recipe.instructions as string] : []),
+    categories: recipe.categories || [],
+    tags: recipe.tags || [],
+    status: recipe.status as 'draft' | 'published' | 'pending_review',
+    author_id: recipe.author_id || '',
+    is_verified: recipe.is_verified || false,
+    created_at: recipe.created_at || '',
+    updated_at: recipe.updated_at || '',
+    ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
+      id: ri.id,
+      name: ri.ingredients.name,
+      amount: ri.amount,
+      unit: ri.unit
+    })) || []
+  })) || [];
+
+  return formattedRecipes;
 };
 
-export const recipeService = {
-  async getCategories(): Promise<RecipeCategory[]> {
-    const { data, error } = await supabase
-      .from('recipe_categories')
-      .select('*');
-    
-    if (error) throw error;
-    return data || [];
-  },
+export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  async getSubcategories(parentId: string): Promise<RecipeCategory[]> {
-    const { data, error } = await supabase
-      .from('recipe_categories')
-      .select('*')
-      .eq('parent_id', parentId);
-    
-    if (error) throw error;
-    return data || [];
-  },
+  if (!recipeData.title) {
+    throw new Error('Recipe title is required');
+  }
 
-  async getMainCategories(): Promise<RecipeCategory[]> {
-    const { data, error } = await supabase
-      .from('recipe_categories')
-      .select('*')
-      .is('parent_id', null);
-    
-    if (error) throw error;
-    return data || [];
-  },
+  const { data, error } = await supabase
+    .from('recipes')
+    .insert([{
+      title: recipeData.title,
+      description: recipeData.description,
+      image_url: recipeData.image_url,
+      prep_time: recipeData.prep_time,
+      cook_time: recipeData.cook_time,
+      servings: recipeData.servings,
+      difficulty: recipeData.difficulty,
+      calories: recipeData.calories,
+      cuisine_type: recipeData.cuisine_type,
+      instructions: recipeData.instructions,
+      categories: recipeData.categories,
+      tags: recipeData.tags,
+      author_id: user.id,
+      status: 'draft'
+    }])
+    .select()
+    .single();
 
-  async searchRecipes(query: string): Promise<Recipe[]> {
-    const { data, error } = await supabase
-      .from('recipes')
-      .select('*')
-      .textSearch('title', query);
-    
-    if (error) throw error;
-    return data || [];
-  },
+  if (error) throw error;
+  return data;
+};
 
-  async getIngredientsForRecipe(recipeId: string): Promise<{ name: string; quantity: number | null; unit: string | null }[]> {
-    const { data, error } = await supabase
-      .from('recipe_ingredients')
-      .select(`
-        quantity, 
-        unit,
-        ingredient:ingredients(name)
-      `)
+export const updateRecipeInDB = async (id: string, updates: Partial<Recipe>) => {
+  const { data, error } = await supabase
+    .from('recipes')
+    .update({
+      title: updates.title,
+      description: updates.description,
+      image_url: updates.image_url,
+      prep_time: updates.prep_time,
+      cook_time: updates.cook_time,
+      servings: updates.servings,
+      difficulty: updates.difficulty,
+      calories: updates.calories,
+      cuisine_type: updates.cuisine_type,
+      instructions: updates.instructions,
+      categories: updates.categories,
+      tags: updates.tags,
+      status: updates.status
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteRecipeFromDB = async (id: string) => {
+  const { error } = await supabase
+    .from('recipes')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+export const toggleFavoriteInDB = async (recipeId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Check if already favorited
+  const { data: existing } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('recipe_id', recipeId)
+    .single();
+
+  if (existing) {
+    // Remove from favorites
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', user.id)
       .eq('recipe_id', recipeId);
-    
-    if (error) throw error;
-    
-    return data?.map(item => ({
-      name: (item.ingredient as any)?.name || '',
-      quantity: item.quantity,
-      unit: item.unit
-    })) || [];
-  },
 
-  async getUserPantryItems(): Promise<PantryItemWithIngredient[]> {
-    const { data, error } = await supabase
-      .from('pantry_items')
-      .select(`
-        *,
-        ingredient:ingredients(*)
-      `);
-    
     if (error) throw error;
-    return data as PantryItemWithIngredient[] || [];
-  },
+    return false; // Not favorited anymore
+  } else {
+    // Add to favorites
+    const { error } = await supabase
+      .from('favorites')
+      .insert([{
+        user_id: user.id,
+        recipe_id: recipeId
+      }]);
 
-  async searchRecipesByIngredients(ingredients: string[]): Promise<Recipe[]> {
-    // This is a simplified version - in a real app, we could use more sophisticated logic
-    // to find recipes that match available ingredients
-    const { data: matchedIngredientIds, error: ingredientsError } = await supabase
-      .from('ingredients')
-      .select('id')
-      .in('name', ingredients);
-    
-    if (ingredientsError) throw ingredientsError;
-    
-    if (!matchedIngredientIds?.length) return [];
-    
-    const ids = matchedIngredientIds.map(item => item.id);
-    
-    const { data: recipeIds, error: recipesError } = await supabase
-      .from('recipe_ingredients')
-      .select('recipe_id')
-      .in('ingredient_id', ids)
-      .order('recipe_id');
-    
-    if (recipesError) throw recipesError;
-    
-    if (!recipeIds?.length) return [];
-    
-    const uniqueRecipeIds = [...new Set(recipeIds.map(item => item.recipe_id))];
-    
-    const { data: recipes, error: finalError } = await supabase
-      .from('recipes')
-      .select('*')
-      .in('id', uniqueRecipeIds as string[]);
-    
-    if (finalError) throw finalError;
-    
-    return recipes || [];
+    if (error) throw error;
+    return true; // Now favorited
   }
 };
