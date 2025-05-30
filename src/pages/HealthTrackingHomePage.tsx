@@ -14,14 +14,12 @@ import { DailyChallengesManager } from '@/components/challenges/DailyChallengesM
 import { BMICalculator } from '@/components/health/BMICalculator';
 import { useRTL } from '@/contexts/RTLContext';
 
-// Mock for useUserHealth hook
 const useUserHealthMock = () => {
     const [isHealthGoalsOpen, setIsHealthGoalsOpen] = useState(false);
-    const [userWeight, setUserWeight] = useState(75); // Initial weight
-    const [userHeight, setUserHeight] = useState(170); // Initial height in cm
-    const [userTargetWeight, setUserTargetWeight] = useState(65); // Initial target weight
+    const [userWeight, setUserWeight] = useState(75);
+    const [userHeight, setUserHeight] = useState(170);
+    const [userTargetWeight, setUserTargetWeight] = useState(65);
 
-    // Simulate updating health goals
     const updateHealthGoals = useCallback(({ weight, height, targetWeight }) => {
         if (weight !== undefined) setUserWeight(weight);
         if (height !== undefined) setUserHeight(height);
@@ -34,12 +32,12 @@ const useUserHealthMock = () => {
         userWeight,
         userHeight,
         userTargetWeight,
-        updateHealthGoals, // Expose update function
+        updateHealthGoals,
     };
 };
 
 const IngredientSwapCard = ({ swap, t }) => (
-    <Card className="border border-gray-200 dark:border-gray-700">
+    <Card className="border border-gray-100 dark:border-gray-700 shadow-sm rounded-xl bg-gradient-to-br from-white via-wasfah-cream to-orange-50">
         <CardContent className="p-4">
             <h4 className="font-bold text-wasfah-deep-teal dark:text-wasfah-bright-teal flex items-center mb-3">
                 <Tag className="h-4 w-4 mr-2" />
@@ -62,7 +60,7 @@ const IngredientSwapCard = ({ swap, t }) => (
 
 const ActionButton = ({ to, children, variant = "default", icon }) => (
     <Link to={to}>
-        <Button className={`w-full ${variant === "outline" ? "border-wasfah-bright-teal text-wasfah-bright-teal" : "bg-wasfah-bright-teal hover:bg-wasfah-teal"}`}>
+        <Button className={`w-full rounded-xl py-3 text-base font-semibold shadow-sm transition ${variant === "outline" ? "border-wasfah-bright-teal text-wasfah-bright-teal bg-white" : "bg-wasfah-bright-teal hover:bg-wasfah-teal text-white"}`}>
             {icon && <span className="mr-2">{icon}</span>}
             {children}
         </Button>
@@ -80,7 +78,6 @@ export default function HealthTrackingHomePage() {
         updateHealthGoals,
     } = useUserHealthMock();
 
-    // --- State for Nutrition Tracking ---
     const [dailyNutritionData, setDailyNutritionData] = useState([]);
     const [currentNutritionSummary, setCurrentNutritionSummary] = useState({
         calories: { consumed: 0, target: 2000 },
@@ -121,13 +118,10 @@ export default function HealthTrackingHomePage() {
     }, [mockWeeklyNutritionChartData, t]);
 
     const handleApplyTip = useCallback((tip) => {
-        console.log('Applied tip:', tip);
         alert(t('Tip applied! (In a real app, this would update your goals/plan)', 'تم تطبيق النصيحة! (في تطبيق حقيقي، سيتم تحديث أهدافك/خطتك)'));
     }, [t]);
 
     const handleNutritionSubmit = useCallback((data) => {
-        console.log('Nutrition data submitted:', data);
-
         setCurrentNutritionSummary(prev => ({
             calories: { ...prev.calories, consumed: prev.calories.consumed + data.calories },
             protein: { ...prev.protein, consumed: prev.protein.consumed + data.protein },
@@ -170,7 +164,6 @@ export default function HealthTrackingHomePage() {
             },
             ...prev.slice(0, 2),
         ]);
-
         alert(t('Nutrition data added successfully!', 'تمت إضافة بيانات التغذية بنجاح!'));
     }, [t]);
 
@@ -227,7 +220,7 @@ export default function HealthTrackingHomePage() {
 
     return (
         <PageContainer header={{ title: t('Health & Tracking', 'الصحة والتتبع'), showBackButton: true }}>
-            <div className="space-y-6 pb-20">
+            <div className="space-y-8 pb-20 max-w-3xl mx-auto">
                 <NutritionTip
                     tip={t(
                         "Based on your recent activity and diet patterns, I recommend increasing protein intake by 15g daily while reducing carbs slightly to help reach your weight goal of 65kg.",
@@ -251,27 +244,27 @@ export default function HealthTrackingHomePage() {
                 <DailyChallengesManager />
 
                 <Tabs defaultValue="track">
-                    <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="track" aria-label={t('Track', 'تتبع')}>
+                    <TabsList className="grid w-full grid-cols-4 rounded-xl bg-wasfah-light-gray p-1 mb-2">
+                        <TabsTrigger value="track" aria-label={t('Track', 'تتبع')} className="rounded-lg">
                             <Activity className="h-4 w-4 mr-1" />
                             {t('Track', 'تتبع')}
                         </TabsTrigger>
-                        <TabsTrigger value="goals" aria-label={t('Goals', 'الأهداف')}>
+                        <TabsTrigger value="goals" aria-label={t('Goals', 'الأهداف')} className="rounded-lg">
                             <Scale className="h-4 w-4 mr-1" />
                             {t('Goals', 'الأهداف')}
                         </TabsTrigger>
-                        <TabsTrigger value="swaps" aria-label={t('Swaps', 'البدائل')}>
+                        <TabsTrigger value="swaps" aria-label={t('Swaps', 'البدائل')} className="rounded-lg">
                             <ArrowLeftRight className="h-4 w-4 mr-1" />
                             {t('Swaps', 'البدائل')}
                         </TabsTrigger>
-                        <TabsTrigger value="history" aria-label={t('History', 'السجل')}>
+                        <TabsTrigger value="history" aria-label={t('History', 'السجل')} className="rounded-lg">
                             <CalendarDays className="h-4 w-4 mr-1" />
                             {t('History', 'السجل')}
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="track" className="space-y-4 mt-4">
-                        <Card className="border border-gray-200 dark:border-gray-700">
+                    <TabsContent value="track" className="space-y-6 mt-4">
+                        <Card className="border border-gray-100 dark:border-gray-700 shadow rounded-xl">
                             <CardContent className="pt-6">
                                 <NutritionSummary
                                     calories={currentNutritionSummary.calories}
@@ -299,8 +292,8 @@ export default function HealthTrackingHomePage() {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="goals" className="space-y-4 mt-4">
-                        <Card>
+                    <TabsContent value="goals" className="space-y-6 mt-4">
+                        <Card className="border border-gray-100 dark:border-gray-700 shadow rounded-xl">
                             <CardContent className="pt-6">
                                 <NutritionGoals
                                     initialGoals={{
@@ -322,7 +315,7 @@ export default function HealthTrackingHomePage() {
                         </ActionButton>
                     </TabsContent>
 
-                    <TabsContent value="swaps" className="space-y-4 mt-4">
+                    <TabsContent value="swaps" className="space-y-6 mt-4">
                         <h3 className="text-lg font-semibold text-wasfah-deep-teal dark:text-wasfah-bright-teal">
                             {t('Healthier Ingredient Alternatives', 'بدائل المكونات الصحية')}
                         </h3>
@@ -336,8 +329,8 @@ export default function HealthTrackingHomePage() {
                         </ActionButton>
                     </TabsContent>
 
-                    <TabsContent value="history" className="space-y-4 mt-4">
-                        <Card>
+                    <TabsContent value="history" className="space-y-6 mt-4">
+                        <Card className="border border-gray-100 dark:border-gray-700 shadow rounded-xl">
                             <CardContent className="pt-6">
                                 <h3 className="text-lg font-semibold text-wasfah-deep-teal dark:text-wasfah-bright-teal mb-2">
                                     {t('Weekly Progress', 'التقدم الأسبوعي')}
@@ -355,7 +348,7 @@ export default function HealthTrackingHomePage() {
                             </h3>
                             {recentMeals.length > 0 ? (
                                 recentMeals.map((meal) => (
-                                    <Card key={meal.id} className="border border-gray-200 dark:border-gray-700">
+                                    <Card key={meal.id} className="border border-gray-100 dark:border-gray-700 shadow rounded-xl">
                                         <CardContent className="p-3 flex justify-between items-center">
                                             <div>
                                                 <p className="font-medium">{meal.type}</p>
