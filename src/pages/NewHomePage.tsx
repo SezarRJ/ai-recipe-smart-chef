@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { TodayMealPlan } from '@/components/home/TodayMealPlan';
 import { LoyaltyCard } from '@/components/home/LoyaltyCard';
 import { SubscriptionBanner } from '@/components/home/SubscriptionBanner';
+import { mockMealPlan } from '@/data/mockData';
 import { ChefHat, Heart, Users, Award, Calendar, Box, PlusCircle, Camera, Share2, Bot, CreditCard } from 'lucide-react';
 
 // Grouped Quick Actions

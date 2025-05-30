@@ -1,4 +1,6 @@
+
 import { Recipe, User, PantryItem } from '@/types/index';
+import { MealPlan } from '@/hooks/useMealPlan';
 
 export const mockUser: User = {
   id: '1',
@@ -122,3 +124,53 @@ export const mockRecipes: Recipe[] = [
 ];
 
 export const favoriteRecipes = mockRecipes.filter(recipe => recipe.isFavorite);
+
+// Add the missing mockMealPlan
+export const mockMealPlan: MealPlan = {
+  id: 'meal-plan-1',
+  date: new Date().toISOString().split('T')[0],
+  meals: [
+    {
+      id: 'breakfast-1',
+      meal_type: 'breakfast',
+      notes: 'Start your day with a healthy breakfast',
+      recipe: {
+        id: '1',
+        title: 'Avocado Toast',
+        description: 'Healthy avocado toast with eggs',
+        image_url: '/placeholder.svg',
+        cooking_time: 10,
+        servings: 1,
+        difficulty: 'Easy'
+      }
+    },
+    {
+      id: 'lunch-1',
+      meal_type: 'lunch',
+      notes: 'Light and nutritious lunch',
+      recipe: {
+        id: '2',
+        title: 'Mediterranean Salad',
+        description: 'Fresh and healthy Mediterranean salad with olive oil dressing',
+        image_url: '/placeholder.svg',
+        cooking_time: 15,
+        servings: 2,
+        difficulty: 'Easy'
+      }
+    },
+    {
+      id: 'dinner-1',
+      meal_type: 'dinner',
+      notes: 'Satisfying dinner to end the day',
+      recipe: {
+        id: '3',
+        title: 'Chicken Stir Fry',
+        description: 'Quick and delicious chicken stir fry with vegetables',
+        image_url: '/placeholder.svg',
+        cooking_time: 25,
+        servings: 4,
+        difficulty: 'Medium'
+      }
+    }
+  ]
+};
