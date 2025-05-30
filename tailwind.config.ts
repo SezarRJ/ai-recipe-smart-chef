@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,9 +19,12 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'playfair': ['Playfair Display', 'serif'],
+				'inter': ['Inter', 'sans-serif'],
+			},
 			colors: {
 				// Base colors pulled from CSS variables
-				// These are what your components will use (e.g., text-primary, bg-secondary)
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -64,9 +68,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Define your original fixed `wasfah` colors here.
-				// These are good for things like the color preview circles,
-				// or if you have elements that should *never* change with the theme.
+				// Enhanced Wasfah colors with food theme
 				wasfah: {
 					'deep-teal': '#0A4D68',
 					'teal': '#088395',
@@ -75,21 +77,33 @@ export default {
 					'light-gray': '#F5F7FA',
 					'dark-gray': '#333333',
 					'light-mint': '#E0FFFA',
-					'coral-red': '#FF6B6B'
+					'coral-red': '#FF6B6B',
+					'golden': '#FFD700',
+					'warm-orange': '#FF8A00',
+					'fresh-green': '#4CAF50',
 				},
-                // Add specific hex values for default Tailwind colors that might be used
-                // in your preview squares if they're not part of your HSL theme variables
-                // Example for ocean-blue preview:
+				// Food-themed color palette
+				food: {
+					'golden': '#FFD700',
+					'honey': '#FFA500',
+					'paprika': '#FF6347',
+					'herb': '#9ACD32',
+					'cream': '#FFFDD0',
+					'cocoa': '#8B4513',
+					'mint': '#98FB98',
+					'berry': '#DC143C',
+					'caramel': '#D2691E',
+					'sage': '#9CAF88',
+				},
+                // Default Tailwind colors for compatibility
                 'blue-500': '#3b82f6',
                 'blue-600': '#2563eb',
                 'blue-400': '#60a5fa',
                 'cyan-300': '#67e8f9',
-                // Example for forest-green preview:
                 'green-500': '#22c55e',
                 'green-600': '#16a34a',
                 'emerald-400': '#34d399',
                 'lime-300': '#a7f3d0',
-                // Example for sunset-orange preview:
                 'orange-500': '#f97316',
                 'red-500': '#ef4444',
                 'yellow-400': '#facc15',
@@ -98,13 +112,21 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'2xl': '1rem',
+				'3xl': '1.5rem',
 			},
 			boxShadow: {
 				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+				'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
 				'dark-card': '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.12)',
 				'dark-card-hover': '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
+				'food': '0 10px 30px -5px rgba(255, 138, 0, 0.3), 0 4px 6px -2px rgba(255, 138, 0, 0.05)',
+				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+				'glow': '0 0 20px rgba(255, 138, 0, 0.4)',
+			},
+			backdropBlur: {
+				xs: '2px',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -143,41 +165,52 @@ export default {
 						opacity: '1'
 					}
 				},
-				'pulse-glow': {
-					'0%, 100%': {
-						opacity: '1',
-						boxShadow: '0 0 0 0 rgba(5, 191, 219, 0)'
+				'slide-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(20px)'
 					},
-					'50%': {
-						opacity: '0.8',
-						boxShadow: '0 0 20px 5px rgba(5, 191, 219, 0.3)'
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
 					}
 				},
 				'float': {
 					'0%, 100%': {
-						transform: 'translateY(0)'
+						transform: 'translateY(0px) rotate(0deg)'
 					},
 					'50%': {
-						transform: 'translateY(-5px)'
+						transform: 'translateY(-10px) rotate(1deg)'
 					}
 				},
-				'wiggle': {
+				'shimmer': {
+					'0%': {
+						backgroundPosition: '-200% 0'
+					},
+					'100%': {
+						backgroundPosition: '200% 0'
+					}
+				},
+				'pulse-glow': {
 					'0%, 100%': {
-						transform: 'rotate(-3deg)'
+						opacity: '1',
+						boxShadow: '0 0 0 0 rgba(255, 138, 0, 0.4)'
 					},
 					'50%': {
-						transform: 'rotate(3deg)'
+						opacity: '0.9',
+						boxShadow: '0 0 20px 10px rgba(255, 138, 0, 0.2)'
 					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fade-in 0.3s ease-out',
-				'scale-in': 'scale-in 0.2s ease-out',
-				'pulse-glow': 'pulse-glow 2s infinite ease-in-out',
-				'float': 'float 5s infinite ease-in-out',
-				'wiggle': 'wiggle 1s ease-in-out'
+				'fade-in': 'fade-in 0.6s ease-out',
+				'scale-in': 'scale-in 0.4s ease-out',
+				'slide-up': 'slide-up 0.6s ease-out',
+				'float': 'float 6s infinite ease-in-out',
+				'shimmer': 'shimmer 2s infinite',
+				'pulse-glow': 'pulse-glow 3s infinite ease-in-out',
 			}
 		}
 	},
