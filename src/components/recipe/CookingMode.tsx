@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   ChevronLeft, 
@@ -7,169 +6,261 @@ import {
   Play, 
   Pause, 
   RefreshCw,
-  ChefHat,
-  Volume2
+  Volume2,
+  VolumeX,
+  Share2,
+  MessageCircle,
+  Lock
 } from 'lucide-react';
+import { Recipe } from '@/types/index';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 
 interface CookingModeProps {
-  recipe: {
-    id: string;
-    title: string;
-    instructions: string[];
-    image?: string;
-  };
+  recipe: Recipe;
   onClose: () => void;
+  isPremiumUser: boolean;
 }
 
-export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => {
+export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPremiumUser }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [timer, setTimer] = useState(300);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [timer, setTimer] = useState(0);
+  const [speechRate, setSpeechRate] = useState(1);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const { toast } = useToast();
+  const synthRef = useRef(window.speechSynthesis);
 
-  const speakInstruction = () => {
+  const totalSteps = recipe.instructions.length;
+  const progress = Math.round((currentStep / (totalSteps - 1)) * 100);
+
+  // --- Voice Synthesis Functions ---
+  const speakInstruction = React.useCallback(() => {
+    if (!('speechSynthesis' in window)) return;
+    synthRef.current.cancel();
     const instruction = recipe.instructions[currentStep];
-    if ('speechSynthesis' in window && instruction) {
-      window.speechSynthesis.cancel();
+    if (instruction) {
       const utterance = new window.SpeechSynthesisUtterance(instruction);
       utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
+      utterance.rate = speechRate;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      synthRef.current.speak(utterance);
+    }
+  }, [currentStep, recipe.instructions, speechRate]);
+
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
     }
   };
 
+  // Speak automatically on step change
+  useEffect(() => {
+    speakInstruction();
+    // Stop speech on unmount
+    return () => stopSpeaking();
+    // eslint-disable-next-line
+  }, [currentStep, speechRate]);
+
+  // --- Timer Logic ---
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTimerRunning && timer > 0) {
+      interval = setInterval(() => setTimer(prev => prev - 1), 1000);
+    } else if (timer === 0) {
+      setIsTimerRunning(false);
+      toast({
+        title: "Timer Complete",
+        description: "Your timer has finished!",
+      });
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, timer, toast]);
+
   const nextStep = () => {
-    if (currentStep < recipe.instructions.length - 1) {
+    stopSpeaking();
+    if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
+    } else {
+      toast({
+        title: "Cooking Complete!",
+        description: "You've completed all the steps. Enjoy your meal!",
+      });
     }
   };
 
   const prevStep = () => {
+    stopSpeaking();
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const toggleTimer = () => {
-    setIsTimerRunning(!isTimerRunning);
+  const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
+  const resetTimer = () => setTimer(300);
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const resetTimer = () => {
-    setTimer(0);
-    setIsTimerRunning(false);
+  // --- Nutrition Info (Premium) ---
+  const renderNutrition = () => {
+    if (!recipe.nutrition) return null;
+    if (!isPremiumUser) {
+      return (
+        <div className="flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
+          <Lock className="mr-2 text-wasfah-bright-teal" />
+          <span className="text-gray-700 dark:text-gray-300">Full nutrition info is <span className="font-semibold text-wasfah-bright-teal">Premium</span> only.</span>
+        </div>
+      );
+    }
+    const { calories, protein, fat, carbs, fiber, sugar, sodium, cholesterol } = recipe.nutrition;
+    return (
+      <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-4">
+        <h3 className="font-bold text-wasfah-deep-teal mb-2">Nutrition Facts</h3>
+        <ul className="text-gray-700 dark:text-gray-300 text-sm grid grid-cols-2 gap-x-4 gap-y-1">
+          <li><b>Calories:</b> {calories} kcal</li>
+          <li><b>Protein:</b> {protein} g</li>
+          <li><b>Fat:</b> {fat} g</li>
+          <li><b>Carbs:</b> {carbs} g</li>
+          <li><b>Fiber:</b> {fiber} g</li>
+          <li><b>Sugar:</b> {sugar} g</li>
+          <li><b>Sodium:</b> {sodium} mg</li>
+          <li><b>Cholesterol:</b> {cholesterol} mg</li>
+        </ul>
+      </div>
+    );
+  };
+
+  // --- Share and Comments ---
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: recipe.title,
+        text: 'Check out this recipe!',
+        url: window.location.href,
+      });
+    } else {
+      toast({ title: "Share not supported", description: "Copy the link to share manually." });
+    }
+  };
+
+  const handleComments = () => {
+    // Open comments modal or navigate to comments section
+    toast({ title: "Comments", description: "Open comments section (implement as needed)." });
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <Button variant="ghost" onClick={onClose}>
-          <ChevronLeft size={20} />
-          Back
-        </Button>
-        <h1 className="font-semibold">{recipe.title}</h1>
-        <div className="w-16"></div>
-      </div>
-
-      {/* Progress */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-          <span>Step {currentStep + 1} of {recipe.instructions.length}</span>
-          <span>{Math.round(((currentStep + 1) / recipe.instructions.length) * 100)}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-gradient-to-r from-wasfah-orange to-wasfah-green h-2 rounded-full transition-all duration-300"
-            style={{ width: `${((currentStep + 1) / recipe.instructions.length) * 100}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-grow overflow-auto p-4">
-        {/* Recipe Image */}
-        {recipe.image && (
-          <div className="mb-6">
-            <img 
-              src={recipe.image} 
-              alt={recipe.title}
-              className="w-full h-48 object-cover rounded-lg"
-            />
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <ChevronLeft size={24} />
+          </Button>
+          <h2 className="text-xl font-bold text-wasfah-deep-teal">Cooking Mode</h2>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="icon" onClick={handleShare} aria-label="Share recipe">
+              <Share2 size={20} />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleComments} aria-label="Comments">
+              <MessageCircle size={20} />
+            </Button>
           </div>
+        </div>
+      </div>
+      
+      <div className="flex-grow overflow-auto p-4">
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium">Step {currentStep + 1} of {totalSteps}</span>
+            <span className="text-sm font-medium">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+        
+        {recipe.image && (
+          <div 
+            className="w-full h-48 mb-4 bg-cover bg-center rounded-lg"
+            style={{ backgroundImage: `url(${recipe.image})` }}
+          />
         )}
 
-        {/* Current Step */}
-        <div className="mb-6">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-wasfah-orange to-wasfah-green rounded-full flex items-center justify-center mr-4">
-              <span className="text-white font-bold text-lg">{currentStep + 1}</span>
-            </div>
-            <h2 className="text-lg font-semibold">Step {currentStep + 1}</h2>
-          </div>
-        </div>
+        {/* Nutrition Info */}
+        {renderNutrition()}
 
-        {/* Instruction with Voice Button */}
+        {/* Step + Voice Controls */}
         <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow flex items-center">
           <p className="text-lg flex-1">{recipe.instructions[currentStep]}</p>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={speakInstruction}
-            aria-label="Speak instruction"
-            className="ml-2"
-          >
-            <Volume2 size={22} />
-          </Button>
+          <div className="flex flex-col items-center space-y-1 ml-2">
+            <Button variant="ghost" size="icon" onClick={speakInstruction} aria-label="Repeat step">
+              <Volume2 size={22} />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={stopSpeaking} aria-label="Stop voice">
+              <VolumeX size={22} />
+            </Button>
+          </div>
         </div>
 
-        {/* Timer Section */}
-        {timer > 0 && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 mb-2">
-                {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
-              </div>
-              <div className="flex gap-2 justify-center">
-                <Button size="sm" onClick={toggleTimer}>
-                  {isTimerRunning ? <Pause size={16} /> : <Play size={16} />}
-                </Button>
-                <Button size="sm" onClick={resetTimer}>
-                  <RefreshCw size={16} />
-                </Button>
-              </div>
-            </div>
+        {/* Speech Speed Control */}
+        <div className="flex items-center mb-6">
+          <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">Voice Speed:</span>
+          <input
+            type="range"
+            min={0.5}
+            max={2}
+            step={0.1}
+            value={speechRate}
+            onChange={e => setSpeechRate(Number(e.target.value))}
+            className="w-32 accent-wasfah-bright-teal"
+          />
+          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{speechRate.toFixed(1)}x</span>
+        </div>
+        
+        {/* Timer */}
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="flex items-center justify-center space-x-4">
+            <Button variant="outline" size="icon" onClick={resetTimer}>
+              <RefreshCw size={18} />
+            </Button>
+            <div className="text-2xl font-bold">{formatTime(timer)}</div>
+            <Button variant="outline" size="icon" onClick={toggleTimer}>
+              {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
+            </Button>
+          </div>
+        </div>
+        
+        {/* Chef Tips */}
+        {recipe.tips && recipe.tips[currentStep] && (
+          <div className="mb-6 p-4 bg-wasfah-light-gray dark:bg-gray-800 rounded-lg border-l-4 border-wasfah-bright-teal">
+            <p className="chef-notes text-wasfah-deep-teal">
+              <span className="font-bold">Chef Tip:</span> {recipe.tips[currentStep]}
+            </p>
           </div>
         )}
       </div>
-
-      {/* Footer Navigation */}
-      <div className="p-4 border-t bg-white dark:bg-gray-800">
-        <div className="flex gap-3">
+      
+      <div className="sticky bottom-0 z-10 bg-white dark:bg-gray-900 p-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex justify-between">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 0}
-            className="flex-1"
+            className="w-28"
           >
-            <ChevronLeft size={16} className="mr-2" />
+            <ChevronLeft size={16} className="mr-1" />
             Previous
           </Button>
-          
-          {currentStep === recipe.instructions.length - 1 ? (
-            <Button
-              onClick={onClose}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-            >
-              <ChefHat size={16} className="mr-2" />
-              Finish
-            </Button>
-          ) : (
-            <Button
-              onClick={nextStep}
-              className="flex-1 bg-gradient-to-r from-wasfah-orange to-wasfah-green"
-            >
-              Next
-              <ChevronRight size={16} className="ml-2" />
-            </Button>
-          )}
+          <Button
+            onClick={nextStep}
+            disabled={currentStep === totalSteps - 1}
+            className="w-28 bg-wasfah-bright-teal hover:bg-wasfah-teal text-white"
+          >
+            Next
+            <ChevronRight size={16} className="ml-1" />
+          </Button>
         </div>
       </div>
     </div>
