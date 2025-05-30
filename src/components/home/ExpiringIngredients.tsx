@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Utensils } from 'lucide-react';
-import { PantryItem } from '@/types';
+import { PantryItem } from '@/types/index';
 
 interface ExpiringIngredientsProps {
   expiringItems?: PantryItem[];

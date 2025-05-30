@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MealCard } from '@/components/meal-plan/MealCard';
-import { MealPlan } from '@/types';
+import { MealPlan } from '@/types/index';
 import { ChevronRight } from 'lucide-react';
 
 interface TodayMealPlanProps {

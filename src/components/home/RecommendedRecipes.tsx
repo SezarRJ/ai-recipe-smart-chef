@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { CategoryFilters } from '@/components/recipe/CategoryFilters';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 
 interface RecommendedRecipesProps {
   recipes?: Recipe[];
