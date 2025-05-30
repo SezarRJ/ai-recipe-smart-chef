@@ -1,6 +1,4 @@
-
-import { Recipe, User, PantryItem } from '@/types/index';
-import { MealPlan } from '@/hooks/useMealPlan';
+import { Recipe, User, PantryItem, MealPlan } from '@/types/index';
 
 export const mockUser: User = {
   id: '1',
@@ -125,51 +123,99 @@ export const mockRecipes: Recipe[] = [
 
 export const favoriteRecipes = mockRecipes.filter(recipe => recipe.isFavorite);
 
-// Add the missing mockMealPlan
+// Add the missing mockMealPlan using the correct type from types/index.ts
 export const mockMealPlan: MealPlan = {
   id: 'meal-plan-1',
   date: new Date().toISOString().split('T')[0],
   meals: [
     {
       id: 'breakfast-1',
-      meal_type: 'breakfast',
-      notes: 'Start your day with a healthy breakfast',
+      type: 'breakfast',
       recipe: {
         id: '1',
         title: 'Avocado Toast',
         description: 'Healthy avocado toast with eggs',
-        image_url: '/placeholder.svg',
-        cooking_time: 10,
+        image: '/placeholder.svg',
+        prepTime: 5,
+        cookTime: 10,
         servings: 1,
-        difficulty: 'Easy'
+        difficulty: 'Easy',
+        calories: 280,
+        rating: 4.5,
+        ratingCount: 120,
+        cuisineType: 'American',
+        ingredients: [
+          { id: '1', name: 'Avocado', amount: '1', unit: 'piece', category: 'vegetables' },
+          { id: '2', name: 'Bread', amount: '2', unit: 'slices', category: 'grains' }
+        ],
+        instructions: [
+          'Toast the bread',
+          'Mash the avocado',
+          'Spread on toast'
+        ],
+        categories: ['Breakfast'],
+        tags: ['healthy', 'quick'],
+        isFavorite: false
       }
     },
     {
       id: 'lunch-1',
-      meal_type: 'lunch',
-      notes: 'Light and nutritious lunch',
+      type: 'lunch',
       recipe: {
         id: '2',
         title: 'Mediterranean Salad',
         description: 'Fresh and healthy Mediterranean salad with olive oil dressing',
-        image_url: '/placeholder.svg',
-        cooking_time: 15,
+        image: '/placeholder.svg',
+        prepTime: 15,
+        cookTime: 0,
         servings: 2,
-        difficulty: 'Easy'
+        difficulty: 'Easy',
+        calories: 250,
+        rating: 4.3,
+        ratingCount: 89,
+        cuisineType: 'Mediterranean',
+        ingredients: [
+          { id: '1', name: 'Lettuce', amount: '1', unit: 'head', category: 'vegetables' },
+          { id: '2', name: 'Tomatoes', amount: '2', unit: 'medium', category: 'vegetables' }
+        ],
+        instructions: [
+          'Wash and chop lettuce',
+          'Cut tomatoes',
+          'Mix with dressing'
+        ],
+        categories: ['Salad'],
+        tags: ['healthy', 'vegetarian'],
+        isFavorite: false
       }
     },
     {
       id: 'dinner-1',
-      meal_type: 'dinner',
-      notes: 'Satisfying dinner to end the day',
+      type: 'dinner',
       recipe: {
         id: '3',
         title: 'Chicken Stir Fry',
         description: 'Quick and delicious chicken stir fry with vegetables',
-        image_url: '/placeholder.svg',
-        cooking_time: 25,
+        image: '/placeholder.svg',
+        prepTime: 20,
+        cookTime: 25,
         servings: 4,
-        difficulty: 'Medium'
+        difficulty: 'Medium',
+        calories: 380,
+        rating: 4.1,
+        ratingCount: 156,
+        cuisineType: 'Asian',
+        ingredients: [
+          { id: '1', name: 'Chicken Breast', amount: '500', unit: 'g', category: 'meat' },
+          { id: '2', name: 'Bell Peppers', amount: '2', unit: 'pieces', category: 'vegetables' }
+        ],
+        instructions: [
+          'Cut chicken into strips',
+          'Heat oil in wok',
+          'Stir fry chicken and vegetables'
+        ],
+        categories: ['Main Course'],
+        tags: ['protein', 'quick'],
+        isFavorite: false
       }
     }
   ]
