@@ -1,7 +1,6 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Bookmark, MessageCircle, ChevronLeft, ChevronRight, Timer, Share2 } from 'lucide-react';
+import { Bookmark, MessageCircle, ChevronLeft, ChevronRight, Timer, Share2, Plus } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Recipe } from '@/types/index';
@@ -12,12 +11,14 @@ interface RecipeDetailProps {
   recipe: Recipe;
   onAddToShoppingList: () => void;
   onStartCookingMode: () => void;
+  onAddToMealPlan: () => void; // <-- Added
 }
 
 export const RecipeDetail: React.FC<RecipeDetailProps> = ({
   recipe,
   onAddToShoppingList,
   onStartCookingMode,
+  onAddToMealPlan, // <-- Added
 }) => {
   const [servings, setServings] = useState(recipe.servings || 1);
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions' | 'nutrition'>('ingredients');
@@ -273,6 +274,17 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
             size="lg"
           >
             Start Cooking Mode
+          </Button>
+        </div>
+        {/* Add to Meal Plan Button */}
+        <div className="mt-3">
+          <Button
+            onClick={onAddToMealPlan}
+            className="w-full bg-gradient-to-r from-wasfah-green to-wasfah-orange text-white py-3"
+            size="lg"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Add to Meal Plan
           </Button>
         </div>
       </div>
