@@ -7,11 +7,11 @@ import { WasfahLogo } from '@/components/icons/WasfahLogo';
 
 const images = [
   {
-    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80', // Main dish (steak)
+    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80', // Main dish
     alt: 'Main dish',
   },
   {
-    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert (cake)
+    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert
     alt: 'Desserts',
   },
   {
@@ -87,8 +87,7 @@ const SplashScreen = () => {
             <div className="w-20 h-20 mx-auto rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 shadow-lg mb-6">
               <Sparkles size={40} strokeWidth={1.5} />
             </div>
-            <p className="text-gray-600 mb-4 text-sm">Browse recipes, plan meals, and join a vibrant food community.</p>
-            {/* Image Indicators */}
+            {/* Description removed */}
             <div className="flex justify-center space-x-2 mt-4">
               {images.map((_, i) => (
                 <button
@@ -127,7 +126,6 @@ const SplashScreen = () => {
           </Button>
         </div>
       </div>
-      {/* Footer removed as requested */}
     </div>
   );
 };
