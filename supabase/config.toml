@@ -1,1 +1,15 @@
-project_id = "tnjttgmjjikmdrypvknp"
+
+project_id = "nencukkywgbjgrlqmilf"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[functions.ai-chef]
+verify_jwt = true
+
+[functions.send-email]
+verify_jwt = false
