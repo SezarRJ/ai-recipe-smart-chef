@@ -17,7 +17,7 @@ export const MobileNavbar: React.FC = () => {
     {
       icon: Home,
       label: t('Home', 'الرئيسية'),
-      href: '/',
+      href: '/home',
     },
     {
       icon: Search,
