@@ -1,279 +1,237 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, XCircle } from 'lucide-react';
+// src/pages/ScanDishPage.tsx
+import React, { useState, useEffect } from 'react';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { ScanDishComponent, ScanDishResult } from '@/components/dish/ScanDishComponent';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
+import { Trash2, ChevronDown, ChevronUp } from 'lucide-react'; // Import Trash2 and sorting icons
 import { useRTL } from '@/contexts/RTLContext';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
-export interface ScanDishResult {
-  id: string;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  ingredients: string[];
+// Extend ScanDishResult to include a timestamp for history
+interface ScanHistoryItem extends ScanDishResult {
+  timestamp: string; // ISO string format for easy sorting and storage
 }
 
-interface ScanDishComponentProps {
-  onScanResult?: (result: ScanDishResult) => void;
-}
+const LOCAL_STORAGE_KEY = 'wasfah_scan_history';
 
-export const ScanDishComponent: React.FC<ScanDishComponentProps> = ({ onScanResult }) => {
+export default function ScanDishPage() {
   const { t } = useRTL();
-  const { toast } = useToast();
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  
-  const startCamera = async () => {
-    try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment' } 
-        });
-        
-        streamRef.current = stream;
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play();
-          };
-          setIsCameraActive(true);
-        }
-      } else {
-        throw new Error('getUserMedia not supported');
-      }
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      toast({
-        title: t('Camera Error', 'خطأ في الكاميرا'),
-        description: t('Could not access your camera. Please check permissions.', 'تعذر الوصول إلى الكاميرا الخاصة بك. يرجى التحقق من الأذونات.'),
-        variant: 'destructive'
-      });
-    }
-  };
-  
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    
-    setIsCameraActive(false);
-  };
-  
-  const captureImage = () => {
-    if (videoRef.current) {
+  const { toast } = useToast(); // Initialize toast
+  const [scanResult, setScanResult] = useState<ScanDishResult | null>(null);
+  const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
+  const [sortHistoryBy, setSortHistoryBy] = useState<'dateDesc' | 'nameAsc' | 'caloriesDesc'>('dateDesc'); // Default sort by date descending
+
+  // Load history from localStorage on component mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedHistory) {
       try {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const ctx = canvas.getContext('2d');
-        
-        if (ctx && videoRef.current.videoWidth > 0) {
-          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-          const imageDataUrl = canvas.toDataURL('image/png');
-          setCapturedImage(imageDataUrl);
-          stopCamera();
-          analyzeImage(imageDataUrl);
-        } else {
-          throw new Error('Could not capture image');
-        }
+        const history: ScanHistoryItem[] = JSON.parse(savedHistory);
+        // Ensure timestamps are Date objects if needed later, or keep as strings for sorting
+        setScanHistory(history);
       } catch (error) {
-        console.error('Error capturing image:', error);
-        toast({
-          title: t('Capture Error', 'خطأ في التقاط الصورة'),
-          description: t('Could not capture image from camera.', 'تعذر التقاط الصورة من الكاميرا.'),
-          variant: 'destructive'
-        });
+        console.error("Failed to parse scan history from localStorage", error);
+        // Clear invalid history to prevent future errors
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
     }
+  }, []); // Empty dependency array means this runs only once on mount
+
+  // Save history to localStorage whenever scanHistory state changes
+  // (Alternatively, save only when adding/removing items for better performance)
+  // useEffect(() => {
+  //   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(scanHistory));
+  // }, [scanHistory]); // This might be too frequent, saving in handler is better
+
+  const handleScanResult = (result: ScanDishResult) => {
+    setScanResult(result);
+
+    // Add the new result to history with a timestamp
+    const newItem: ScanHistoryItem = {
+      ...result,
+      timestamp: new Date().toISOString(), // Use ISO string for consistent format
+    };
+
+    // Add the new item to the beginning of the history
+    const updatedHistory = [newItem, ...scanHistory];
+    setScanHistory(updatedHistory);
+
+    // Save updated history to localStorage
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedHistory));
   };
-  
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check if file is an image
-      if (!file.type.startsWith('image/')) {
+
+  const addToTracking = () => {
+    if (scanResult) {
+      // In a real app, this would add the scanned dish to health tracking
+      console.log("Adding to health tracking:", scanResult);
+      toast({
+        title: t('Added to Health Tracking', 'تمت الإضافة إلى تتبع الصحة'),
+        description: t(`${scanResult.name} added to your health log.`, `تمت إضافة ${scanResult.name} إلى سجل صحتك.`),
+      });
+      // Clear the current scan result after adding to tracking (optional)
+      // setScanResult(null);
+    }
+  };
+
+  const handleRemoveHistoryItem = (id: string) => {
+    const updatedHistory = scanHistory.filter(item => item.id !== id);
+    setScanHistory(updatedHistory);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedHistory));
+    toast({
+      title: t('Item Removed', 'تمت إزالة العنصر'),
+      description: t('Scan history item removed.', 'تمت إزالة عنصر من سجل المسح.'),
+    });
+  };
+
+  const handleClearHistory = () => {
+    if (scanHistory.length === 0) {
         toast({
-          title: t('Invalid File', 'ملف غير صالح'),
-          description: t('Please upload an image file.', 'يرجى تحميل ملف صورة.'),
-          variant: 'destructive'
+            title: t("History is already empty", "السجل فارغ بالفعل"),
+            description: t("There are no items to clear.", "لا توجد عناصر لمسحها."),
         });
         return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imageDataUrl = event.target?.result as string;
-        setCapturedImage(imageDataUrl);
-        analyzeImage(imageDataUrl);
-      };
-      reader.readAsDataURL(file);
+    }
+    if (window.confirm(t("Are you sure you want to clear your entire scan history?", "هل أنت متأكد أنك تريد مسح سجل المسح بالكامل؟"))) {
+        setScanHistory([]);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        toast({
+            title: t('History Cleared', 'تم مسح السجل'),
+            description: t('Your scan history has been cleared.', 'تم مسح سجل المسح الخاص بك.'),
+        });
     }
   };
-  
-  const resetCapture = () => {
-    setCapturedImage(null);
-    setIsAnalyzing(false);
+
+
+  // Function to sort the history
+  const getSortedHistory = () => {
+    const sorted = [...scanHistory]; // Create a copy to avoid mutating state
+    switch (sortHistoryBy) {
+      case 'dateDesc':
+        return sorted.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      case 'nameAsc':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'caloriesDesc':
+        return sorted.sort((a, b) => b.calories - a.calories);
+      default:
+        return sorted;
+    }
   };
-  
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-  
-  const analyzeImage = (imageUrl: string) => {
-    setIsAnalyzing(true);
-    
-    // Simulate analysis (in a real app, this would call an AI service)
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      
-      // Mock result (would be replaced with actual AI analysis)
-      const mockResult: ScanDishResult = {
-        id: crypto.randomUUID(), // Generate a unique ID
-        name: "Vegetable Salad",
-        calories: 120,
-        protein: 5,
-        carbs: 15,
-        fat: 3,
-        ingredients: ["Lettuce", "Tomato", "Cucumber", "Olive Oil"]
-      };
-      
-      if (onScanResult) {
-        onScanResult(mockResult);
-      }
-      
-      toast({
-        title: t("Dish Analyzed", "تم تحليل الطبق"),
-        description: t(`Identified as ${mockResult.name}`, `تم التعرف عليه ك ${mockResult.name}`),
-      });
-    }, 2000);
-  };
-  
-  React.useEffect(() => {
-    // Clean up on component unmount
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-  
+
+  const sortedHistory = getSortedHistory();
+
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-wasfah-light-gray to-wasfah-light-mint/10 pb-2">
-        <CardTitle className="flex items-center text-wasfah-deep-teal">
-          <Camera className="h-5 w-5 mr-2" />
-          {t('Scan Dish', 'مسح الطبق')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="flex flex-col items-center gap-4">
-          {!isCameraActive && !capturedImage && (
-            <>
-              <Button 
-                onClick={startCamera} 
-                className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
-              >
-                <Camera className="mr-2 h-4 w-4" />
-                {t('Open Camera', 'فتح الكاميرا')}
-              </Button>
-              
-              <div className="relative w-full">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+    <PageContainer header={{ title: t('Scan Dish', 'مسح الطبق'), showBackButton: true }}>
+      <div className="space-y-6 pb-6">
+        {/* Scan Component */}
+        <ScanDishComponent onScanResult={handleScanResult} />
+
+        {/* Latest Scan Result Display */}
+        {scanResult && (
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-wasfah-deep-teal dark:text-wasfah-bright-teal">{scanResult.name}</h2>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg"> {/* Use generic gray for better dark mode */}
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('Calories', 'سعرات حرارية')}</p>
+                  <p className="font-bold text-gray-800 dark:text-gray-200">{scanResult.calories} kcal</p>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
-                    {t('or', 'أو')}
-                  </span>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('Protein', 'بروتين')}</p>
+                  <p className="font-bold text-gray-800 dark:text-gray-200">{scanResult.protein}g</p>
+                </div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('Carbs', 'كربوهيدرات')}</p>
+                  <p className="font-bold text-gray-800 dark:text-gray-200">{scanResult.carbs}g</p>
                 </div>
               </div>
-              
-              <Button 
-                variant="outline" 
-                onClick={triggerFileInput} 
-                className="w-full"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                {t('Upload Image', 'تحميل صورة')}
-              </Button>
-              <input 
-                ref={fileInputRef}
-                type="file" 
-                accept="image/*" 
-                onChange={handleFileUpload} 
-                className="hidden"
-              />
-            </>
-          )}
-          
-          {isCameraActive && (
-            <div className="relative w-full">
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline
-                className="w-full rounded-lg"
-              />
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                <Button 
-                  onClick={captureImage} 
-                  className="bg-wasfah-bright-teal hover:bg-wasfah-teal rounded-full h-12 w-12 flex items-center justify-center"
-                >
-                  <Camera className="h-6 w-6" />
-                </Button>
-                <Button 
-                  onClick={stopCamera} 
-                  variant="outline" 
-                  className="bg-white/80 dark:bg-gray-700/80 border-gray-300 rounded-full h-12 w-12 flex items-center justify-center"
-                >
-                  <XCircle className="h-6 w-6" />
-                </Button>
+
+              <div>
+                <h3 className="font-medium mb-2 text-gray-800 dark:text-gray-200">{t('Ingredients', 'المكونات')}</h3>
+                <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                  {scanResult.ingredients.map((ingredient, idx) => (
+                    <li key={idx} className="text-sm">{ingredient}</li>
+                  ))}
+                </ul>
               </div>
-            </div>
-          )}
-          
-          {capturedImage && (
-            <div className="relative w-full">
-              <img 
-                src={capturedImage} 
-                alt="Captured dish" 
-                className="w-full rounded-lg"
-              />
-              
-              {isAnalyzing ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
-                  <div className="text-white text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-wasfah-bright-teal mx-auto"></div>
-                    <p className="mt-2">{t('Analyzing...', 'جاري التحليل...')}</p>
-                  </div>
+
+              <Button onClick={addToTracking} className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal">
+                {t('Add to Health Tracking', 'أضف إلى تتبع الصحة')}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Scan History Section */}
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('Scan History', 'سجل المسح')}</h2>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    {/* Sort Select */}
+                    <Select value={sortHistoryBy} onValueChange={(value: 'dateDesc' | 'nameAsc' | 'caloriesDesc') => setSortHistoryBy(value)}>
+                        <SelectTrigger className="w-[150px] text-sm">
+                            <SelectValue placeholder={t("Sort By", "ترتيب حسب")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="dateDesc">{t("Date (Newest)", "التاريخ (الأحدث)")}</SelectItem>
+                            <SelectItem value="nameAsc">{t("Name (A-Z)", "الاسم (أ-ي)")}</SelectItem>
+                            <SelectItem value="caloriesDesc">{t("Calories (High-Low)", "السعرات (الأعلى)")}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                     {/* Clear History Button */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearHistory}
+                        disabled={scanHistory.length === 0}
+                        className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700/30 dark:text-red-400 dark:hover:bg-red-900/20"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                 </div>
-              ) : (
-                <div className="mt-4 flex justify-center gap-2">
-                  <Button 
-                    onClick={resetCapture} 
-                    variant="outline" 
-                    className="border-wasfah-bright-teal text-wasfah-bright-teal"
-                  >
-                    {t('Scan Another', 'مسح آخر')}
-                  </Button>
-                </div>
-              )}
             </div>
-          )}
+
+            {/* History List */}
+            {sortedHistory.length > 0 ? (
+                <div className="space-y-3">
+                    {sortedHistory.map((item) => (
+                        <Card key={item.id + item.timestamp}> {/* Use id + timestamp as key for uniqueness */}
+                            <CardContent className="p-4 flex items-center justify-between">
+                                <div className="flex-1 min-w-0 space-y-1">
+                                    <h3 className="font-medium text-gray-800 dark:text-gray-200">{item.name}</h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        {t('Calories', 'سعرات حرارية')}: {item.calories} kcal • {t('Protein', 'بروتين')}: {item.protein}g • {t('Carbs', 'كربوهيدرات')}: {item.carbs}g
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                                        {new Date(item.timestamp).toLocaleString()} {/* Format timestamp */}
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveHistoryItem(item.id)}
+                                    className="text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 ml-4 rtl:mr-4 rtl:ml-0" // Add spacing and RTL
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                <Card>
+                    <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        {t('No scan history yet.', 'لا يوجد سجل مسح حتى الآن.')}
+                    </CardContent>
+                </Card>
+            )}
         </div>
-      </CardContent>
-    </Card>
+
+      </div>
+    </PageContainer>
   );
-};
+}
