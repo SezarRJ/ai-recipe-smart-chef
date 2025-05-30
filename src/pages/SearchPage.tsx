@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { mockRecipes } from '@/data/mockData';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 import { Clock, Filter, X, Search as SearchIcon } from 'lucide-react';
 
 export default function SearchPage() {

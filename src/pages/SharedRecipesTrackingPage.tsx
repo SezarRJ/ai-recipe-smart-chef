@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 import { 
   Eye, Heart, Share2, ChefHat, BarChart2, Award, TrendingUp, 
   CalendarDays, Filter, Clock, ThumbsUp 

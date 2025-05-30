@@ -1,18 +1,28 @@
-
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Settings, User, Heart, Book, ShoppingCart, CreditCard,
   Bell, Languages, Moon, HelpCircle, Globe, Award, LogOut,
-  Gift, Camera, Scale, Smartphone, SquareUser, Shield
+  Camera, Scale, Smartphone, Shield, Wrench, Users, MapPin // Keep icons, some might be used elsewhere or for future
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 
 export default function MenuPage() {
   const { t } = useRTL();
+
+  // Define the list of IDs to remove
+  const idsToRemove = [
+    'profile',
+    'community',
+    'shopping',
+    'language',
+    'appearance',
+    'notifications',
+    'help',
+    // 'log out' is handled by removing the hardcoded card below
+  ];
 
   const menuItems = [
     {
@@ -34,6 +44,18 @@ export default function MenuPage() {
       link: '/recipes',
     },
     {
+      id: 'services',
+      icon: <Wrench className="h-6 w-6 text-purple-500" />,
+      title: t('Services', 'الخدمات', 'Hizmetler'),
+      link: '/services',
+    },
+    {
+      id: 'community',
+      icon: <Users className="h-6 w-6 text-blue-600" />,
+      title: t('Community', 'المجتمع', 'Topluluk'),
+      link: '/community',
+    },
+    {
       id: 'shopping',
       icon: <ShoppingCart className="h-6 w-6 text-wasfah-bright-teal" />,
       title: t('Shopping List', 'قائمة التسوق', 'Alışveriş Listesi'),
@@ -43,19 +65,7 @@ export default function MenuPage() {
       id: 'loyalty',
       icon: <Award className="h-6 w-6 text-amber-500" />,
       title: t('Loyalty Program', 'برنامج الولاء', 'Sadakat Programı'),
-      link: '/loyalty',
-    },
-    {
-      id: 'scan-dish',
-      icon: <Camera className="h-6 w-6 text-green-500" />,
-      title: t('Scan Dish', 'مسح طبق', 'Yemek Tara'),
-      link: '/scan-dish',
-    },
-    {
-      id: 'body-information',
-      icon: <Scale className="h-6 w-6 text-blue-500" />,
-      title: t('Body Information', 'معلومات الجسم', 'Vücut Bilgisi'),
-      link: '/body-information',
+      link: '/loyalty-program',
     },
     {
       id: 'subscription',
@@ -63,11 +73,8 @@ export default function MenuPage() {
       title: t('Subscription', 'الاشتراك', 'Abonelik'),
       link: '/subscription',
     },
-  ];
-
-  const settingsItems = [
     {
-      id: 'general',
+      id: 'settings',
       icon: <Settings className="h-6 w-6 text-gray-500" />,
       title: t('Settings', 'الإعدادات', 'Ayarlar'),
       link: '/settings',
@@ -91,12 +98,6 @@ export default function MenuPage() {
       link: '/appearance',
     },
     {
-      id: 'connected-devices',
-      icon: <Smartphone className="h-6 w-6 text-blue-500" />,
-      title: t('Connected Devices', 'الأجهزة المتصلة', 'Bağlı Cihazlar'),
-      link: '/connected-devices',
-    },
-    {
       id: 'help',
       icon: <HelpCircle className="h-6 w-6 text-wasfah-deep-teal" />,
       title: t('Help & Support', 'المساعدة والدعم', 'Yardım ve Destek'),
@@ -108,61 +109,34 @@ export default function MenuPage() {
       title: t('Admin Panel', 'لوحة الإدارة', 'Yönetici Paneli'),
       link: '/admin/login',
     },
-  ];
+  ].filter(item => !idsToRemove.includes(item.id)); // Filter out the items to remove
+
 
   return (
     <PageContainer header={{ title: t('Menu', 'القائمة', 'Menü') }}>
       <div className="space-y-6 pb-20">
-        <Tabs defaultValue="menu" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="menu">{t('Menu', 'القائمة', 'Menü')}</TabsTrigger>
-            <TabsTrigger value="settings">{t('Settings', 'الإعدادات', 'Ayarlar')}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="menu" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {menuItems.map((item) => (
-                <Link to={item.link} key={item.id}>
-                  <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full">
-                    <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-full mb-4">
-                        {item.icon}
-                      </div>
-                      <span className="text-base font-medium">{item.title}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="settings" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {settingsItems.map((item) => (
-                <Link to={item.link} key={item.id}>
-                  <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full">
-                    <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-full mb-4">
-                        {item.icon}
-                      </div>
-                      <span className="text-base font-medium">{item.title}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-              <Link to="/auth">
-                <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full border-red-200 dark:border-red-700/30">
-                  <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                    <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full mb-4">
-                      <LogOut className="h-6 w-6 text-red-500" />
-                    </div>
-                    <span className="text-base font-medium text-red-600 dark:text-red-400">
-                      {t('Log Out', 'تسجيل الخروج', 'Çıkış Yap')}
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-          </TabsContent>
-        </Tabs>
+        <div className="bg-gradient-to-br from-wasfah-bright-teal to-wasfah-deep-teal p-6 rounded-lg text-white text-center mb-6">
+          <h1 className="text-2xl font-bold mb-2">{t('Main Menu', 'القائمة الرئيسية', 'Ana Menü')}</h1>
+          <p className="opacity-90">{t('Access all features and settings', 'الوصول إلى جميع الميزات والإعدادات', 'Tüm özelliklere ve ayarlara erişin')}</p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {menuItems.map((item) => (
+            <Link to={item.link} key={item.id}>
+              <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full">
+                <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-full mb-4">
+                    {item.icon}
+                  </div>
+                  <span className="text-base font-medium">{item.title}</span>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+
+          {/* The hardcoded Log Out card has been removed as requested */}
+
+        </div>
       </div>
     </PageContainer>
   );

@@ -1,249 +1,329 @@
 
 import React, { useState, useEffect } from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Moon, Sun, Palette, Type, Eye, Monitor, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Sun, Moon, Monitor, Palette, Type, Eye, Volume2, Accessibility } from 'lucide-react';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { toast } from 'sonner';
 
-export default function AppearancePage() {
-  const { toast } = useToast();
-  const [darkMode, setDarkMode] = useState(false);
+const AppearancePage = () => {
   const [theme, setTheme] = useState('system');
-  const [fontSize, setFontSize] = useState([16]);
-  const [colorScheme, setColorScheme] = useState('default');
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [fontSize, setFontSize] = useState('medium');
+  const [reduceMotion, setReduceMotion] = useState(false);
   const [highContrast, setHighContrast] = useState(false);
+  const [soundEffects, setSoundEffects] = useState(true);
+  const [rtlSupport, setRtlSupport] = useState(false);
 
+  // Load settings from localStorage
   useEffect(() => {
-    // Apply theme changes to document
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    const savedFontSize = localStorage.getItem('fontSize') || 'medium';
+    const savedReduceMotion = localStorage.getItem('reduceMotion') === 'true';
+    const savedHighContrast = localStorage.getItem('highContrast') === 'true';
+    const savedSoundEffects = localStorage.getItem('soundEffects') !== 'false';
+    const savedRtlSupport = localStorage.getItem('rtlSupport') === 'true';
+
+    setTheme(savedTheme);
+    setFontSize(savedFontSize);
+    setReduceMotion(savedReduceMotion);
+    setHighContrast(savedHighContrast);
+    setSoundEffects(savedSoundEffects);
+    setRtlSupport(savedRtlSupport);
+
+    // Apply theme
+    applyTheme(savedTheme);
+    applyFontSize(savedFontSize);
+    applyAccessibilitySettings(savedReduceMotion, savedHighContrast);
+  }, []);
+
+  const applyTheme = (newTheme: string) => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+
+    if (newTheme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      root.classList.add(systemTheme);
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.add(newTheme);
     }
-  }, [darkMode]);
+  };
 
-  const handleThemeChange = (value: string) => {
-    setTheme(value);
-    if (value === 'dark') {
-      setDarkMode(true);
-    } else if (value === 'light') {
-      setDarkMode(false);
+  const applyFontSize = (newFontSize: string) => {
+    const root = window.document.documentElement;
+    root.classList.remove('font-small', 'font-medium', 'font-large');
+    root.classList.add(`font-${newFontSize}`);
+  };
+
+  const applyAccessibilitySettings = (motion: boolean, contrast: boolean) => {
+    const root = window.document.documentElement;
+    
+    if (motion) {
+      root.style.setProperty('--animation-duration', '0s');
+      root.classList.add('reduce-motion');
     } else {
-      // System theme
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setDarkMode(systemDark);
+      root.style.removeProperty('--animation-duration');
+      root.classList.remove('reduce-motion');
     }
-    toast({
-      title: "Theme Updated",
-      description: `Theme changed to ${value}`,
-    });
-  };
 
-  const handleFontSizeChange = (value: number[]) => {
-    setFontSize(value);
-    document.documentElement.style.fontSize = `${value[0]}px`;
-    toast({
-      title: "Font Size Updated",
-      description: `Font size set to ${value[0]}px`,
-    });
-  };
-
-  const handleColorSchemeChange = (schemeId: string) => {
-    setColorScheme(schemeId);
-    const scheme = colorSchemes.find(s => s.id === schemeId);
-    if (scheme) {
-      // Apply color scheme to CSS variables
-      document.documentElement.style.setProperty('--primary', scheme.primary);
-      document.documentElement.style.setProperty('--secondary', scheme.secondary);
-      toast({
-        title: "Color Scheme Updated",
-        description: `Applied ${scheme.name} color scheme`,
-      });
+    if (contrast) {
+      root.classList.add('high-contrast');
+    } else {
+      root.classList.remove('high-contrast');
     }
   };
 
-  const colorSchemes = [
-    { id: 'default', name: 'WasfahAI Default', primary: '#0EA5E9', secondary: '#10B981' },
-    { id: 'warm', name: 'Warm Sunset', primary: '#F59E0B', secondary: '#EF4444' },
-    { id: 'cool', name: 'Cool Ocean', primary: '#8B5CF6', secondary: '#06B6D4' },
-    { id: 'nature', name: 'Fresh Nature', primary: '#059669', secondary: '#84CC16' }
-  ];
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+    toast.success('Theme updated successfully!');
+  };
 
-  const previewText = "The quick brown fox jumps over the lazy dog. This is a preview of how your text will look with the current settings.";
+  const handleFontSizeChange = (newFontSize: string) => {
+    setFontSize(newFontSize);
+    localStorage.setItem('fontSize', newFontSize);
+    applyFontSize(newFontSize);
+    toast.success('Font size updated successfully!');
+  };
+
+  const handleReduceMotionChange = (checked: boolean) => {
+    setReduceMotion(checked);
+    localStorage.setItem('reduceMotion', checked.toString());
+    applyAccessibilitySettings(checked, highContrast);
+    toast.success(checked ? 'Motion reduced' : 'Motion restored');
+  };
+
+  const handleHighContrastChange = (checked: boolean) => {
+    setHighContrast(checked);
+    localStorage.setItem('highContrast', checked.toString());
+    applyAccessibilitySettings(reduceMotion, checked);
+    toast.success(checked ? 'High contrast enabled' : 'High contrast disabled');
+  };
+
+  const handleSoundEffectsChange = (checked: boolean) => {
+    setSoundEffects(checked);
+    localStorage.setItem('soundEffects', checked.toString());
+    toast.success(checked ? 'Sound effects enabled' : 'Sound effects disabled');
+  };
+
+  const handleRtlSupportChange = (checked: boolean) => {
+    setRtlSupport(checked);
+    localStorage.setItem('rtlSupport', checked.toString());
+    document.documentElement.dir = checked ? 'rtl' : 'ltr';
+    toast.success(checked ? 'RTL support enabled' : 'RTL support disabled');
+  };
+
+  const resetToDefaults = () => {
+    const defaults = {
+      theme: 'system',
+      fontSize: 'medium',
+      reduceMotion: false,
+      highContrast: false,
+      soundEffects: true,
+      rtlSupport: false
+    };
+
+    setTheme(defaults.theme);
+    setFontSize(defaults.fontSize);
+    setReduceMotion(defaults.reduceMotion);
+    setHighContrast(defaults.highContrast);
+    setSoundEffects(defaults.soundEffects);
+    setRtlSupport(defaults.rtlSupport);
+
+    Object.entries(defaults).forEach(([key, value]) => {
+      localStorage.setItem(key, value.toString());
+    });
+
+    applyTheme(defaults.theme);
+    applyFontSize(defaults.fontSize);
+    applyAccessibilitySettings(defaults.reduceMotion, defaults.highContrast);
+    document.documentElement.dir = 'ltr';
+
+    toast.success('Settings reset to defaults!');
+  };
 
   return (
-    <PageContainer header={{ title: 'Appearance', showBackButton: true }}>
-      <div className="p-4 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Appearance</h1>
-          <p className="text-gray-600">Customize how WasfahAI looks and feels</p>
-        </div>
-
-        {/* Theme Selection */}
+    <PageContainer
+      header={{
+        title: 'Appearance',
+        showBackButton: true,
+      }}
+    >
+      <div className="container px-4 py-6 space-y-6 pb-24">
+        {/* Theme Settings */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette size={20} />
-              Theme
+            <CardTitle className="flex items-center text-lg">
+              <Palette className="h-5 w-5 mr-2 text-wasfah-bright-teal" />
+              Theme Preferences
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <Button
-                variant={theme === 'light' ? 'default' : 'outline'}
-                onClick={() => handleThemeChange('light')}
-                className="flex flex-col items-center gap-2 h-auto p-4"
-              >
-                <Sun size={24} />
-                <span>Light</span>
-                {theme === 'light' && <Check size={16} className="text-green-500" />}
-              </Button>
-              <Button
-                variant={theme === 'dark' ? 'default' : 'outline'}
-                onClick={() => handleThemeChange('dark')}
-                className="flex flex-col items-center gap-2 h-auto p-4"
-              >
-                <Moon size={24} />
-                <span>Dark</span>
-                {theme === 'dark' && <Check size={16} className="text-green-500" />}
-              </Button>
-              <Button
-                variant={theme === 'system' ? 'default' : 'outline'}
-                onClick={() => handleThemeChange('system')}
-                className="flex flex-col items-center gap-2 h-auto p-4"
-              >
-                <Monitor size={24} />
-                <span>System</span>
-                {theme === 'system' && <Check size={16} className="text-green-500" />}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Color Scheme */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Color Scheme</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-3">
-              {colorSchemes.map((scheme) => (
-                <Button
-                  key={scheme.id}
-                  variant={colorScheme === scheme.id ? 'default' : 'outline'}
-                  onClick={() => handleColorSchemeChange(scheme.id)}
-                  className="flex items-center justify-between p-4 h-auto w-full"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex gap-1">
-                      <div 
-                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm" 
-                        style={{ backgroundColor: scheme.primary }}
-                      />
-                      <div 
-                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm" 
-                        style={{ backgroundColor: scheme.secondary }}
-                      />
-                    </div>
-                    <span className="font-medium">{scheme.name}</span>
+            <RadioGroup value={theme} onValueChange={handleThemeChange}>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <RadioGroupItem value="light" id="light" />
+                  <Sun className="h-5 w-5 text-orange-500" />
+                  <div className="flex-1">
+                    <Label htmlFor="light" className="font-medium">Light</Label>
+                    <p className="text-sm text-muted-foreground">Clean and bright interface</p>
                   </div>
-                  {colorScheme === scheme.id && (
-                    <Check size={20} className="text-green-500" />
-                  )}
-                </Button>
-              ))}
-            </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <RadioGroupItem value="dark" id="dark" />
+                  <Moon className="h-5 w-5 text-blue-500" />
+                  <div className="flex-1">
+                    <Label htmlFor="dark" className="font-medium">Dark</Label>
+                    <p className="text-sm text-muted-foreground">Easy on the eyes in low light</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <RadioGroupItem value="system" id="system" />
+                  <Monitor className="h-5 w-5 text-gray-500" />
+                  <div className="flex-1">
+                    <Label htmlFor="system" className="font-medium">System</Label>
+                    <p className="text-sm text-muted-foreground">Follow your device settings</p>
+                  </div>
+                </div>
+              </div>
+            </RadioGroup>
           </CardContent>
         </Card>
 
-        {/* Typography */}
+        {/* Typography Settings */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Type size={20} />
-              Typography
+            <CardTitle className="flex items-center text-lg">
+              <Type className="h-5 w-5 mr-2 text-wasfah-bright-teal" />
+              Font Size Preferences
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Font Size: {fontSize[0]}px
-              </label>
-              <Slider
-                value={fontSize}
-                onValueChange={handleFontSizeChange}
-                max={24}
-                min={12}
-                step={1}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm text-gray-600 mb-2">Preview:</p>
-              <p style={{ fontSize: `${fontSize[0]}px` }}>{previewText}</p>
-            </div>
+            <RadioGroup value={fontSize} onValueChange={handleFontSizeChange}>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <RadioGroupItem value="small" id="small" />
+                  <div className="flex-1">
+                    <Label htmlFor="small" className="font-medium text-sm">Small</Label>
+                    <p className="text-xs text-muted-foreground">Compact text for more content</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <RadioGroupItem value="medium" id="medium" />
+                  <div className="flex-1">
+                    <Label htmlFor="medium" className="font-medium">Medium</Label>
+                    <p className="text-sm text-muted-foreground">Standard text size (recommended)</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <RadioGroupItem value="large" id="large" />
+                  <div className="flex-1">
+                    <Label htmlFor="large" className="font-medium text-lg">Large</Label>
+                    <p className="text-base text-muted-foreground">Larger text for better readability</p>
+                  </div>
+                </div>
+              </div>
+            </RadioGroup>
           </CardContent>
         </Card>
 
-        {/* Accessibility */}
+        {/* Accessibility Options */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye size={20} />
-              Accessibility
+            <CardTitle className="flex items-center text-lg">
+              <Accessibility className="h-5 w-5 mr-2 text-wasfah-bright-teal" />
+              Accessibility Options
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium">Reduce Motion</label>
-                <p className="text-sm text-gray-600">Minimize animations and transitions</p>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center space-x-3">
+                <Eye className="h-5 w-5 text-purple-500" />
+                <div>
+                  <Label htmlFor="reduce-motion" className="font-medium">Reduce Motion</Label>
+                  <p className="text-sm text-muted-foreground">Minimize animations and transitions</p>
+                </div>
               </div>
               <Switch
-                checked={reducedMotion}
-                onCheckedChange={setReducedMotion}
+                id="reduce-motion"
+                checked={reduceMotion}
+                onCheckedChange={handleReduceMotionChange}
               />
             </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="font-medium">High Contrast</label>
-                <p className="text-sm text-gray-600">Increase contrast for better visibility</p>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center space-x-3">
+                <Eye className="h-5 w-5 text-blue-500" />
+                <div>
+                  <Label htmlFor="high-contrast" className="font-medium">High Contrast</Label>
+                  <p className="text-sm text-muted-foreground">Increase contrast for better visibility</p>
+                </div>
               </div>
               <Switch
+                id="high-contrast"
                 checked={highContrast}
-                onCheckedChange={setHighContrast}
+                onCheckedChange={handleHighContrastChange}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center space-x-3">
+                <Volume2 className="h-5 w-5 text-green-500" />
+                <div>
+                  <Label htmlFor="sound-effects" className="font-medium">Sound Effects</Label>
+                  <p className="text-sm text-muted-foreground">Enable audio feedback</p>
+                </div>
+              </div>
+              <Switch
+                id="sound-effects"
+                checked={soundEffects}
+                onCheckedChange={handleSoundEffectsChange}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center space-x-3">
+                <Monitor className="h-5 w-5 text-orange-500" />
+                <div>
+                  <Label htmlFor="rtl-support" className="font-medium">RTL Support</Label>
+                  <p className="text-sm text-muted-foreground">Right-to-left text direction</p>
+                </div>
+              </div>
+              <Switch
+                id="rtl-support"
+                checked={rtlSupport}
+                onCheckedChange={handleRtlSupportChange}
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Preview Card */}
+        {/* Reset Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Preview</CardTitle>
+            <CardTitle className="text-lg">Reset Settings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 p-4 border rounded-lg">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Sample Recipe Card</h3>
-                <Badge>New</Badge>
-              </div>
-              <p className="text-gray-600">This is how content will appear with your current settings.</p>
-              <div className="flex gap-2">
-                <Button size="sm">Primary Action</Button>
-                <Button variant="outline" size="sm">Secondary</Button>
-              </div>
+            <div className="flex flex-col space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Reset all appearance settings to their default values.
+              </p>
+              <Button variant="outline" onClick={resetToDefaults} className="w-fit">
+                Reset to Defaults
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
     </PageContainer>
   );
-}
+};
+
+export default AppearancePage;

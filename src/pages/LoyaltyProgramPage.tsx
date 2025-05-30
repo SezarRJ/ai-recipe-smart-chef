@@ -1,268 +1,381 @@
-
-import React, { useState } from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Star, Gift, Medal, Trophy, Target, Clock, Sparkles, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Star, Gift, Trophy, Crown, Zap, Check, ChefHat, Share2, Calendar, Users, Award, Sparkles, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { EnhancedCard, IconContainer, Typography, ProgressIndicator, AnimatedBadge, LayoutContainer } from '@/components/ui/design-system';
+import { EnhancedButton } from '@/components/ui/enhanced-button';
 
-// Sample rewards data
-const rewards = [
-  {
-    id: '1',
-    title: 'Premium Recipe Collection',
-    description: 'Unlock 25 premium recipes from world-class chefs.',
-    pointsCost: 500,
-    image: '/placeholder.svg',
-    isAvailable: true,
-  },
-  {
-    id: '2',
-    title: 'Ad-Free Experience',
-    description: 'Enjoy WasfahAI without any advertisements for 30 days.',
-    pointsCost: 750,
-    image: '/placeholder.svg',
-    isAvailable: true,
-  },
-  {
-    id: '3',
-    title: 'Chef consultation',
-    description: '15-minute video call with a professional chef.',
-    pointsCost: 2000,
-    image: '/placeholder.svg',
-    isAvailable: false,
-  },
-];
+// --- Mock Data (In a real app, this would come from your backend/database) ---
+// Simulate fetching user data
+const fetchUserData = async () => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return {
+    points: 1250, // Example points
+    tier: 'Gold', // Example tier
+    claimedRewards: [1], // Example claimed reward IDs
+    // In a real app, you might also fetch daily earning status here
+    // earnedToday: ['Daily Login']
+  };
+};
 
-// Sample achievements data
-const achievements = [
-  {
-    id: '1',
-    title: 'Recipe Creator',
-    description: 'Create your first recipe',
-    icon: 'chef',
-    pointsAwarded: 50,
-    dateEarned: '2023-04-15',
-    progress: 100,
-    total: 1,
-  },
-  {
-    id: '2',
-    title: 'Recipe Master',
-    description: 'Create 5 recipes',
-    icon: 'star',
-    pointsAwarded: 150,
-    dateEarned: null,
-    progress: 60,
-    total: 5,
-  },
-  {
-    id: '3',
-    title: 'Healthy Eater',
-    description: 'Follow a meal plan for 7 consecutive days',
-    icon: 'calendar',
-    pointsAwarded: 200,
-    dateEarned: null,
-    progress: 30,
-    total: 7,
-  },
-  {
-    id: '4',
-    title: 'Ingredient Expert',
-    description: 'Use the ingredient swap feature 10 times',
-    icon: 'swap',
-    pointsAwarded: 100,
-    dateEarned: null,
-    progress: 40,
-    total: 10,
-  },
-];
+// Simulate redeeming a reward
+const redeemRewardApi = async (userId: string, rewardId: number, pointsCost: number) => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // In a real API, you'd check if the user has enough points,
+    // deduct points, mark the reward as claimed for the user,
+    // and return success/failure.
+    console.log(`Simulating redemption for user ${userId}, reward ${rewardId}, cost ${pointsCost}`);
+    // Simulate success
+    return { success: true, newPoints: 1250 - pointsCost }; // Return updated points
+};
+// --------------------------------------------------------------------------
 
-export default function LoyaltyProgramPage() {
-  const { toast } = useToast();
-  const [userPoints, setUserPoints] = useState(850);
-  const [userLevel, setUserLevel] = useState('Gold Level');
-  const pointsToNextLevel = 1500 - userPoints;
-  const progressToNextLevel = (userPoints / 1500) * 100;
 
-  const handleRedeemReward = (reward: typeof rewards[0]) => {
-    if (userPoints >= reward.pointsCost) {
-      setUserPoints(prevPoints => prevPoints - reward.pointsCost);
-      toast({
-        title: "Reward Redeemed!",
-        description: `You've successfully redeemed "${reward.title}" for ${reward.pointsCost} points.`,
-      });
-    } else {
-      toast({
-        title: "Not enough points",
-        description: `You need ${reward.pointsCost - userPoints} more points to redeem "${reward.title}".`,
-        variant: "destructive",
-      });
+const LoyaltyProgramPage = () => {
+  // State to hold fetched data
+  const [userPoints, setUserPoints] = useState<number | null>(null);
+  const [userTier, setUserTier] = useState<string | null>(null);
+  const [claimedRewards, setClaimedRewards] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [redeeming, setRedeeming] = useState<number | null>(null); // Track which reward is being redeemed
+
+  // In a real app, you'd get the current user ID from your auth context
+  const currentUserId = 'user-123'; // Mock user ID
+
+  const rewards = [
+    {
+      id: 1,
+      name: 'Free Premium Recipe',
+      points: 500,
+      icon: Star,
+      available: true,
+      description: 'Unlock one premium recipe of your choice',
+      rarity: 'common'
+    },
+    {
+      id: 2,
+      name: '10% Off Subscription',
+      points: 1000,
+      icon: Gift,
+      available: true,
+      description: 'Get 10% discount on your next subscription',
+      rarity: 'rare'
+    },
+    {
+      id: 3,
+      name: 'Exclusive Recipe Collection',
+      points: 1500,
+      icon: Trophy,
+      available: false, // Still marked as unavailable in mock
+      description: 'Access to chef-curated recipe collections',
+      rarity: 'epic'
+    },
+    {
+      id: 4,
+      name: 'Personal Chef Consultation',
+      points: 2500,
+      icon: Crown,
+      available: false, // Still marked as unavailable in mock
+      description: '30-minute one-on-one session with a professional chef',
+      rarity: 'legendary'
+    }
+  ];
+
+  // Activities are now just for display, explaining how to earn
+  const activities = [
+    { action: 'Daily Login', points: 10, description: 'Login to the app daily', icon: Calendar, color: 'bg-blue-500' },
+    { action: 'Share Recipe', points: 50, description: 'Share a recipe with friends', icon: Share2, color: 'bg-green-500' },
+    { action: 'Create Recipe', points: 100, description: 'Create and publish a new recipe', icon: ChefHat, color: 'bg-purple-500' },
+    { action: 'Join Community', points: 75, description: 'Participate in community discussions', icon: Users, color: 'bg-orange-500' }
+  ];
+
+  const tierRequirements = {
+    Bronze: 0,
+    Silver: 1000,
+    Gold: 2500,
+    Platinum: 5000
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchUserData(); // Simulate fetching from backend
+        setUserPoints(data.points);
+        setUserTier(data.tier);
+        setClaimedRewards(data.claimedRewards);
+      } catch (error) {
+        console.error("Failed to fetch loyalty data:", error);
+        toast.error("Failed to load loyalty data.");
+        // Set default/fallback state on error
+        setUserPoints(0);
+        setUserTier('Bronze');
+        setClaimedRewards([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []); // Empty dependency array means this runs once on mount
+
+  const getNextTier = () => {
+    if (userPoints === null) return null; // Handle loading state
+    if (userPoints < tierRequirements.Silver) return { name: 'Silver', points: tierRequirements.Silver };
+    if (userPoints < tierRequirements.Gold) return { name: 'Gold', points: tierRequirements.Gold };
+    if (userPoints < tierRequirements.Platinum) return { name: 'Platinum', points: tierRequirements.Platinum };
+    return null; // Max tier reached
+  };
+
+  const nextTier = getNextTier();
+
+  const handleRedeemReward = async (rewardId: number, pointsCost: number) => {
+    if (userPoints === null || redeeming !== null) return; // Prevent multiple redemptions or if data not loaded
+
+    if (userPoints < pointsCost) {
+      toast.error('Not enough points to redeem this reward.');
+      return;
+    }
+    if (claimedRewards.includes(rewardId)) {
+        toast.info('You have already claimed this reward.');
+        return;
+    }
+
+    setRedeeming(rewardId); // Indicate which reward is being redeemed
+
+    try {
+      // Simulate API call to redeem reward
+      const result = await redeemRewardApi(currentUserId, rewardId, pointsCost);
+
+      if (result.success) {
+        setUserPoints(result.newPoints); // Update points based on API response
+        setClaimedRewards(prev => [...prev, rewardId]); // Add to claimed list
+        toast.success('Reward redeemed successfully! 🎉');
+      } else {
+        // Handle specific API errors (e.g., not enough points, reward unavailable)
+        toast.error('Failed to redeem reward. Please try again.');
+      }
+    } catch (error) {
+      console.error("Redemption failed:", error);
+      toast.error('An error occurred during redemption.');
+    } finally {
+      setRedeeming(null); // Reset redeeming state
     }
   };
 
+  // Removed handleEarnPoints function
+
+  const getTierGradient = (tier: string | null) => {
+    switch (tier) {
+      case 'Bronze': return 'from-amber-400 via-amber-500 to-amber-600';
+      case 'Silver': return 'from-gray-300 via-gray-400 to-gray-500';
+      case 'Gold': return 'from-yellow-300 via-yellow-400 to-yellow-500';
+      case 'Platinum': return 'from-purple-400 via-purple-500 to-purple-600';
+      default: return 'from-wasfah-bright-teal via-wasfah-teal to-wasfah-deep-teal'; // Default/Loading
+    }
+  };
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common': return 'border-gray-300 bg-gray-50';
+      case 'rare': return 'border-blue-300 bg-blue-50';
+      case 'epic': return 'border-purple-300 bg-purple-50';
+      case 'legendary': return 'border-yellow-300 bg-yellow-50';
+      default: return 'border-gray-300 bg-gray-50';
+    }
+  };
+
+  // Show loading state
+  if (loading || userPoints === null || userTier === null) {
+      return (
+          <PageContainer header={{ title: 'Loyalty Program', showBackButton: true }}>
+              <LayoutContainer className="flex justify-center items-center h-64">
+                  <Loader2 className="h-12 w-12 animate-spin text-wasfah-bright-teal" />
+              </LayoutContainer>
+          </PageContainer>
+      );
+  }
+
+
   return (
-    <PageContainer header={{ title: 'Loyalty Program', showBackButton: true }}>
-      <div className="space-y-6 pb-6">
-        <section>
-          <Card className="border-secondary">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="bg-gradient-to-br from-wasfah-orange to-wasfah-green p-3 rounded-full mr-4">
-                    <Award className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-wasfah-orange">{userLevel}</h2>
-                    <p className="text-sm text-gray-600">Member since April 2023</p>
-                  </div>
+    <PageContainer
+      header={{
+        title: 'Loyalty Program',
+        showBackButton: true,
+      }}
+    >
+      <LayoutContainer className="space-y-8 pb-24">
+        {/* Enhanced Status Card */}
+        <EnhancedCard variant="glass" className={`bg-gradient-to-br ${getTierGradient(userTier)} text-white overflow-hidden relative`}>
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="absolute top-0 right-0 opacity-20">
+            <Sparkles className="h-32 w-32" />
+          </div>
+          <CardContent className="p-8 relative z-10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <IconContainer size="lg" className="bg-white/20 text-white">
+                  <Crown className="h-8 w-8" />
+                </IconContainer>
+                <div>
+                  <Typography.H2 className="text-white mb-1">{userTier} Member</Typography.H2>
+                  <Typography.Body className="text-white/90 text-base">
+                    {nextTier ? `${nextTier.points - userPoints} points to ${nextTier.name}` : 'Maximum tier reached! 🏆'}
+                  </Typography.Body>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-wasfah-green">{userPoints}</div>
-                  <p className="text-sm text-gray-600">points</p>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-bold mb-1">{userPoints.toLocaleString()}</div>
+                <Typography.Caption className="text-white/90">Total Points</Typography.Caption>
+              </div>
+            </div>
+
+            {nextTier && (
+              <div className="space-y-3">
+                <div className="flex justify-between text-white/90">
+                  <span>Progress to {nextTier.name}</span>
+                  <span>{userPoints}/{nextTier.points} pts</span>
                 </div>
+                <ProgressIndicator
+                  value={userPoints}
+                  max={nextTier.points}
+                  variant="primary"
+                  className="bg-white/20"
+                />
               </div>
+            )}
+          </CardContent>
+        </EnhancedCard>
 
-              <div className="mt-6">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-700">{userLevel}</span>
-                  <span className="text-gray-700">Platinum Level (1,500 pts)</span>
-                </div>
-                <Progress value={progressToNextLevel} className="h-2" />
-                <p className="text-xs text-center mt-1 text-gray-600">
-                  {pointsToNextLevel > 0 ? `${pointsToNextLevel} more points to reach Platinum` : "You've reached Platinum Level!"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+        {/* Enhanced Rewards Section */}
+        <div className="space-y-6">
+          <div className="flex items-center space-x-3">
+            <IconContainer variant="primary">
+              <Gift className="h-6 w-6" />
+            </IconContainer>
+            <Typography.H2>Available Rewards</Typography.H2>
+          </div>
 
-        <section>
-          <Tabs defaultValue="rewards">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="rewards">
-                <Gift className="h-4 w-4 mr-2" />
-                Rewards
-              </TabsTrigger>
-              <TabsTrigger value="achievements">
-                <Trophy className="h-4 w-4 mr-2" />
-                Achievements
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid gap-6">
+            {rewards.map((reward) => {
+              const isAffordable = userPoints >= reward.points;
+              const isClaimed = claimedRewards.includes(reward.id);
+              const isRedeemingThis = redeeming === reward.id;
 
-            <TabsContent value="rewards" className="mt-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-wasfah-orange">Available Rewards</h3>
-                <span className="text-sm font-medium text-wasfah-green">{userPoints} points available</span>
-              </div>
+              return (
+                <EnhancedCard
+                  key={reward.id}
+                  variant="elevated"
+                  className={`transition-all ${
+                    isClaimed
+                      ? 'border-green-200 bg-green-50'
+                      : isAffordable && reward.available
+                      ? `${getRarityColor(reward.rarity)} border-2`
+                      : 'opacity-60'
+                  }`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <IconContainer
+                        variant={isClaimed ? 'accent' : 'primary'}
+                        size="lg"
+                      >
+                        <reward.icon className="h-8 w-8" />
+                      </IconContainer>
 
-              <div className="grid gap-4">
-                {rewards.map((reward) => (
-                  <Card key={reward.id} className={!reward.isAvailable || userPoints < reward.pointsCost ? 'opacity-60' : ''}>
-                    <div className="flex">
-                      <div className="w-24 h-full">
-                        <img
-                          src={reward.image}
-                          alt={reward.title}
-                          className="w-full h-full object-cover rounded-l-lg"
-                        />
-                      </div>
-                      <div className="flex-1 flex flex-col p-4">
-                        <CardHeader className="p-0 pb-2">
-                          <CardTitle className="text-base text-gray-900">{reward.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0 pb-2 flex-1">
-                          <p className="text-sm text-gray-600">{reward.description}</p>
-                        </CardContent>
-                        <CardFooter className="p-0 flex justify-between items-center">
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                            <span className="font-medium text-gray-900">{reward.pointsCost} points</span>
-                          </div>
-                          <Button
-                            className="bg-wasfah-green hover:bg-wasfah-orange"
-                            disabled={!reward.isAvailable || userPoints < reward.pointsCost}
-                            onClick={() => handleRedeemReward(reward)}
-                          >
-                            Redeem
-                          </Button>
-                        </CardFooter>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="achievements" className="mt-4 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-wasfah-orange">Your Achievements</h3>
-                <span className="text-sm font-medium text-gray-600">Earn points with achievements</span>
-              </div>
-
-              <div className="grid gap-3">
-                {achievements.map((achievement) => {
-                  const isCompleted = achievement.progress === 100;
-
-                  let AchievementIcon;
-                  switch (achievement.icon) {
-                    case 'chef': AchievementIcon = Medal; break;
-                    case 'star': AchievementIcon = Star; break;
-                    case 'calendar': AchievementIcon = Clock; break;
-                    case 'swap': AchievementIcon = Sparkles; break;
-                    default: AchievementIcon = Target;
-                  }
-
-                  return (
-                    <Card key={achievement.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start">
-                          <div className={`p-3 rounded-full mr-4 ${
-                            isCompleted
-                              ? 'bg-gradient-to-br from-wasfah-orange to-wasfah-green'
-                              : 'bg-gray-200'
-                          }`}>
-                            {isCompleted ? (
-                              <CheckCircle className="h-5 w-5 text-white" />
-                            ) : (
-                              <AchievementIcon className="h-5 w-5 text-gray-600" />
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-center mb-1">
-                              <h4 className="font-semibold text-gray-900">{achievement.title}</h4>
-                              <div className="text-sm font-medium text-wasfah-green">
-                                {achievement.pointsAwarded} pts
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
-
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-xs text-gray-600">
-                                <span>{Math.floor(achievement.progress / 100 * achievement.total)} of {achievement.total}</span>
-                                <span>{achievement.progress}%</span>
-                              </div>
-                              <Progress value={achievement.progress} className="h-1.5" />
-                            </div>
-
-                            {achievement.dateEarned && (
-                              <div className="mt-1 text-xs text-gray-600">
-                                Completed on {new Date(achievement.dateEarned).toLocaleDateString()}
-                              </div>
-                            )}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Typography.H3 className="text-lg">{reward.name}</Typography.H3>
+                          <div className="flex items-center space-x-2">
+                            <AnimatedBadge variant={reward.rarity === 'legendary' ? 'warning' : 'default'}>
+                              {reward.rarity}
+                            </AnimatedBadge>
+                            <Badge variant={isClaimed ? "default" : "outline"}>
+                              {isClaimed ? <Check className="h-4 w-4" /> : `${reward.points} pts`}
+                            </Badge>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </section>
-      </div>
+
+                        <Typography.Body className="text-gray-600">
+                          {reward.description}
+                        </Typography.Body>
+
+                        {isClaimed ? (
+                          <EnhancedButton variant="success" fullWidth disabled>
+                            <Check className="h-4 w-4 mr-1" />
+                            Claimed
+                          </EnhancedButton>
+                        ) : isAffordable && reward.available ? (
+                          <EnhancedButton
+                            variant="primary"
+                            fullWidth
+                            gradient
+                            onClick={() => handleRedeemReward(reward.id, reward.points)}
+                            disabled={redeeming !== null}
+                          >
+                            {isRedeemingThis ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                'Redeem Now'
+                            )}
+                          </EnhancedButton>
+                        ) : (
+                          <EnhancedButton variant="outline" fullWidth disabled>
+                            {userPoints < reward.points ? 'Not Enough Points' : 'Coming Soon'}
+                          </EnhancedButton>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </EnhancedCard>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Enhanced Activities Section */}
+        <div className="space-y-6">
+          <div className="flex items-center space-x-3">
+            <IconContainer variant="accent">
+              <Zap className="h-6 w-6" />
+            </IconContainer>
+            <Typography.H2>How to Earn Points</Typography.H2>
+          </div>
+
+          <div className="grid gap-4">
+            {activities.map((activity, index) => (
+                <EnhancedCard key={index} variant="default">
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-4">
+                      <IconContainer className={`${activity.color} text-white`} size="lg">
+                        <activity.icon className="h-6 w-6" />
+                      </IconContainer>
+
+                      <div className="flex-1">
+                        <Typography.H3 className="text-lg mb-1">{activity.action}</Typography.H3>
+                        <Typography.Body className="text-sm">{activity.description}</Typography.Body>
+                      </div>
+
+                      <div className="text-center space-y-1">
+                        <div className="text-2xl font-bold text-wasfah-bright-teal">+{activity.points}</div>
+                        <Typography.Caption>points</Typography.Caption>
+                      </div>
+                    </div>
+                  </CardContent>
+                </EnhancedCard>
+              ))}
+          </div>
+        </div>
+      </LayoutContainer>
     </PageContainer>
   );
-}
+};
+
+export default LoyaltyProgramPage;

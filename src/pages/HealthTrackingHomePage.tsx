@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +10,7 @@ import { NutritionEntryForm } from '@/components/nutrition/NutritionEntryForm';
 import { NutritionTip } from '@/components/nutrition/NutritionTip';
 import { Activity, Scale, CalendarDays, ArrowLeftRight, Tag, Target, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { DailyIndependenceChallenges } from '@/components/health/DailyIndependenceChallenges';
+import { DailyChallengesManager } from '@/components/challenges/DailyChallengesManager';
 import { BMICalculator } from '@/components/health/BMICalculator';
 import { useRTL } from '@/contexts/RTLContext';
 
@@ -234,7 +233,6 @@ export default function HealthTrackingHomePage() {
                         "Based on your recent activity and diet patterns, I recommend increasing protein intake by 15g daily while reducing carbs slightly to help reach your weight goal of 65kg.",
                         "بناءً على أنماط نشاطك ونظامك الغذائي الأخيرة، أوصي بزيادة تناول البروتين بمقدار 15 جرام يوميًا مع تقليل الكربوهيدرات قليلاً للمساعدة في الوصول إلى هدفك في الوزن وهو 65 كجم."
                     )}
-                    source="Wasfah AI"
                     onApply={handleApplyTip}
                     type="ai"
                 />
@@ -250,7 +248,7 @@ export default function HealthTrackingHomePage() {
                     onUpdateGoals={updateHealthGoals}
                 />
 
-                <DailyIndependenceChallenges />
+                <DailyChallengesManager />
 
                 <Tabs defaultValue="track">
                     <TabsList className="grid w-full grid-cols-4">

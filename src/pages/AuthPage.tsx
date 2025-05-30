@@ -4,11 +4,11 @@ import { WasfahLogo } from '@/components/icons/WasfahLogo';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// Import Phone icon for mobile number
 import { Mail, Lock, User, ArrowRight, Languages, Loader2, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mock useRTL for demonstration if it's not available
 const useRTL = () => {
@@ -20,71 +20,127 @@ export default function AuthPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState('en'); // Default to English for now
+  const [language, setLanguage] = useState('en');
 
   // Form states
-  const [loginIdentifier, setLoginIdentifier] = useState(''); // Can be email or phone
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
   const [registerFullName, setRegisterFullName] = useState('');
-  const [registerMethod, setRegisterMethod] = useState('email'); // 'email' or 'phone'
+  const [registerMethod, setRegisterMethod] = useState('email');
   const [registerEmail, setRegisterEmail] = useState('');
-  const [registerPhoneNumber, setRegisterPhoneNumber] = useState(''); // New state for phone number
+  const [registerPhoneNumber, setRegisterPhoneNumber] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerLanguage, setRegisterLanguage] = useState('en');
 
-  const { t } = useRTL(); // Initialize translation hook
+  const { t } = useRTL();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // In a real application, you'd send loginIdentifier (which could be email or phone) and loginPassword to your backend.
-    // Your backend would then need to verify if it's an email or phone number and authenticate accordingly.
-    // Example: const response = await loginApi({ identifier: loginIdentifier, password: loginPassword });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginIdentifier,
+        password: loginPassword,
+      });
 
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      if (error) throw error;
 
-    setIsLoading(false);
-    toast({
-      title: t("Login successful", "تسجيل الدخول ناجح"),
-      description: t("Welcome back to WasfahAI!", "مرحبًا بك مرة أخرى في وصفة الذكاء الاصطناعي!"),
-      duration: 3000,
-    });
-    navigate('/home'); // Navigate to /home (or your main app dashboard)
+      toast({
+        title: t("Login successful", "تسجيل الدخول ناجح"),
+        description: t("Welcome back to WasfahAI!", "مرحبًا بك مرة أخرى في وصفة الذكاء الاصطناعي!"),
+      });
+      navigate('/home');
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Collect data based on selected registration method
-    const registrationData = {
-      fullName: registerFullName,
-      password: registerPassword,
-      language: registerLanguage,
-      method: registerMethod,
-      email: registerMethod === 'email' ? registerEmail : undefined,
-      phoneNumber: registerMethod === 'phone' ? registerPhoneNumber : undefined,
-    };
+    try {
+      const email = registerMethod === 'email' ? registerEmail : `${registerPhoneNumber}@temp.com`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: registerPassword,
+        options: {
+          data: {
+            full_name: registerFullName,
+            preferred_language: registerLanguage,
+            registration_method: registerMethod,
+            phone_number: registerMethod === 'phone' ? registerPhoneNumber : undefined,
+          }
+        }
+      });
 
-    // In a real application, you'd send registrationData to your backend.
-    // Your backend would then validate the chosen method and handle registration.
-    // Example: const response = await registerApi(registrationData);
+      if (error) throw error;
 
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      toast({
+        title: t("Registration successful", "التسجيل ناجح"),
+        description: t("Welcome to WasfahAI!", "مرحبًا بك في وصفة الذكاء الاصطناعي!"),
+      });
+      navigate('/home');
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message || "Registration failed",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    setIsLoading(false);
-    toast({
-      title: t("Registration successful", "التسجيل ناجح"),
-      description: t("Welcome to WasfahAI!", "مرحبًا بك في وصفة الذكاء الاصطناعي!"),
-      duration: 3000,
-    });
-    navigate('/home'); // Navigate to /home (or your main app dashboard)
+  const handleGoogleLogin = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Google login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Facebook login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSkip = () => {
-    navigate('/home'); // Navigate to /home (or your main app dashboard) as guest
+    navigate('/home');
   };
 
   const languages = [
@@ -94,7 +150,6 @@ export default function AuthPage() {
     { code: 'es', name: t('Spanish', 'الإسبانية') }
   ];
 
-  // Variants for Framer Motion transitions
   const formVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
@@ -103,11 +158,10 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-wasfah-light-gray dark:bg-gray-900">
-      {/* Left Section: Logo & Background (Responsive) */}
+      {/* Left Section: Logo & Background */}
       <div className="relative w-full md:w-1/2 lg:w-2/5 xl:w-1/3 min-h-[30vh] md:min-h-screen
                    bg-gradient-to-br from-wasfah-deep-teal to-wasfah-teal flex flex-col items-center justify-center
                    p-6 text-white overflow-hidden shadow-xl md:shadow-none">
-        {/* Background animation elements */}
         <motion.div
           initial={{ rotate: 0 }}
           animate={{ rotate: 360 }}
@@ -129,7 +183,6 @@ export default function AuthPage() {
           </p>
         </motion.div>
 
-        {/* Language Selector (positioned at top right for desktop, still in this section for mobile) */}
         <div className="absolute top-4 right-4 z-20 w-32">
           <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger className="bg-transparent text-white border-white/50 hover:border-white transition-colors dark:text-gray-200 dark:border-gray-600 dark:hover:border-gray-500">
@@ -180,11 +233,10 @@ export default function AuthPage() {
                   <TabsContent value="login" className="mt-4">
                     <form onSubmit={handleLogin} className="space-y-6">
                       <div className="relative">
-                        {/* Changed type to 'text' and placeholder to allow either email or phone */}
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                         <Input
-                          type="text" // Can be 'email' or 'tel' on mobile, but 'text' is flexible for a single login field
-                          placeholder={t("Email or Phone Number", "البريد الإلكتروني أو رقم الهاتف")}
+                          type="email"
+                          placeholder={t("Email", "البريد الإلكتروني")}
                           className="pl-10 h-12 text-base dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
                           required
                           value={loginIdentifier}
@@ -222,6 +274,45 @@ export default function AuthPage() {
                           t('Login', 'تسجيل الدخول')
                         )}
                       </Button>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+                            {t('Or continue with', 'أو تابع مع')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleGoogleLogin}
+                          className="w-full"
+                        >
+                          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                          Google
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleFacebookLogin}
+                          className="w-full"
+                        >
+                          <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                          Facebook
+                        </Button>
+                      </div>
                     </form>
                   </TabsContent>
                 </motion.div>
@@ -249,7 +340,6 @@ export default function AuthPage() {
                         />
                       </div>
 
-                      {/* NEW: Registration Method Selector */}
                       <div className="w-full">
                         <Tabs value={registerMethod} onValueChange={setRegisterMethod} className="w-full">
                           <TabsList className="grid w-full grid-cols-2 mb-4 bg-gray-100 dark:bg-gray-700">
@@ -269,7 +359,6 @@ export default function AuthPage() {
                         </Tabs>
                       </div>
 
-                      {/* Conditional Input based on registerMethod */}
                       <AnimatePresence mode="wait">
                         {registerMethod === 'email' && (
                           <motion.div
@@ -285,7 +374,7 @@ export default function AuthPage() {
                                 type="email"
                                 placeholder={t("Email", "البريد الإلكتروني")}
                                 className="pl-10 h-12 text-base dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                                required={registerMethod === 'email'} // Required only if email is selected
+                                required={registerMethod === 'email'}
                                 value={registerEmail}
                                 onChange={(e) => setRegisterEmail(e.target.value)}
                               />
@@ -303,10 +392,10 @@ export default function AuthPage() {
                             <div className="relative">
                               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                               <Input
-                                type="tel" // Use 'tel' for mobile number input
+                                type="tel"
                                 placeholder={t("Phone Number (e.g., +1234567890)", "رقم الهاتف (مثال: +9665xxxxxxxx)")}
                                 className="pl-10 h-12 text-base dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                                required={registerMethod === 'phone'} // Required only if phone is selected
+                                required={registerMethod === 'phone'}
                                 value={registerPhoneNumber}
                                 onChange={(e) => setRegisterPhoneNumber(e.target.value)}
                               />
@@ -356,6 +445,45 @@ export default function AuthPage() {
                           t('Register', 'التسجيل')
                         )}
                       </Button>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+                            {t('Or register with', 'أو سجل مع')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleGoogleLogin}
+                          className="w-full"
+                        >
+                          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                          Google
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleFacebookLogin}
+                          className="w-full"
+                        >
+                          <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                          Facebook
+                        </Button>
+                      </div>
                     </form>
                   </TabsContent>
                 </motion.div>

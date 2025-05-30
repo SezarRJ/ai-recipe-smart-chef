@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, History, Filter, Calendar, Clock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 
 export default function FavoritesPage() {
   const [activeTab, setActiveTab] = useState('favorites');

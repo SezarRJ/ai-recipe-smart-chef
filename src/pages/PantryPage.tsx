@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PantryItem } from '@/types';
+import { PantryItem } from '@/types/index';
 
 export default function PantryPage() {
   const [activeTab, setActiveTab] = useState('all');
@@ -37,7 +37,7 @@ export default function PantryPage() {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, typeof pantryItems>);
+  }, {} as Record<string, PantryItem[]>);
 
   const today = new Date();
   const expiringItems = pantryItems.filter(item => {
