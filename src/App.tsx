@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { RTLProvider } from "@/contexts/RTLContext";
 import NewHomePage from "./pages/NewHomePage";
 import MenuPage from "./pages/MenuPage";
+import ServicesPage from "./pages/ServicesPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CreateRecipePage from "./pages/CreateRecipePage";
@@ -43,8 +45,7 @@ import SharedRecipesTrackingPage from "./pages/SharedRecipesTrackingPage";
 import SplashScreen from "./pages/SplashScreen";
 import ShoppingListPage from "./pages/ShoppingListPage";
 import NotFound from "./pages/NotFound";
-// Import the new EditProfilePage
-import EditProfilePage from "./pages/EditProfilePage"; // Make sure this path is correct
+import EditProfilePage from "./pages/EditProfilePage";
 
 // Admin pages
 import AdminPage from "./pages/AdminPage";
@@ -62,6 +63,12 @@ import AdminIntegrationsManager from "./pages/admin/AdminIntegrationsManager";
 import AdminIngredientImagesManager from "./pages/admin/AdminIngredientImagesManager";
 import AdminTranslationsManager from "./pages/admin/AdminTranslationsManager";
 import AdminContentLibrary from "./pages/admin/AdminContentLibrary";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
+import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
+import AdminCommunicationsPage from "./pages/admin/AdminCommunicationsPage";
+import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminCommunityModeration from "./pages/admin/AdminCommunityModeration";
+import AdminStringManager from "./pages/admin/AdminStringManager";
 import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
 
 const queryClient = new QueryClient();
@@ -74,12 +81,16 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Redirect root to new home page */}
-            <Route path="/" element={<Navigate to="/home" replace />} />
+            {/* Redirect root to splash screen */}
+            <Route path="/" element={<Navigate to="/splash" replace />} />
+
+            {/* Splash screen as entry point */}
+            <Route path="/splash" element={<SplashScreen />} />
 
             {/* Main app routes */}
             <Route path="/home" element={<NewHomePage />} />
             <Route path="/menu" element={<MenuPage />} />
+            <Route path="/services" element={<ServicesPage />} />
             <Route path="/recipes" element={<RecipesPage />} />
             <Route path="/recipe/:id" element={<RecipeDetailPage />} />
             <Route path="/create-recipe" element={<CreateRecipePage />} />
@@ -91,8 +102,7 @@ const App = () => (
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/settings" element={<MainSettingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            {/* Add the route for EditProfilePage */}
-            <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/edit-profile" element={<EditProfilePage />} />
             <Route path="/dietary-preferences" element={<DietaryPreferencesPage />} />
             <Route path="/language-settings" element={<LanguageSettingsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
@@ -111,69 +121,72 @@ const App = () => (
             <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
             <Route path="/scan-dish" element={<ScanDishPage />} />
             <Route path="/scan-ingredients" element={<ScanIngredientsPage />} />
+            {/* Loyalty program routes - redirect old route to new one */}
+            <Route path="/loyalty" element={<Navigate to="/loyalty-program" replace />} />
             <Route path="/loyalty-program" element={<LoyaltyProgramPage />} />
             <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
             <Route path="/ingredient-swap" element={<IngredientSwapPage />} />
             <Route path="/shared-recipes" element={<SharedRecipesPage />} />
             <Route path="/shared-recipes-tracking" element={<SharedRecipesTrackingPage />} />
-            <Route path="/splash" element={<SplashScreen />} />
             <Route path="/shopping-list" element={<ShoppingListPage />} />
 
             {/* Admin routes - accessible to both admin and super admin */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin/*" element={
+            <Route path="/admin" element={
               <AdminAuthGuard>
-                <Routes>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="user-types" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <AdminUserTypesManager />
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="recipes" element={<AdminRecipes />} />
-                  <Route path="ingredients" element={<div>Admin Ingredients</div>} />
-                  <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
-                  <Route path="translations" element={<AdminTranslationsManager />} />
-                  <Route path="subscriptions" element={<AdminSubscriptionManager />} />
-                  <Route path="accounting" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <AdminAccountingManager />
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="rewards" element={<AdminRewardsManager />} />
-                  <Route path="languages" element={<AdminLanguageManager />} />
-                  <Route path="integrations" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <AdminIntegrationsManager />
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="system" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <AdminSystemMonitoring />
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="analytics" element={<div>Admin Analytics</div>} />
-                  <Route path="communications" element={<div>Admin Communications</div>} />
-                  <Route path="security" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <div>Admin Security</div>
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="maintenance" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <div>Admin Maintenance</div>
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="settings" element={
-                    <AdminAuthGuard requireSuperAdmin={true}>
-                      <div>Admin Settings</div>
-                    </AdminAuthGuard>
-                  } />
-                  <Route path="content-library" element={<AdminContentLibrary />} />
-                </Routes>
+                <AdminPage />
               </AdminAuthGuard>
-            } />
+            }>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="user-types" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <AdminUserTypesManager />
+                </AdminAuthGuard>
+              } />
+              <Route path="recipes" element={<AdminRecipes />} />
+              <Route path="ingredients" element={<div className="p-6"><h2 className="text-2xl font-bold mb-4">Admin Ingredients</h2><p>Ingredients management coming soon...</p></div>} />
+              <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
+              <Route path="translations" element={<AdminTranslationsManager />} />
+              <Route path="string-manager" element={<AdminStringManager />} />
+              <Route path="community-moderation" element={<AdminCommunityModeration />} />
+              <Route path="subscriptions" element={<AdminSubscriptionManager />} />
+              <Route path="accounting" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <AdminAccountingManager />
+                </AdminAuthGuard>
+              } />
+              <Route path="rewards" element={<AdminRewardsManager />} />
+              <Route path="languages" element={<AdminLanguageManager />} />
+              <Route path="integrations" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <AdminIntegrationsManager />
+                </AdminAuthGuard>
+              } />
+              <Route path="system" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <AdminSystemMonitoring />
+                </AdminAuthGuard>
+              } />
+              <Route path="analytics" element={<AdminAnalyticsPage />} />
+              <Route path="communications" element={<AdminCommunicationsPage />} />
+              <Route path="security" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <AdminSecurityPage />
+                </AdminAuthGuard>
+              } />
+              <Route path="maintenance" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <div className="p-6"><h2 className="text-2xl font-bold mb-4">Admin Maintenance</h2><p>Maintenance tools coming soon...</p></div>
+                </AdminAuthGuard>
+              } />
+              <Route path="settings" element={
+                <AdminAuthGuard requireSuperAdmin={true}>
+                  <AdminSettingsPage />
+                </AdminAuthGuard>
+              } />
+              <Route path="content-library" element={<AdminContentLibrary />} />
+            </Route>
 
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
