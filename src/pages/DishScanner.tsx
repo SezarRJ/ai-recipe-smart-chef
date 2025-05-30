@@ -1,273 +1,279 @@
+import React, { useState, useRef } from 'react';
+import { Camera, Upload, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { useRTL } from '@/contexts/RTLContext';
 
-import { useState } from "react";
-import { MobileNavigation } from "@/components/MobileNavigation";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Camera, Upload, Scan, Info, Utensils, Heart, Clock } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+export interface ScanDishResult {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  ingredients: string[];
+}
 
-const DishScanner = () => {
-  const { t } = useLanguage();
-  const [isScanning, setIsScanning] = useState(false);
-  const [scannedDish, setScannedDish] = useState<any>(null);
+interface ScanDishComponentProps {
+  onScanResult?: (result: ScanDishResult) => void;
+}
 
-  const handleCameraCapture = () => {
-    setIsScanning(true);
-    // Simulate scanning process
-    setTimeout(() => {
-      setIsScanning(false);
-      setScannedDish({
-        name: "Chicken Biryani",
-        cuisine: "Indian",
-        confidence: 95,
-        ingredients: [
-          { name: "Basmati Rice", amount: "2 cups" },
-          { name: "Chicken", amount: "500g" },
-          { name: "Onions", amount: "2 large" },
-          { name: "Yogurt", amount: "1 cup" },
-          { name: "Garam Masala", amount: "2 tsp" },
-          { name: "Saffron", amount: "1 pinch" },
-          { name: "Mint Leaves", amount: "1/4 cup" },
-          { name: "Cilantro", amount: "1/4 cup" }
-        ],
-        nutrition: {
-          calories: 420,
-          protein: 28,
-          carbs: 52,
-          fat: 12,
-          fiber: 3
-        },
-        cookingTime: 60,
-        difficulty: "Medium",
-        description: "A fragrant and flavorful Indian rice dish with spiced chicken, aromatic basmati rice, and traditional seasonings."
-      });
+export const ScanDishComponent: React.FC<ScanDishComponentProps> = ({ onScanResult }) => {
+  const { t } = useRTL();
+  const { toast } = useToast();
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  
+  const startCamera = async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment' } 
+        });
+        
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+          };
+          setIsCameraActive(true);
+        }
+      } else {
+        throw new Error('getUserMedia not supported');
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
       toast({
-        title: "Dish Identified!",
-        description: "Analysis complete with 95% confidence"
+        title: t('Camera Error', 'خطأ في الكاميرا'),
+        description: t('Could not access your camera. Please check permissions.', 'تعذر الوصول إلى الكاميرا الخاصة بك. يرجى التحقق من الأذونات.'),
+        variant: 'destructive'
       });
-    }, 3000);
+    }
   };
-
-  const handleFileUpload = () => {
-    // Simulate file upload and analysis
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        setIsScanning(true);
-        setTimeout(() => {
-          setIsScanning(false);
-          handleCameraCapture(); // Use same mock data
-        }, 2000);
+  
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraActive(false);
+  };
+  
+  const captureImage = () => {
+    if (videoRef.current) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx && videoRef.current.videoWidth > 0) {
+          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          const imageDataUrl = canvas.toDataURL('image/png');
+          setCapturedImage(imageDataUrl);
+          stopCamera();
+          analyzeImage(imageDataUrl);
+        } else {
+          throw new Error('Could not capture image');
+        }
+      } catch (error) {
+        console.error('Error capturing image:', error);
+        toast({
+          title: t('Capture Error', 'خطأ في التقاط الصورة'),
+          description: t('Could not capture image from camera.', 'تعذر التقاط الصورة من الكاميرا.'),
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+  
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: t('Invalid File', 'ملف غير صالح'),
+          description: t('Please upload an image file.', 'يرجى تحميل ملف صورة.'),
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        setCapturedImage(imageDataUrl);
+        analyzeImage(imageDataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const resetCapture = () => {
+    setCapturedImage(null);
+    setIsAnalyzing(false);
+  };
+  
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+  
+  const analyzeImage = (imageUrl: string) => {
+    setIsAnalyzing(true);
+    
+    // Simulate analysis (in a real app, this would call an AI service)
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      
+      // Mock result (would be replaced with actual AI analysis)
+      const mockResult: ScanDishResult = {
+        id: crypto.randomUUID(), // Generate a unique ID
+        name: "Vegetable Salad",
+        calories: 120,
+        protein: 5,
+        carbs: 15,
+        fat: 3,
+        ingredients: ["Lettuce", "Tomato", "Cucumber", "Olive Oil"]
+      };
+      
+      if (onScanResult) {
+        onScanResult(mockResult);
+      }
+      
+      toast({
+        title: t("Dish Analyzed", "تم تحليل الطبق"),
+        description: t(`Identified as ${mockResult.name}`, `تم التعرف عليه ك ${mockResult.name}`),
+      });
+    }, 2000);
+  };
+  
+  React.useEffect(() => {
+    // Clean up on component unmount
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-    input.click();
-  };
-
+  }, []);
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2 flex items-center gap-2">
-            <Scan className="text-wasfah-orange" size={28} />
-            Dish Scanner
-          </h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            Scan any dish to get ingredients and nutrition information
-          </p>
-        </div>
-
-        {!scannedDish ? (
-          <div className="space-y-6">
-            {/* Scanner Interface */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="text-wasfah-orange" size={20} />
-                  Scan Your Dish
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isScanning ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-wasfah-orange border-t-transparent mx-auto mb-4"></div>
-                    <h3 className="text-lg font-semibold mb-2">Analyzing Dish...</h3>
-                    <p className="text-gray-600">AI is identifying ingredients and nutrition</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg h-64 flex items-center justify-center">
-                      <div className="text-center">
-                        <Camera size={48} className="mx-auto mb-4 text-gray-400" />
-                        <p className="text-gray-600 mb-4">Position your dish in the camera view</p>
-                        <p className="text-sm text-gray-500">Make sure the dish is well-lit and clearly visible</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Button 
-                        onClick={handleCameraCapture}
-                        className="bg-gradient-to-r from-wasfah-orange to-wasfah-green flex items-center gap-2"
-                      >
-                        <Camera size={20} />
-                        Take Photo
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        onClick={handleFileUpload}
-                        className="flex items-center gap-2"
-                      >
-                        <Upload size={20} />
-                        Upload Image
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Tips Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="text-wasfah-orange" size={20} />
-                  Scanning Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-start gap-2">
-                    <span className="w-2 h-2 bg-wasfah-orange rounded-full mt-2 flex-shrink-0"></span>
-                    Ensure good lighting and clear visibility of the dish
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-2 h-2 bg-wasfah-orange rounded-full mt-2 flex-shrink-0"></span>
-                    Include the entire dish in the frame
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-2 h-2 bg-wasfah-orange rounded-full mt-2 flex-shrink-0"></span>
-                    Avoid shadows and reflections on the dish
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-2 h-2 bg-wasfah-orange rounded-full mt-2 flex-shrink-0"></span>
-                    Hold the camera steady for best results
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Scan Results */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Utensils className="text-wasfah-orange" size={20} />
-                    {scannedDish.name}
-                  </CardTitle>
-                  <Badge className="bg-green-100 text-green-800">
-                    {scannedDish.confidence}% Match
-                  </Badge>
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-wasfah-light-gray to-wasfah-light-mint/10 pb-2">
+        <CardTitle className="flex items-center text-wasfah-deep-teal">
+          <Camera className="h-5 w-5 mr-2" />
+          {t('Scan Dish', 'مسح الطبق')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+        <div className="flex flex-col items-center gap-4">
+          {!isCameraActive && !capturedImage && (
+            <>
+              <Button 
+                onClick={startCamera} 
+                className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {t('Open Camera', 'فتح الكاميرا')}
+              </Button>
+              
+              <div className="relative w-full">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
                 </div>
-                <p className="text-gray-600">{scannedDish.description}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center">
-                    <Clock className="mx-auto mb-1 text-wasfah-orange" size={20} />
-                    <p className="text-sm text-gray-600">{scannedDish.cookingTime} min</p>
-                  </div>
-                  <div className="text-center">
-                    <Badge variant="secondary">{scannedDish.difficulty}</Badge>
-                  </div>
-                  <div className="text-center">
-                    <Badge className="bg-blue-100 text-blue-800">{scannedDish.cuisine}</Badge>
-                  </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+                    {t('or', 'أو')}
+                  </span>
                 </div>
-                
+              </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={triggerFileInput} 
+                className="w-full"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {t('Upload Image', 'تحميل صورة')}
+              </Button>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*" 
+                onChange={handleFileUpload} 
+                className="hidden"
+              />
+            </>
+          )}
+          
+          {isCameraActive && (
+            <div className="relative w-full">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline
+                className="w-full rounded-lg"
+              />
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
                 <Button 
-                  onClick={() => setScannedDish(null)}
-                  variant="outline"
-                  className="w-full"
+                  onClick={captureImage} 
+                  className="bg-wasfah-bright-teal hover:bg-wasfah-teal rounded-full h-12 w-12 flex items-center justify-center"
                 >
-                  Scan Another Dish
+                  <Camera className="h-6 w-6" />
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Ingredients */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Ingredients</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {scannedDish.ingredients.map((ingredient: any, index: number) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="font-medium">{ingredient.name}</span>
-                      <span className="text-gray-600">{ingredient.amount}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Nutrition Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="text-wasfah-orange" size={20} />
-                  Nutrition Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-wasfah-orange">{scannedDish.nutrition.calories}</p>
-                    <p className="text-sm text-gray-600">Calories</p>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-wasfah-orange">{scannedDish.nutrition.protein}g</p>
-                    <p className="text-sm text-gray-600">Protein</p>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-wasfah-orange">{scannedDish.nutrition.carbs}g</p>
-                    <p className="text-sm text-gray-600">Carbs</p>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-wasfah-orange">{scannedDish.nutrition.fat}g</p>
-                    <p className="text-sm text-gray-600">Fat</p>
-                  </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-wasfah-orange">{scannedDish.nutrition.fiber}g</p>
-                    <p className="text-sm text-gray-600">Fiber</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button className="bg-gradient-to-r from-wasfah-orange to-wasfah-green">
-                Find Similar Recipes
-              </Button>
-              <Button variant="outline">
-                Add to Meal Plan
-              </Button>
+                <Button 
+                  onClick={stopCamera} 
+                  variant="outline" 
+                  className="bg-white/80 dark:bg-gray-700/80 border-gray-300 rounded-full h-12 w-12 flex items-center justify-center"
+                >
+                  <XCircle className="h-6 w-6" />
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      <MobileNavigation />
-    </div>
+          )}
+          
+          {capturedImage && (
+            <div className="relative w-full">
+              <img 
+                src={capturedImage} 
+                alt="Captured dish" 
+                className="w-full rounded-lg"
+              />
+              
+              {isAnalyzing ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-wasfah-bright-teal mx-auto"></div>
+                    <p className="mt-2">{t('Analyzing...', 'جاري التحليل...')}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 flex justify-center gap-2">
+                  <Button 
+                    onClick={resetCapture} 
+                    variant="outline" 
+                    className="border-wasfah-bright-teal text-wasfah-bright-teal"
+                  >
+                    {t('Scan Another', 'مسح آخر')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
-
-export default DishScanner;
