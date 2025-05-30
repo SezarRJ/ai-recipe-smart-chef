@@ -18,39 +18,25 @@ export interface RatingStats {
 
 export const ratingsService = {
   async getRatingStats(recipeId: string): Promise<RatingStats> {
-    const { data, error } = await supabase
-      .from('recipe_ratings')
-      .select('rating')
-      .eq('recipe_id', recipeId);
+    const { data, error } = await supabase.rpc('get_recipe_rating_stats', { 
+      recipe_id: recipeId 
+    });
 
     if (error) {
       console.error('Error fetching rating stats:', error);
       return { average_rating: 0, total_ratings: 0 };
     }
 
-    if (!data || data.length === 0) {
-      return { average_rating: 0, total_ratings: 0 };
-    }
-
-    const total = data.length;
-    const sum = data.reduce((acc, curr) => acc + curr.rating, 0);
-    const average = sum / total;
-
-    return {
-      average_rating: Math.round(average * 10) / 10,
-      total_ratings: total
-    };
+    return data || { average_rating: 0, total_ratings: 0 };
   },
 
   async getUserRating(userId: string, recipeId: string): Promise<RecipeRating | null> {
-    const { data, error } = await supabase
-      .from('recipe_ratings')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('recipe_id', recipeId)
-      .single();
+    const { data, error } = await supabase.rpc('get_user_rating', { 
+      user_id: userId, 
+      recipe_id: recipeId 
+    });
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error fetching user rating:', error);
       return null;
     }
@@ -59,16 +45,12 @@ export const ratingsService = {
   },
 
   async addRating(userId: string, recipeId: string, rating: number, review?: string): Promise<RecipeRating | null> {
-    const { data, error } = await supabase
-      .from('recipe_ratings')
-      .insert([{
-        user_id: userId,
-        recipe_id: recipeId,
-        rating,
-        review: review || null
-      }])
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('add_recipe_rating', {
+      user_id: userId,
+      recipe_id: recipeId,
+      rating_value: rating,
+      review_text: review || null
+    });
 
     if (error) {
       console.error('Error adding rating:', error);
@@ -79,16 +61,12 @@ export const ratingsService = {
   },
 
   async updateRating(userId: string, recipeId: string, rating: number, review?: string): Promise<RecipeRating | null> {
-    const { data, error } = await supabase
-      .from('recipe_ratings')
-      .update({
-        rating,
-        review: review || null
-      })
-      .eq('user_id', userId)
-      .eq('recipe_id', recipeId)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('update_recipe_rating', {
+      user_id: userId,
+      recipe_id: recipeId,
+      rating_value: rating,
+      review_text: review || null
+    });
 
     if (error) {
       console.error('Error updating rating:', error);

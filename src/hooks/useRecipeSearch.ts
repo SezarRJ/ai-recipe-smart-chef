@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Recipe, recipeService, PantryItemWithIngredient } from '@/services/recipeService';
+import { Recipe, recipeService } from '@/services/recipeService';
 import { toast } from '@/hooks/use-toast';
 
 type SearchFilters = {
@@ -20,11 +20,15 @@ export const useRecipeSearch = () => {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [filters, setFilters] = useState<SearchFilters>({});
 
-  // Get ingredients from pantry
+  // Get ingredients from pantry using RPC function
   const pantryQuery = useQuery({
     queryKey: ['pantryItems'],
-    queryFn: recipeService.getUserPantryItems,
-    enabled: false, // Only load when user is authenticated and explicit call
+    queryFn: async () => {
+      const { data, error } = await recipeService.getUserPantryItems();
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: false,
   });
 
   // Text-based search
@@ -55,7 +59,7 @@ export const useRecipeSearch = () => {
       }
     });
 
-    // Apply filters (simplified example - in a real app, this would be more detailed)
+    // Apply filters
     return combinedResults.filter(recipe => {
       let passesFilter = true;
 
@@ -73,8 +77,6 @@ export const useRecipeSearch = () => {
           passesFilter = false;
         }
       }
-
-      // More filter logic would go here
 
       return passesFilter;
     });
@@ -101,13 +103,22 @@ export const useRecipeSearch = () => {
   const loadPantryItems = async () => {
     try {
       await pantryQuery.refetch();
-      // Extract ingredient names from pantry items with proper typing
-      const pantryIngredients = (pantryQuery.data as PantryItemWithIngredient[] || [])
-        .map((item: PantryItemWithIngredient) => item.ingredient?.name || '')
-        .filter(name => name.length > 0);
+      const pantryData = pantryQuery.data;
+      
+      if (pantryData && pantryData.length > 0) {
+        // Extract ingredient names from pantry items
+        const pantryIngredients = pantryData
+          .map((item: any) => item.ingredient_name || item.name || '')
+          .filter(name => name.length > 0);
 
-      if (pantryIngredients && pantryIngredients.length) {
-        setSelectedIngredients(pantryIngredients);
+        if (pantryIngredients.length > 0) {
+          setSelectedIngredients(pantryIngredients);
+        } else {
+          toast({
+            title: "No pantry items found",
+            description: "Add ingredients to your pantry first"
+          });
+        }
       } else {
         toast({
           title: "No pantry items found",

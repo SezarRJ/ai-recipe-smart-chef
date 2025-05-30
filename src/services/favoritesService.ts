@@ -10,23 +10,22 @@ export interface Favorite {
 
 export const favoritesService = {
   async getFavorites(userId: string): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('favorites')
-      .select('recipe_id')
-      .eq('user_id', userId);
+    // Use raw SQL query since favorites table isn't in types yet
+    const { data, error } = await supabase.rpc('get_user_favorites', { user_id: userId });
 
     if (error) {
       console.error('Error fetching favorites:', error);
       return [];
     }
 
-    return data.map(fav => fav.recipe_id);
+    return data || [];
   },
 
   async addToFavorites(userId: string, recipeId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('favorites')
-      .insert([{ user_id: userId, recipe_id: recipeId }]);
+    const { error } = await supabase.rpc('add_to_favorites', { 
+      user_id: userId, 
+      recipe_id: recipeId 
+    });
 
     if (error) {
       console.error('Error adding to favorites:', error);
@@ -37,11 +36,10 @@ export const favoritesService = {
   },
 
   async removeFromFavorites(userId: string, recipeId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('favorites')
-      .delete()
-      .eq('user_id', userId)
-      .eq('recipe_id', recipeId);
+    const { error } = await supabase.rpc('remove_from_favorites', { 
+      user_id: userId, 
+      recipe_id: recipeId 
+    });
 
     if (error) {
       console.error('Error removing from favorites:', error);
@@ -52,18 +50,16 @@ export const favoritesService = {
   },
 
   async isFavorite(userId: string, recipeId: string): Promise<boolean> {
-    const { data, error } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('recipe_id', recipeId)
-      .single();
+    const { data, error } = await supabase.rpc('is_favorite', { 
+      user_id: userId, 
+      recipe_id: recipeId 
+    });
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error checking favorite status:', error);
       return false;
     }
 
-    return !!data;
+    return data || false;
   }
 };

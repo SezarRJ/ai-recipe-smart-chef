@@ -40,65 +40,41 @@ export const useMealPlan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // First get the meal plan for the date
-      const { data: mealPlanData, error: mealPlanError } = await supabase
-        .from('meal_plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('date', date)
-        .single();
+      // Use RPC function to get meal plan data
+      const { data: mealPlanData, error: mealPlanError } = await supabase.rpc('get_meal_plan_for_date', {
+        user_id: user.id,
+        plan_date: date
+      });
 
-      if (mealPlanError && mealPlanError.code !== 'PGRST116') {
+      if (mealPlanError) {
         throw mealPlanError;
       }
 
-      if (!mealPlanData) {
+      if (!mealPlanData || mealPlanData.length === 0) {
         setMealPlans([]);
         return;
       }
 
-      // Get meal plan meals with recipe data
-      const { data: mealsData, error: mealsError } = await supabase
-        .from('meal_plan_meals')
-        .select(`
-          *,
-          recipes (
-            id,
-            title,
-            description,
-            image_url,
-            cooking_time,
-            prep_time,
-            servings,
-            difficulty,
-            calories
-          )
-        `)
-        .eq('meal_plan_id', mealPlanData.id);
-
-      if (mealsError) throw mealsError;
-
-      const meals: MealPlanMeal[] = mealsData?.map((meal: any) => ({
-        id: meal.id,
-        meal_type: meal.meal_type,
-        scheduled_time: meal.scheduled_time,
-        recipe: meal.recipes || {
-          id: '',
-          title: 'Unknown Recipe',
-          description: '',
-          image_url: '',
-          cooking_time: 0,
-          prep_time: 0,
-          servings: 1,
-          difficulty: 'Easy' as const,
-          calories: 0
-        }
-      })) || [];
-
+      // Transform the data to match our interface
       const mealPlan: MealPlan = {
-        id: mealPlanData.id,
-        date: mealPlanData.date,
-        meals
+        id: mealPlanData[0]?.meal_plan_id || '',
+        date: date,
+        meals: mealPlanData.map((meal: any) => ({
+          id: meal.meal_id,
+          meal_type: meal.meal_type,
+          scheduled_time: meal.scheduled_time,
+          recipe: {
+            id: meal.recipe_id,
+            title: meal.recipe_title || 'Unknown Recipe',
+            description: meal.recipe_description || '',
+            image_url: meal.recipe_image_url || '',
+            cooking_time: meal.cooking_time || 0,
+            prep_time: meal.prep_time || 0,
+            servings: meal.servings || 1,
+            difficulty: meal.difficulty || 'Easy',
+            calories: meal.calories || 0
+          }
+        }))
       };
 
       setMealPlans([mealPlan]);
@@ -119,37 +95,13 @@ export const useMealPlan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // First, ensure meal plan exists for the date
-      let { data: mealPlan, error: mealPlanError } = await supabase
-        .from('meal_plans')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('date', date)
-        .single();
-
-      if (mealPlanError && mealPlanError.code === 'PGRST116') {
-        // Create meal plan if it doesn't exist
-        const { data: newMealPlan, error: createError } = await supabase
-          .from('meal_plans')
-          .insert([{ user_id: user.id, date }])
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        mealPlan = newMealPlan;
-      } else if (mealPlanError) {
-        throw mealPlanError;
-      }
-
-      // Add meal to plan
-      const { error } = await supabase
-        .from('meal_plan_meals')
-        .insert([{
-          meal_plan_id: mealPlan.id,
-          recipe_id: recipeId,
-          meal_type: mealType,
-          scheduled_time: scheduledTime || null
-        }]);
+      const { error } = await supabase.rpc('add_meal_to_plan', {
+        user_id: user.id,
+        plan_date: date,
+        recipe_id: recipeId,
+        meal_type: mealType,
+        scheduled_time: scheduledTime || null
+      });
 
       if (error) throw error;
 
@@ -172,10 +124,9 @@ export const useMealPlan = () => {
 
   const removeMealFromPlan = async (mealId: string, date: string) => {
     try {
-      const { error } = await supabase
-        .from('meal_plan_meals')
-        .delete()
-        .eq('id', mealId);
+      const { error } = await supabase.rpc('remove_meal_from_plan', {
+        meal_id: mealId
+      });
 
       if (error) throw error;
 
