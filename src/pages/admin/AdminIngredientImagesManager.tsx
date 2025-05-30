@@ -1,308 +1,364 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+// src/pages/AdminIngredientImagesManager.tsx
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Upload, MoreHorizontal, RefreshCw, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Plus, Edit, Trash2, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useRTL } from '@/contexts/RTLContext';
 
 interface IngredientImage {
   id: string;
-  ingredient_name: string;
-  image_url: string;
-  alt_text?: string;
-  created_at: string;
-  updated_at: string;
+  ingredientName: string;
+  imageUrl: string;
+  altText: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export default function AdminIngredientImagesManager() {
+const initialMockImages: IngredientImage[] = [
+  {
+    id: '1',
+    ingredientName: 'Tomato',
+    imageUrl: '/api/placeholder/150/150',
+    altText: 'Fresh red tomato',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-01-15',
+  },
+  {
+    id: '2',
+    ingredientName: 'Onion',
+    imageUrl: '/api/placeholder/150/150',
+    altText: 'Yellow onion',
+    createdAt: '2024-01-14',
+    updatedAt: '2024-01-14',
+  },
+];
+
+const AdminIngredientImagesManager = () => {
+  const { t } = useRTL();
   const { toast } = useToast();
-  const [ingredients, setIngredients] = useState<IngredientImage[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const [allImages, setAllImages] = useState<IngredientImage[]>([]);
+  const [filteredImages, setFilteredImages] = useState<IngredientImage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingIngredient, setEditingIngredient] = useState<IngredientImage | null>(null);
-  const [formData, setFormData] = useState({
-    ingredient_name: '',
-    image_url: '',
-    alt_text: ''
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ ingredientName: '', altText: '', imageFile: null as File | null });
 
   useEffect(() => {
-    fetchIngredients();
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setAllImages(initialMockImages);
+      setIsLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  const fetchIngredients = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('ingredient_images')
-        .select('*')
-        .order('created_at', { ascending: false });
+  useEffect(() => {
+    let images = [...allImages];
 
-      if (error) throw error;
-      setIngredients(data || []);
-    } catch (error) {
-      console.error('Error fetching ingredients:', error);
+    if (searchQuery) {
+      images = images.filter(image =>
+        image.ingredientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        image.altText.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredImages(images);
+    setCurrentPage(1);
+  }, [allImages, searchQuery]);
+
+  const totalItems = filteredImages.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedImages = useMemo(() => {
+    return filteredImages.slice(startIndex, endIndex);
+  }, [filteredImages, startIndex, endIndex]);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleRefresh = () => {
+    setIsLoading(true);
+    setSearchQuery('');
+    setCurrentPage(1);
+
+    const timer = setTimeout(() => {
+      setAllImages(initialMockImages);
+      setIsLoading(false);
       toast({
-        title: "Error",
-        description: "Failed to load ingredient images",
-        variant: "destructive",
+        title: t("Refreshed", "تم التحديث"),
+        description: t("Image list updated.", "تم تحديث قائمة الصور."),
       });
-    } finally {
-      setLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  };
+
+  const handleUploadFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, files } = event.target;
+    if (id === 'imageFile' && files) {
+      setUploadForm(prev => ({ ...prev, imageFile: files[0] }));
+    } else {
+      setUploadForm(prev => ({ ...prev, [id]: value }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUploadImage = (event: React.FormEvent) => {
+    event.preventDefault();
 
-    if (!formData.ingredient_name || !formData.image_url) {
+    if (!uploadForm.ingredientName || !uploadForm.imageFile) {
       toast({
-        title: "Validation Error",
-        description: "Name and image URL are required",
+        title: t("Error", "خطأ"),
+        description: t("Ingredient name and image file are required.", "اسم المكون وملف الصورة مطلوبان."),
         variant: "destructive",
       });
       return;
     }
 
-    try {
-      if (editingIngredient) {
-        const { error } = await supabase
-          .from('ingredient_images')
-          .update({
-            ingredient_name: formData.ingredient_name,
-            image_url: formData.image_url,
-            alt_text: formData.alt_text || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingIngredient.id);
+    const newImage: IngredientImage = {
+      id: Date.now().toString(),
+      ingredientName: uploadForm.ingredientName,
+      imageUrl: URL.createObjectURL(uploadForm.imageFile),
+      altText: uploadForm.altText || uploadForm.ingredientName,
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+    };
 
-        if (error) throw error;
+    setAllImages(prevImages => [newImage, ...prevImages]);
+    setUploadForm({ ingredientName: '', altText: '', imageFile: null });
+    setIsUploadDialogOpen(false);
 
-        toast({
-          title: "Success",
-          description: "Ingredient image updated successfully",
-        });
-      } else {
-        const { error } = await supabase
-          .from('ingredient_images')
-          .insert({
-            ingredient_name: formData.ingredient_name,
-            image_url: formData.image_url,
-            alt_text: formData.alt_text || null
-          });
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Ingredient image added successfully",
-        });
-      }
-
-      setFormData({ ingredient_name: '', image_url: '', alt_text: '' });
-      setEditingIngredient(null);
-      setIsAddDialogOpen(false);
-      fetchIngredients();
-    } catch (error) {
-      console.error('Error saving ingredient:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save ingredient image",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEdit = (ingredient: IngredientImage) => {
-    setEditingIngredient(ingredient);
-    setFormData({
-      ingredient_name: ingredient.ingredient_name,
-      image_url: ingredient.image_url,
-      alt_text: ingredient.alt_text || ''
+    toast({
+      title: t("Image Uploaded", "تم تحميل الصورة"),
+      description: t(`Image for ${newImage.ingredientName} has been uploaded.`, `تم تحميل صورة ${newImage.ingredientName}.`),
     });
-    setIsAddDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this ingredient image?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('ingredient_images')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Ingredient image deleted successfully",
-      });
-
-      fetchIngredients();
-    } catch (error) {
-      console.error('Error deleting ingredient:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete ingredient image",
-        variant: "destructive",
-      });
+  const handleImageAction = (action: string, image: IngredientImage) => {
+    console.log(`${action} action triggered for image:`, image);
+    
+    switch (action) {
+      case 'View':
+        toast({ 
+          title: t("View Image", "عرض الصورة"), 
+          description: t(`Viewing image for ${image.ingredientName}`, `عرض صورة ${image.ingredientName}`), 
+          duration: 2000 
+        });
+        break;
+      case 'Edit':
+        toast({ 
+          title: t("Edit Image", "تعديل الصورة"), 
+          description: t(`Editing image for ${image.ingredientName} (Placeholder)`, `تعديل صورة ${image.ingredientName} (عنصر نائب)`), 
+          duration: 2000 
+        });
+        break;
+      case 'Delete':
+        if (window.confirm(t(`Are you sure you want to delete the image for "${image.ingredientName}"?`, `هل أنت متأكد أنك تريد حذف صورة "${image.ingredientName}"؟`))) {
+          setAllImages(prevImages => prevImages.filter(img => img.id !== image.id));
+          toast({ 
+            title: t("Image Deleted", "تم حذف الصورة"), 
+            description: t(`Image for ${image.ingredientName} has been deleted.`, `تم حذف صورة ${image.ingredientName}.`), 
+            variant: "destructive" 
+          });
+        }
+        break;
+      default:
+        break;
     }
   };
-
-  const filteredIngredients = ingredients.filter(ingredient =>
-    ingredient.ingredient_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Ingredient Images Management</h1>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => {
-              setEditingIngredient(null);
-              setFormData({ ingredient_name: '', image_url: '', alt_text: '' });
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Ingredient Image
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {editingIngredient ? 'Edit Ingredient Image' : 'Add New Ingredient Image'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="ingredient_name">Name</Label>
-                <Input
-                  id="ingredient_name"
-                  value={formData.ingredient_name}
-                  onChange={(e) => setFormData({ ...formData, ingredient_name: e.target.value })}
-                  placeholder="Enter ingredient name"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="image_url">Image URL</Label>
-                <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="Enter image URL"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="alt_text">Alt Text</Label>
-                <Input
-                  id="alt_text"
-                  value={formData.alt_text}
-                  onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
-                  placeholder="Enter alt text (optional)"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingIngredient ? 'Update' : 'Add'} Ingredient
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-6 p-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('Ingredient Images', 'صور المكونات')}</h1>
+          <p className="text-muted-foreground">{t('Manage images for recipe ingredients.', 'إدارة صور مكونات الوصفات.')}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Upload className="h-4 w-4 mr-2" />
+                {t('Upload Image', 'تحميل صورة')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>{t('Upload Ingredient Image', 'تحميل صورة مكون')}</DialogTitle>
+                <DialogDescription>
+                  {t('Upload a new image for an ingredient.', 'تحميل صورة جديدة لمكون.')}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleUploadImage}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="ingredientName" className="text-right">
+                      {t('Ingredient', 'المكون')}
+                    </Label>
+                    <Input
+                      id="ingredientName"
+                      value={uploadForm.ingredientName}
+                      onChange={handleUploadFormChange}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="altText" className="text-right">
+                      {t('Alt Text', 'النص البديل')}
+                    </Label>
+                    <Input
+                      id="altText"
+                      value={uploadForm.altText}
+                      onChange={handleUploadFormChange}
+                      className="col-span-3"
+                      placeholder={t('Optional description', 'وصف اختياري')}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="imageFile" className="text-right">
+                      {t('Image File', 'ملف الصورة')}
+                    </Label>
+                    <Input
+                      id="imageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadFormChange}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">{t('Upload Image', 'تحميل الصورة')}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            {t('Refresh', 'تحديث')}
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Ingredient Images</CardTitle>
-          <CardDescription>
-            Manage ingredient images that appear in the "Find by Ingredients" feature.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Search ingredients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t('Search ingredient images...', 'البحث عن صور المكونات...')}
+            className="pl-8 w-full md:w-80"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+        </div>
+      </div>
 
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Alt Text</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredIngredients.map((ingredient) => (
-                  <TableRow key={ingredient.id}>
+      <div className="border rounded-md overflow-x-auto">
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <RefreshCw className="h-6 w-6 mx-auto mb-2 animate-spin" />
+            {t('Loading images...', 'جاري تحميل الصور...')}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('Image', 'الصورة')}</TableHead>
+                <TableHead>{t('Ingredient', 'المكون')}</TableHead>
+                <TableHead>{t('Alt Text', 'النص البديل')}</TableHead>
+                <TableHead>{t('Created', 'تاريخ الإنشاء')}</TableHead>
+                <TableHead>{t('Updated', 'تاريخ التحديث')}</TableHead>
+                <TableHead className="w-[70px] text-right">{t('Actions', 'الإجراءات')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedImages.length > 0 ? (
+                paginatedImages.map((image) => (
+                  <TableRow key={image.id}>
                     <TableCell>
-                      <div className="w-12 h-12 rounded-md overflow-hidden">
-                        <img
-                          src={ingredient.image_url}
-                          alt={ingredient.alt_text || ingredient.ingredient_name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                      <img 
+                        src={image.imageUrl} 
+                        alt={image.altText} 
+                        className="w-12 h-12 object-cover rounded-md"
+                      />
                     </TableCell>
-                    <TableCell className="font-medium">{ingredient.ingredient_name}</TableCell>
-                    <TableCell>{ingredient.alt_text || '-'}</TableCell>
-                    <TableCell>
-                      {new Date(ingredient.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleEdit(ingredient)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-500"
-                        onClick={() => handleDelete(ingredient.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <TableCell className="font-medium">{image.ingredientName}</TableCell>
+                    <TableCell>{image.altText}</TableCell>
+                    <TableCell>{image.createdAt}</TableCell>
+                    <TableCell>{image.updatedAt}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">{t('Actions', 'الإجراءات')}</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>{t('Actions', 'الإجراءات')}</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleImageAction('View', image)}>
+                            <Eye className="h-4 w-4 mr-2" /> {t('View Image', 'عرض الصورة')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleImageAction('Edit', image)}>
+                            <Edit className="h-4 w-4 mr-2" /> {t('Edit Image', 'تعديل الصورة')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleImageAction('Delete', image)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> {t('Delete Image', 'حذف الصورة')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredIngredients.length === 0 && !loading && (
-            <div className="text-center py-8">
-              <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">No ingredient images found</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    {t('No images found', 'لم يتم العثور على صور')}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default AdminIngredientImagesManager;

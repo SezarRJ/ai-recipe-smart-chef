@@ -9,9 +9,14 @@ import {
   Database,
   Server,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  TrendingUp,
+  Activity,
+  DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 const AdminDashboard = () => {
   return (
@@ -21,14 +26,15 @@ const AdminDashboard = () => {
         <p className="text-muted-foreground">Welcome to the Wasfah AI admin panel.</p>
       </div>
 
+      {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">245</div>
+            <div className="text-2xl font-bold">2,451</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
               <span className="text-green-500 font-medium">12%</span> from last hour
@@ -36,23 +42,23 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3,724</div>
+            <div className="text-2xl font-bold">$45,231</div>
             <p className="text-xs text-muted-foreground flex items-center mt-1">
               <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-              <span className="text-green-500 font-medium">8.2%</span> from last week
+              <span className="text-green-500 font-medium">20.1%</span> from last month
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Premium Subscriptions</CardTitle>
+            <CardTitle className="text-sm font-medium">Subscriptions</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -64,7 +70,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Recipe Count</CardTitle>
             <ScrollText className="h-4 w-4 text-muted-foreground" />
@@ -78,184 +84,138 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
-      
+
+      {/* System Health */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-md">Server Health</CardTitle>
+            <CardTitle className="text-md flex items-center">
+              <Activity className="h-5 w-5 mr-2 text-green-500" />
+              Server Health
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Cpu className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">CPU Usage</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">28%</span>
-                </div>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">CPU Usage</span>
+                <span className="text-sm">28%</span>
               </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '28%' }}></div>
+              <Progress value={28} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Memory</span>
+                <span className="text-sm">62%</span>
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Cpu className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Memory Usage</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">62%</span>
-                </div>
+              <Progress value={62} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Storage</span>
+                <span className="text-sm">43%</span>
               </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '62%' }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Cpu className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Disk Space</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">43%</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '43%' }}></div>
-              </div>
+              <Progress value={43} className="h-2" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-md">Database Health</CardTitle>
+            <CardTitle className="text-md flex items-center">
+              <Database className="h-5 w-5 mr-2 text-blue-500" />
+              Database Health
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Database className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Connections</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">24 / 100</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '24%' }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Database className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Query Time</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">95ms avg</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '30%' }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Database className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Last Backup</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium text-green-500">Successful</span>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Today at 04:30 AM (2 hours ago)
-              </div>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Connections</span>
+              <Badge variant="secondary">24/100</Badge>
             </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Query Time</span>
+              <Badge variant="secondary">95ms</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Last Backup</span>
+              <Badge className="bg-green-100 text-green-800">Success</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Today at 04:30 AM (2 hours ago)
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-md">API Performance</CardTitle>
+            <CardTitle className="text-md flex items-center">
+              <Server className="h-5 w-5 mr-2 text-purple-500" />
+              API Performance
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Server className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Requests/min</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">1,286</span>
-                </div>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Requests/min</span>
+              <Badge variant="secondary">1,286</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Response Time</span>
+              <Badge variant="secondary">132ms</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Error Rate</span>
+              <Badge className="bg-green-100 text-green-800">0.2%</Badge>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Uptime</span>
+                <span className="text-sm">99.9%</span>
               </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Server className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Response Time</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">132ms avg</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '40%' }}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Server className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-sm">Error Rate</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm font-medium">0.2%</span>
-                </div>
-              </div>
-              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '5%' }}></div>
-              </div>
+              <Progress value={99.9} className="h-2" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      {/* Recent Activity */}
+      <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
-          <CardTitle>Recent Signups</CardTitle>
+          <CardTitle className="flex items-center">
+            <TrendingUp className="h-5 w-5 mr-2" />
+            Recent User Activity
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-2">User</th>
-                  <th className="text-left py-3 px-2">Email</th>
-                  <th className="text-left py-3 px-2">Signup Date</th>
-                  <th className="text-left py-3 px-2">Status</th>
-                  <th className="text-left py-3 px-2">Plan</th>
+                  <th className="text-left py-3 px-2 font-medium">User</th>
+                  <th className="text-left py-3 px-2 font-medium">Email</th>
+                  <th className="text-left py-3 px-2 font-medium">Action</th>
+                  <th className="text-left py-3 px-2 font-medium">Time</th>
+                  <th className="text-left py-3 px-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {[1, 2, 3, 4, 5].map((_, index) => (
-                  <tr key={index} className="border-b hover:bg-muted/50">
-                    <td className="py-3 px-2">User {index + 1}</td>
-                    <td className="py-3 px-2">user{index + 1}@example.com</td>
-                    <td className="py-3 px-2">{new Date().toLocaleDateString()}</td>
+                {[
+                  { user: 'Ahmed Hassan', email: 'ahmed@example.com', action: 'Recipe Created', time: '2 min ago', status: 'success' },
+                  { user: 'Fatima Ali', email: 'fatima@example.com', action: 'Subscription Upgraded', time: '5 min ago', status: 'success' },
+                  { user: 'Omar Khaled', email: 'omar@example.com', action: 'Profile Updated', time: '12 min ago', status: 'success' },
+                  { user: 'Layla Mohamed', email: 'layla@example.com', action: 'Recipe Shared', time: '18 min ago', status: 'success' },
+                  { user: 'Youssef Ibrahim', email: 'youssef@example.com', action: 'Login Attempt', time: '25 min ago', status: 'warning' }
+                ].map((activity, index) => (
+                  <tr key={index} className="border-b hover:bg-muted/50 transition-colors">
+                    <td className="py-3 px-2 font-medium">{activity.user}</td>
+                    <td className="py-3 px-2 text-muted-foreground">{activity.email}</td>
+                    <td className="py-3 px-2">{activity.action}</td>
+                    <td className="py-3 px-2 text-muted-foreground">{activity.time}</td>
                     <td className="py-3 px-2">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        index % 3 === 0 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {index % 3 === 0 ? 'Active' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2">
-                      {index % 2 === 0 ? 'Free' : 'Premium'}
+                      <Badge 
+                        variant={activity.status === 'success' ? 'default' : 'secondary'}
+                        className={activity.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}
+                      >
+                        {activity.status === 'success' ? 'Success' : 'Warning'}
+                      </Badge>
                     </td>
                   </tr>
                 ))}
