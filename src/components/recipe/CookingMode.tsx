@@ -128,42 +128,10 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Render full nutrition facts
-  const renderNutrition = () => {
-    if (!recipe.nutritionalInfo) return null;
-    const { calories, protein, fat, carbs, fiber, sugar, ...rest } = recipe.nutritionalInfo;
-    return (
-      <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <h3 className="font-bold text-wasfah-deep-teal mb-2">Nutrition Facts (per serving)</h3>
-        <ul className="text-gray-700 dark:text-gray-300 text-sm grid grid-cols-2 gap-x-4 gap-y-1">
-          <li><b>Calories:</b> {calories} kcal</li>
-          <li><b>Protein:</b> {protein} g</li>
-          <li><b>Fat:</b> {fat} g</li>
-          <li><b>Carbs:</b> {carbs} g</li>
-          <li><b>Fiber:</b> {fiber} g</li>
-          {sugar !== undefined && <li><b>Sugar:</b> {sugar} g</li>}
-          {Object.entries(rest).map(([key, value]) => (
-            <li key={key}><b>{key.charAt(0).toUpperCase() + key.slice(1)}:</b> {value}</li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  // Render deep details for instructions
-  const renderInstructionDetails = () => (
-    <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <div className="mb-2 text-wasfah-bright-teal font-semibold">
-        Step {currentStep + 1} of {totalSteps}
-      </div>
-      <div className="text-lg mb-2">{recipe.instructions[currentStep]}</div>
-      {recipe.tips && recipe.tips[currentStep] && (
-        <div className="mt-2 p-3 bg-wasfah-light-gray dark:bg-gray-800 rounded-lg border-l-4 border-wasfah-bright-teal">
-          <span className="font-bold">Chef Tip:</span> {recipe.tips[currentStep]}
-        </div>
-      )}
-    </div>
-  );
+  // Step image: support per-step image (recipe.stepImages) or fallback to main image
+  const stepImage = recipe.stepImages && recipe.stepImages[currentStep]
+    ? recipe.stepImages[currentStep]
+    : recipe.image;
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col">
@@ -186,16 +154,25 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
           <Progress value={progress} className="h-2" />
         </div>
         
-        {recipe.image && (
+        {stepImage && (
           <div 
             className="w-full h-48 mb-4 bg-cover bg-center rounded-lg"
-            style={{ backgroundImage: `url(${recipe.image})` }}
+            style={{ backgroundImage: `url(${stepImage})` }}
           />
         )}
 
-        {renderNutrition()}
-
-        {renderInstructionDetails()}
+        {/* Instruction description and details */}
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="mb-2 text-wasfah-bright-teal font-semibold">
+            Step {currentStep + 1} of {totalSteps}
+          </div>
+          <div className="text-lg mb-2">{recipe.instructions[currentStep]}</div>
+          {recipe.tips && recipe.tips[currentStep] && (
+            <div className="mt-2 p-3 bg-wasfah-light-gray dark:bg-gray-800 rounded-lg border-l-4 border-wasfah-bright-teal">
+              <span className="font-bold">Chef Tip:</span> {recipe.tips[currentStep]}
+            </div>
+          )}
+        </div>
 
         {/* Voice Controls */}
         <div className="mb-6 flex items-center gap-2">
