@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Star, Utensils } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Sparkles, ArrowRight, Star } from 'lucide-react';
+import { WasfahLogo } from '@/components/icons/WasfahLogo';
 
 const images = [
   {
-    url: 'https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?auto=format&fit=crop&w=1920&q=80',
-    alt: 'Fresh vegetables',
+    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80', // Main dish (steak)
+    alt: 'Main dish',
   },
   {
-    url: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?auto=format&fit=crop&w=1920&q=80',
-    alt: 'Fresh fruits',
+    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert (cake)
+    alt: 'Desserts',
   },
   {
-    url: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1920&q=80',
+    url: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1920&q=80', // Drink
     alt: 'Refreshing drinks',
   },
 ];
@@ -48,17 +51,18 @@ const SplashScreen = () => {
             src={img.url}
             alt={img.alt}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === idx ? 'opacity-100' : 'opacity-0'}`}
-            style={{ filter: 'none' }} // No blur
+            style={{ filter: 'none' }}
           />
         ))}
+        <div className="absolute inset-0 bg-black/60" />
       </div>
 
       <div className="w-full max-w-md space-y-8 relative z-10">
         {/* Logo & Title */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-              <Utensils className="h-12 w-12 text-white" />
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <WasfahLogo className="h-12 w-12 text-white" />
             </div>
           </div>
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">WasfahAI</h1>
@@ -67,16 +71,23 @@ const SplashScreen = () => {
               <Star key={i} className="h-4 w-4 text-yellow-300 fill-current" />
             ))}
           </div>
+          <p className="text-white/90 text-lg">Intelligent Cooking Assistant</p>
+        </div>
+
+        {/* Discover, Create, Connect Bar */}
+        <div className="flex justify-center">
+          <div className="px-4 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white font-semibold shadow-sm">
+            Discover, Create, Connect
+          </div>
         </div>
 
         {/* Card */}
-        <div className="bg-white/95 shadow-2xl border-0 rounded-lg">
-          <div className="p-8 text-center">
+        <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+          <CardContent className="p-8 text-center">
             <div className="w-20 h-20 mx-auto rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 shadow-lg mb-6">
               <Sparkles size={40} strokeWidth={1.5} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Discover, Create, Connect</h2>
-            <p className="text-gray-600 mb-4">Browse recipes, plan meals, and join a vibrant food community.</p>
+            <p className="text-gray-600 mb-4 text-sm">Browse recipes, plan meals, and join a vibrant food community.</p>
             {/* Image Indicators */}
             <div className="flex justify-center space-x-2 mt-4">
               {images.map((_, i) => (
@@ -87,42 +98,36 @@ const SplashScreen = () => {
                 />
               ))}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Actions */}
         <div className="space-y-4">
-          <button
+          <Button
             onClick={handleGetStarted}
             className="w-full bg-white text-teal-500 hover:bg-gray-50 font-semibold py-4 text-lg shadow-lg rounded-lg transition-all duration-200 flex items-center justify-center group"
           >
             Get Started
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSignIn}
             className="w-full border-2 border-white text-white hover:bg-white/10 font-semibold py-4 text-lg rounded-lg transition-all duration-200"
           >
             Sign In
-          </button>
+          </Button>
         </div>
         <div className="text-center">
-          <button
+          <Button
+            variant="ghost"
             onClick={handleSkip}
             className="text-white/80 hover:text-white hover:bg-white/10 text-base px-4 py-2 rounded transition-all duration-200"
           >
             Skip for now
-          </button>
+          </Button>
         </div>
       </div>
-
-      {/* Footer - Small Text Under the Page */}
-      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-full flex flex-col items-center">
-        <p className="text-xs text-white/80 mb-2">Your Smart Culinary Companion</p>
-        <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white/80 text-xs">
-          Powered by AI • Made with ❤️
-        </div>
-      </div>
+      {/* Footer removed as requested */}
     </div>
   );
 };
