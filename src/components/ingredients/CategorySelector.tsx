@@ -1,23 +1,27 @@
 
 import React from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
-interface Category {
+interface MainCategory {
   id: string;
   name: string;
-  icon: React.ComponentType;
-  image: string;
-  subcategories: { name: string; image: string }[];
+  icon: React.ElementType;
+  subcategories: Array<{
+    name: string;
+    icon: React.ElementType;
+    requiresCustomForm?: boolean;
+  }>;
 }
 
 interface CategorySelectorProps {
-  categories: Category[];
-  selectedCategory: Category | null;
-  selectedSubcategory: string | null;
+  categories: MainCategory[];
+  selectedCategory: MainCategory | null;
+  selectedSubcategory: { name: string; icon: React.ElementType; requiresCustomForm?: boolean } | null;
   currentStep: number;
-  onCategorySelect: (category: Category) => void;
-  onSubcategorySelect: (subcategory: string) => void;
+  onCategorySelect: (category: MainCategory) => void;
+  onSubcategorySelect: (subcategory: { name: string; icon: React.ElementType; requiresCustomForm?: boolean }) => void;
   onBack: () => void;
 }
 
@@ -28,45 +32,32 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   currentStep,
   onCategorySelect,
   onSubcategorySelect,
-  onBack
+  onBack,
 }) => {
   if (currentStep === 1) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-center text-wasfah-deep-teal">Choose Category</h2>
-        <div className="grid grid-cols-1 gap-4">
+        <h2 className="text-xl font-bold text-wasfah-deep-teal mb-4">Choose Category</h2>
+        <div className="grid gap-4">
           {categories.map((category) => {
             const IconComponent = category.icon;
             return (
-              <button
+              <Card
                 key={category.id}
+                className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-wasfah-bright-teal"
                 onClick={() => onCategorySelect(category)}
-                className={`relative overflow-hidden rounded-xl border-2 transition-all hover:scale-102 ${
-                  selectedCategory?.id === category.id
-                    ? 'border-wasfah-bright-teal shadow-lg'
-                    : 'border-gray-200 active:scale-98'
-                }`}
               >
-                <div className="relative h-32 w-full">
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative">
+                  <div className="h-32 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal flex items-center justify-center">
                     <div className="text-center text-white">
-                      <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm inline-block mb-2">
-                        <IconComponent />
+                      <div className="w-12 h-12 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center">
+                        <IconComponent className="h-6 w-6" />
                       </div>
-                      <p className="font-bold text-xl">{category.name}</p>
-                      <p className="text-sm opacity-90">
-                        {category.subcategories.length} subcategories
-                      </p>
+                      <h3 className="text-lg font-semibold">{category.name}</h3>
                     </div>
                   </div>
                 </div>
-              </button>
+              </Card>
             );
           })}
         </div>
@@ -74,49 +65,46 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     );
   }
 
-  if (currentStep === 2) {
+  if (currentStep === 2 && selectedCategory) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3 mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="p-2 text-wasfah-deep-teal hover:bg-wasfah-light-gray"
+            className="text-wasfah-deep-teal"
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
-          <h2 className="text-lg font-semibold text-wasfah-deep-teal">{selectedCategory?.name}</h2>
-          <div className="w-10" />
+          <h2 className="text-xl font-bold text-wasfah-deep-teal">
+            Choose {selectedCategory.name} Type
+          </h2>
         </div>
-
+        
         <div className="grid grid-cols-2 gap-3">
-          {selectedCategory?.subcategories?.map((sub) => (
-            <button
-              key={sub.name}
-              onClick={() => onSubcategorySelect(sub.name)}
-              className={`relative overflow-hidden rounded-lg border-2 transition-all hover:scale-102 ${
-                selectedSubcategory === sub.name
-                  ? 'border-wasfah-bright-teal shadow-lg'
-                  : 'border-gray-200 active:scale-95'
-              }`}
-            >
-              <div className="relative h-24 w-full">
-                <img
-                  src={sub.image}
-                  alt={sub.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <p className="font-semibold text-white text-center text-sm px-2">
-                    {sub.name}
-                  </p>
+          {selectedCategory.subcategories.map((subcategory, index) => {
+            const IconComponent = subcategory.icon;
+            return (
+              <Card
+                key={index}
+                className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-wasfah-bright-teal"
+                onClick={() => onSubcategorySelect(subcategory)}
+              >
+                <div className="relative">
+                  <div className="h-24 bg-gradient-to-r from-wasfah-mint to-wasfah-light-gray flex items-center justify-center">
+                    <div className="text-center">
+                      <IconComponent className="h-6 w-6 mx-auto mb-1 text-wasfah-deep-teal" />
+                      <h3 className="text-sm font-semibold text-wasfah-deep-teal px-2">
+                        {subcategory.name}
+                      </h3>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
