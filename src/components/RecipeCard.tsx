@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { type Recipe, recipeService } from '@/services/recipeService';
+import { Recipe, recipeService } from '@/services/recipeService';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, ChefHat, Bookmark } from 'lucide-react';
@@ -58,10 +58,10 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
         )}
         
         <div className="flex items-center gap-3 text-sm text-gray-500">
-          {recipe.cooking_time && (
+          {recipe.cook_time && (
             <div className="flex items-center gap-1">
               <Clock size={16} />
-              <span>{recipe.cooking_time} mins</span>
+              <span>{recipe.cook_time} mins</span>
             </div>
           )}
           

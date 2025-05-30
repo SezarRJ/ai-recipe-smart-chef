@@ -33,15 +33,19 @@ export const useAuth = () => {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('full_name, avatar_url')
-          .eq('id', authUser.id)
+          .eq('user_id', authUser.id)
           .single();
+
+        // Ensure role is one of the expected values
+        const validRoles = ['user', 'admin', 'super_admin'] as const;
+        const userRole = validRoles.includes(roleData?.role as any) ? roleData.role as 'user' | 'admin' | 'super_admin' : 'user';
 
         setUser({
           id: authUser.id,
           email: authUser.email!,
           full_name: profileData?.full_name || undefined,
           avatar_url: profileData?.avatar_url || undefined,
-          role: roleData?.role || 'user'
+          role: userRole
         });
       } else {
         setUser(null);

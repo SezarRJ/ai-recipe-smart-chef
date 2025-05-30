@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { recipeService, Recipe, PantryItemWithIngredient } from '@/services/recipeService';
+import { Recipe, recipeService, PantryItemWithIngredient } from '@/services/recipeService';
 import { toast } from '@/hooks/use-toast';
 
 type SearchFilters = {
@@ -69,7 +69,7 @@ export const useRecipeSearch = () => {
 
       if (filters.cookingTime) {
         const maxTime = parseInt(filters.cookingTime);
-        if (recipe.cooking_time && recipe.cooking_time > maxTime) {
+        if (recipe.cook_time && recipe.cook_time > maxTime) {
           passesFilter = false;
         }
       }
@@ -102,8 +102,8 @@ export const useRecipeSearch = () => {
     try {
       await pantryQuery.refetch();
       // Extract ingredient names from pantry items with proper typing
-      const pantryIngredients = pantryQuery.data
-        ?.map((item: PantryItemWithIngredient) => item.ingredient?.name || '')
+      const pantryIngredients = (pantryQuery.data as PantryItemWithIngredient[] || [])
+        .map((item: PantryItemWithIngredient) => item.ingredient?.name || '')
         .filter(name => name.length > 0);
 
       if (pantryIngredients && pantryIngredients.length) {
