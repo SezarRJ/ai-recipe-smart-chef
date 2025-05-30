@@ -1,298 +1,144 @@
 
-/* RTL support for Arabic language */
-.rtl {
+/* RTL (Right-to-Left) Language Support */
+/* This file provides CSS styles for Arabic and other RTL languages */
+
+[dir="rtl"] {
   direction: rtl;
   text-align: right;
 }
 
-/* Basic text alignment */
-.rtl .text-left {
-  text-align: right !important;
+[dir="rtl"] .flex {
+  flex-direction: row-reverse;
 }
 
-.rtl .text-right {
-  text-align: left !important;
+[dir="rtl"] .flex-row {
+  flex-direction: row-reverse;
 }
 
-/* Margin adjustments */
-.rtl .mr-1, .rtl .mr-2, .rtl .mr-3, .rtl .mr-4, .rtl .mr-5, .rtl .mr-6 {
-  margin-right: 0 !important;
+[dir="rtl"] .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+  margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.rtl .ml-1, .rtl .ml-2, .rtl .ml-3, .rtl .ml-4, .rtl .ml-5, .rtl .ml-6 {
-  margin-left: 0 !important;
+[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+  margin-right: calc(1rem * var(--tw-space-x-reverse));
+  margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.rtl .mr-1 { margin-left: 0.25rem !important; }
-.rtl .mr-2 { margin-left: 0.5rem !important; }
-.rtl .mr-3 { margin-left: 0.75rem !important; }
-.rtl .mr-4 { margin-left: 1rem !important; }
-.rtl .mr-5 { margin-left: 1.25rem !important; }
-.rtl .mr-6 { margin-left: 1.5rem !important; }
-
-.rtl .ml-1 { margin-right: 0.25rem !important; }
-.rtl .ml-2 { margin-right: 0.5rem !important; }
-.rtl .ml-3 { margin-right: 0.75rem !important; }
-.rtl .ml-4 { margin-right: 1rem !important; }
-.rtl .ml-5 { margin-right: 1.25rem !important; }
-.rtl .ml-6 { margin-right: 1.5rem !important; }
-
-/* Padding adjustments */
-.rtl .pl-1, .rtl .pl-2, .rtl .pl-3, .rtl .pl-4, .rtl .pl-5, .rtl .pl-6 {
-  padding-left: 0 !important;
+[dir="rtl"] .ml-2 {
+  margin-right: 0.5rem;
+  margin-left: 0;
 }
 
-.rtl .pr-1, .rtl .pr-2, .rtl .pr-3, .rtl .pr-4, .rtl .pr-5, .rtl .pr-6 {
-  padding-right: 0 !important;
+[dir="rtl"] .mr-2 {
+  margin-left: 0.5rem;
+  margin-right: 0;
 }
 
-.rtl .pl-1 { padding-right: 0.25rem !important; }
-.rtl .pl-2 { padding-right: 0.5rem !important; }
-.rtl .pl-3 { padding-right: 0.75rem !important; }
-.rtl .pl-4 { padding-right: 1rem !important; }
-.rtl .pl-5 { padding-right: 1.25rem !important; }
-.rtl .pl-6 { padding-right: 1.5rem !important; }
-
-.rtl .pr-1 { padding-left: 0.25rem !important; }
-.rtl .pr-2 { padding-left: 0.5rem !important; }
-.rtl .pr-3 { padding-left: 0.75rem !important; }
-.rtl .pr-4 { padding-left: 1rem !important; }
-.rtl .pr-5 { padding-left: 1.25rem !important; }
-.rtl .pr-6 { padding-left: 1.5rem !important; }
-
-/* Reverse flexbox direction in RTL mode */
-.rtl .flex-row {
-  flex-direction: row-reverse !important;
+[dir="rtl"] .ml-4 {
+  margin-right: 1rem;
+  margin-left: 0;
 }
 
-/* Fix for grid layouts */
-.rtl .grid-cols-2,
-.rtl .grid-cols-3,
-.rtl .grid-cols-4 {
-  direction: rtl !important;
+[dir="rtl"] .mr-4 {
+  margin-left: 1rem;
+  margin-right: 0;
 }
 
-/* Fix scroll area for RTL */
-.rtl .scrollbar {
-  left: 0 !important;
-  right: auto !important;
+[dir="rtl"] .pl-2 {
+  padding-right: 0.5rem;
+  padding-left: 0;
 }
 
-/* Fix dropdown positioning */
-.rtl [data-radix-popper-content-wrapper] {
-  transform-origin: right top !important;
+[dir="rtl"] .pr-2 {
+  padding-left: 0.5rem;
+  padding-right: 0;
 }
 
-/* Icons in RTL mode */
-.rtl .lucide-chevron-right {
-  transform: rotate(180deg) !important;
+[dir="rtl"] .pl-4 {
+  padding-right: 1rem;
+  padding-left: 0;
 }
 
-.rtl .lucide-chevron-left {
-  transform: rotate(180deg) !important;
+[dir="rtl"] .pr-4 {
+  padding-left: 1rem;
+  padding-right: 0;
 }
 
-.rtl .lucide-arrow-left {
-  transform: rotate(180deg) !important;
+[dir="rtl"] .text-left {
+  text-align: right;
 }
 
-.rtl .lucide-arrow-right {
-  transform: rotate(180deg) !important;
+[dir="rtl"] .text-right {
+  text-align: left;
 }
 
-/* Input and form controls */
-.rtl input,
-.rtl textarea,
-.rtl select {
-  text-align: right !important;
+/* Navigation and menu items */
+[dir="rtl"] .justify-start {
+  justify-content: flex-end;
 }
 
-/* Button icon alignment */
-.rtl .button-icon-right {
-  margin-left: 0 !important;
-  margin-right: 0.5rem !important;
+[dir="rtl"] .justify-end {
+  justify-content: flex-start;
 }
 
-.rtl .button-icon-left {
-  margin-right: 0 !important;
-  margin-left: 0.5rem !important;
+/* Form inputs and buttons */
+[dir="rtl"] input[type="text"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="password"],
+[dir="rtl"] textarea {
+  text-align: right;
 }
 
-/* Card content alignment */
-.rtl .card-content {
-  text-align: right !important;
+/* Icons and arrows */
+[dir="rtl"] .rotate-180 {
+  transform: rotate(0deg);
 }
 
-/* List items */
-.rtl ul li,
-.rtl ol li {
-  padding-left: 0 !important;
-  padding-right: 1rem !important;
+[dir="rtl"] .transform {
+  transform: scaleX(-1);
 }
 
-/* Fix for radix components */
-.rtl .radix-dropdown-content {
-  text-align: right !important;
+/* Dropdown and select elements */
+[dir="rtl"] select {
+  padding-right: 2.5rem;
+  padding-left: 0.75rem;
+  background-position: left 0.5rem center;
 }
 
-/* Fixed display for dropdowns */
-[data-radix-popper-content-wrapper] {
-  background-color: white !important;
-  border-radius: 0.5rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  z-index: 50 !important;
+/* Card and container layouts */
+[dir="rtl"] .rounded-l-lg {
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
-.rtl button svg + span,
-.rtl a svg + span {
-  margin-left: 0 !important;
-  margin-right: 0.5rem !important;
+[dir="rtl"] .rounded-r-lg {
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
-/* Improved RTL form layout */
-.rtl label {
-  text-align: right !important;
+/* Border radius adjustments */
+[dir="rtl"] .border-l {
+  border-right-width: 1px;
+  border-left-width: 0;
 }
 
-/* Handle RTL in mobile navigation */
-.rtl .MobileNavbar-nav {
-  flex-direction: row-reverse !important;
+[dir="rtl"] .border-r {
+  border-left-width: 1px;
+  border-right-width: 0;
 }
 
-/* RTL Tailwind classes */
-.rtl .items-start {
-  align-items: flex-start !important;
+/* Specific overrides for common components */
+[dir="rtl"] .slide-in-from-left {
+  transform: translateX(100%);
 }
 
-.rtl .justify-start {
-  justify-content: flex-start !important;
-}
-
-.rtl .justify-end {
-  justify-content: flex-end !important;
-}
-
-/* RTL dialog fixes */
-.rtl [role="dialog"] {
-  text-align: right !important;
-}
-
-/* Fix dropdown menus in RTL */
-.rtl [role="menu"] {
-  text-align: right !important;
-}
-
-/* RTL tabs */
-.rtl [role="tablist"] {
-  flex-direction: row-reverse !important;
-}
-
-/* Dark Mode Enhancements */
-.dark .border {
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-.dark .border-2 {
-  border-color: rgba(255, 255, 255, 0.15) !important;
-}
-
-.dark .card {
-  background-color: #1a1a1a !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-.dark .bg-white {
-  background-color: #1a1a1a !important;
-}
-
-.dark .bg-gray-50,
-.dark .bg-gray-100,
-.dark .bg-gray-200 {
-  background-color: #2a2a2a !important;
-}
-
-.dark .text-gray-500 {
-  color: #a0aec0 !important;
-}
-
-.dark .text-gray-600 {
-  color: #cbd5e0 !important;
-}
-
-.dark .text-gray-700 {
-  color: #e2e8f0 !important;
-}
-
-.dark .text-gray-800, 
-.dark .text-gray-900 {
-  color: #f7fafc !important;
-}
-
-/* Better visibility for dark mode buttons */
-.dark button.border, 
-.dark a.border {
-  border-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-/* Improve form control visibility in dark mode */
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #2a2a2a !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  color: #f7fafc !important;
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #a0aec0 !important;
-}
-
-/* Card and panel contrast improvements */
-.dark .from-wasfah-light-gray,
-.dark .from-blue-50,
-.dark .from-purple-50 {
-  --tw-gradient-from: #2a2a2a !important;
-}
-
-.dark .to-wasfah-light-mint\/10,
-.dark .to-blue-50\/10,
-.dark .to-purple-50\/10 {
-  --tw-gradient-to: rgba(42, 42, 42, 0.1) !important;
-}
-
-/* Brighten accent colors in dark mode */
-.dark .text-wasfah-bright-teal {
-  color: #05BFDB !important;
-}
-
-.dark .text-wasfah-deep-teal {
-  color: #0A4D68 !important;
-}
-
-.dark .bg-wasfah-bright-teal {
-  background-color: #05BFDB !important;
-}
-
-/* Improve hover states in dark mode */
-.dark .hover\:bg-gray-50:hover,
-.dark .hover\:bg-gray-100:hover,
-.dark .hover\:bg-gray-200:hover {
-  background-color: #333333 !important;
-}
-
-/* Fix shadow contrast issues in dark mode */
-.dark .shadow-sm,
-.dark .shadow,
-.dark .shadow-md,
-.dark .shadow-lg {
-  --tw-shadow-color: rgba(0, 0, 0, 0.7) !important;
-}
-
-/* Better mobile view for dark mode */
-@media (max-width: 768px) {
-  .dark .border-t,
-  .dark .border-b {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-  }
+[dir="rtl"] .slide-in-from-right {
+  transform: translateX(-100%);
 }
