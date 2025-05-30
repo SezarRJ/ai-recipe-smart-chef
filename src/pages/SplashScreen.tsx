@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star, Sparkles } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { WasfahLogo } from '@/components/icons/WasfahLogo';
 
 const images = [
@@ -10,8 +10,8 @@ const images = [
     alt: 'Main dish',
   },
   {
-    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert
-    alt: 'Desserts',
+    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert dish (replaces man)
+    alt: 'Dessert dish',
   },
   {
     url: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1920&q=80', // Drink
@@ -41,7 +41,7 @@ const SplashScreen = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-teal-500 via-emerald-400 to-red-400">
+    <div className="min-h-screen flex flex-col justify-end items-center p-0 relative overflow-hidden bg-gradient-to-br from-teal-500 via-emerald-400 to-red-400">
       {/* Background Slideshow */}
       <div className="absolute inset-0">
         {images.map((img, i) => (
@@ -56,16 +56,15 @@ const SplashScreen = () => {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      <div className="w-full max-w-md space-y-8 relative z-10">
+      {/* All content at the bottom */}
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center space-y-4 pb-8">
         {/* Logo & Title */}
-        <div className="text-center">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <WasfahLogo className="h-12 w-12 text-white" />
-            </div>
+        <div className="flex flex-col items-center mb-2">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm mb-2">
+            <WasfahLogo className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">WasfahAI</h1>
-          <div className="flex items-center justify-center space-x-1 mb-2">
+          <h1 className="text-3xl font-bold text-white tracking-tight">WasfahAI</h1>
+          <div className="flex items-center justify-center space-x-1 mt-1">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="h-4 w-4 text-yellow-300 fill-current" />
             ))}
@@ -73,14 +72,12 @@ const SplashScreen = () => {
         </div>
 
         {/* Discover, Create, Connect Bar */}
-        <div className="flex justify-center">
-          <div className="px-4 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white font-semibold shadow-sm">
-            Discover, Create, Connect
-          </div>
+        <div className="px-4 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white font-semibold shadow-sm mb-2">
+          Discover, Create, Connect
         </div>
 
         {/* Image Indicators */}
-        <div className="flex justify-center space-x-2 mt-8">
+        <div className="flex justify-center space-x-2 mb-2">
           {images.map((_, i) => (
             <button
               key={i}
@@ -91,22 +88,22 @@ const SplashScreen = () => {
         </div>
 
         {/* Actions */}
-        <div className="space-y-4">
+        <div className="w-full space-y-3">
           <Button
             onClick={handleGetStarted}
-            className="w-full bg-white text-teal-500 hover:bg-gray-50 font-semibold py-4 text-lg shadow-lg rounded-lg transition-all duration-200 flex items-center justify-center group"
+            className="w-full bg-white text-teal-500 hover:bg-gray-50 font-semibold py-3 text-lg shadow-lg rounded-lg transition-all duration-200 flex items-center justify-center group"
           >
             Get Started
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button
             onClick={handleSignIn}
-            className="w-full border-2 border-white text-white hover:bg-white/10 font-semibold py-4 text-lg rounded-lg transition-all duration-200"
+            className="w-full border-2 border-white text-white hover:bg-white/10 font-semibold py-3 text-lg rounded-lg transition-all duration-200"
           >
             Sign In
           </Button>
         </div>
-        <div className="text-center">
+        <div className="text-center mt-2">
           <Button
             variant="ghost"
             onClick={handleSkip}
