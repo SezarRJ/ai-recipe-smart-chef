@@ -10,7 +10,7 @@ const images = [
     alt: 'Main dish',
   },
   {
-    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert/sweets
+    url: 'https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=1920&q=80', // Dessert/sweets
     alt: 'Dessert dish',
   },
   {
