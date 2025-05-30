@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -29,11 +28,39 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [autoContinue, setAutoContinue] = useState(true); // NEW: auto-continue state
   const { toast } = useToast();
   const synthRef = useRef(window.speechSynthesis);
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
 
   const totalSteps = recipe.instructions.length;
   const progress = Math.round((currentStep / (totalSteps - 1)) * 100);
+
+  // --- Load voices and select a female voice ---
+  useEffect(() => {
+    const loadVoices = () => {
+      voicesRef.current = synthRef.current.getVoices();
+    };
+    loadVoices();
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
+
+  const getFemaleVoice = () => {
+    // Try to find a female English voice
+    const voices = voicesRef.current;
+    // Try by name
+    let female = voices.find(v => v.name.toLowerCase().includes('female'));
+    // Try by gender (not always available)
+    if (!female) female = voices.find(v => (v as any).gender === 'female');
+    // Try by name containing "woman" or "girl"
+    if (!female) female = voices.find(v => v.name.toLowerCase().includes('woman') || v.name.toLowerCase().includes('girl'));
+    // Fallback to any English voice
+    if (!female) female = voices.find(v => v.lang.startsWith('en'));
+    // Fallback to first
+    return female || voices[0];
+  };
 
   // --- Voice Synthesis Functions ---
   const speakInstruction = React.useCallback(() => {
@@ -44,11 +71,19 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
       const utterance = new window.SpeechSynthesisUtterance(instruction);
       utterance.lang = 'en-US';
       utterance.rate = speechRate;
+      const femaleVoice = getFemaleVoice();
+      if (femaleVoice) utterance.voice = femaleVoice;
       utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        // --- Auto-continue logic ---
+        if (autoContinue && currentStep < totalSteps - 1) {
+          setTimeout(() => setCurrentStep(s => s + 1), 500);
+        }
+      };
       synthRef.current.speak(utterance);
     }
-  }, [currentStep, recipe.instructions, speechRate]);
+  }, [currentStep, recipe.instructions, speechRate, autoContinue, totalSteps]);
 
   const stopSpeaking = () => {
     if ('speechSynthesis' in window) {
@@ -63,7 +98,7 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
     // Stop speech on unmount
     return () => stopSpeaking();
     // eslint-disable-next-line
-  }, [currentStep, speechRate]);
+  }, [currentStep, speechRate, autoContinue]);
 
   // --- Timer Logic ---
   useEffect(() => {
@@ -148,7 +183,6 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
   };
 
   const handleComments = () => {
-    // Open comments modal or navigate to comments section
     toast({ title: "Comments", description: "Open comments section (implement as needed)." });
   };
 
@@ -203,7 +237,7 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
           </div>
         </div>
 
-        {/* Speech Speed Control */}
+        {/* Speech Speed & Auto-Continue Control */}
         <div className="flex items-center mb-6">
           <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">Voice Speed:</span>
           <input
@@ -216,6 +250,15 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
             className="w-32 accent-wasfah-bright-teal"
           />
           <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{speechRate.toFixed(1)}x</span>
+          <label className="ml-6 flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={autoContinue}
+              onChange={e => setAutoContinue(e.target.checked)}
+              className="accent-wasfah-bright-teal"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">Auto-continue</span>
+          </label>
         </div>
         
         {/* Timer */}
