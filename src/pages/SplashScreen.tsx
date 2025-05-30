@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, Sparkles } from 'lucide-react';
 import { WasfahLogo } from '@/components/icons/WasfahLogo';
 
 const images = [
@@ -71,7 +70,6 @@ const SplashScreen = () => {
               <Star key={i} className="h-4 w-4 text-yellow-300 fill-current" />
             ))}
           </div>
-          <p className="text-white/90 text-lg">Intelligent Cooking Assistant</p>
         </div>
 
         {/* Discover, Create, Connect Bar */}
@@ -81,24 +79,16 @@ const SplashScreen = () => {
           </div>
         </div>
 
-        {/* Card */}
-        <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 mx-auto rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 shadow-lg mb-6">
-              <Sparkles size={40} strokeWidth={1.5} />
-            </div>
-            {/* Description removed */}
-            <div className="flex justify-center space-x-2 mt-4">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setIdx(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${i === idx ? 'bg-teal-500 w-8' : 'bg-gray-300 w-2'}`}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Image Indicators */}
+        <div className="flex justify-center space-x-2 mt-8">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${i === idx ? 'bg-teal-500 w-8' : 'bg-gray-300 w-2'}`}
+            />
+          ))}
+        </div>
 
         {/* Actions */}
         <div className="space-y-4">
