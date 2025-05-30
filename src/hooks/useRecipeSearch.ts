@@ -26,7 +26,7 @@ export const useRecipeSearch = () => {
     queryFn: async () => {
       try {
         const pantryData = await recipeService.getUserPantryItems();
-        return pantryData;
+        return pantryData || [];
       } catch (error) {
         console.error('Error fetching pantry items:', error);
         return [];

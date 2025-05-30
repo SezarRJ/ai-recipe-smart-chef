@@ -73,7 +73,6 @@ export const profileService = {
     const { data, error } = await supabase
       .from('profiles')
       .insert([{
-        id: profile.id,
         user_id: profile.id, // Use id as user_id
         full_name: profile.full_name,
         avatar_url: profile.avatar_url
