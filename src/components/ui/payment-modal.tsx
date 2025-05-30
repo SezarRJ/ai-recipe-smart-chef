@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, CreditCard, X } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { Check, CreditCard, X, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -25,15 +25,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const handlePayment = async () => {
+    if (!supabase) {
+      setError('Payment system is not configured. Please contact support.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const supabase = createClient(
-        process.env.VITE_SUPABASE_URL!,
-        process.env.VITE_SUPABASE_ANON_KEY!
-      );
-
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           amount: Math.round(amount * 100), // Convert to cents
@@ -97,6 +97,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <span className="text-sm text-gray-600">Cancel anytime</span>
           </div>
 
+          {!supabase && (
+            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm flex items-center gap-2">
+              <AlertTriangle size={16} className="flex-shrink-0" />
+              Payment system requires configuration. Please contact support.
+            </div>
+          )}
+
           {error && (
             <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm">
               {error}
@@ -105,7 +112,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           <Button
             onClick={handlePayment}
-            disabled={isLoading}
+            disabled={isLoading || !supabase}
             className="w-full"
           >
             <CreditCard size={16} className="mr-2" />
