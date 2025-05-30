@@ -54,7 +54,7 @@ export default function RecipeDetailPage() {
   };
 
   if (isCookingMode) {
-    return <CookingMode recipe={recipe} onClose={() => setIsCookingMode(false)} />;
+    return <CookingMode recipe={recipe} onClose={() => setIsCookingMode(false)} isPremiumUser={false} />;
   }
 
   return (

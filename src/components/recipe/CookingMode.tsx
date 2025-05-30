@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,10 +20,10 @@ import { useToast } from '@/hooks/use-toast';
 interface CookingModeProps {
   recipe: Recipe;
   onClose: () => void;
-  isPremiumUser: boolean;
+  isPremiumUser?: boolean;
 }
 
-export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPremiumUser }) => {
+export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPremiumUser = false }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [timer, setTimer] = useState(300);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -108,7 +109,7 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
 
   // --- Nutrition Info (Premium) ---
   const renderNutrition = () => {
-    if (!recipe.nutrition) return null;
+    if (!recipe.nutritionalInfo) return null;
     if (!isPremiumUser) {
       return (
         <div className="flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4">
@@ -117,7 +118,7 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
         </div>
       );
     }
-    const { calories, protein, fat, carbs, fiber, sugar, sodium, cholesterol } = recipe.nutrition;
+    const { calories, protein, fat, carbs, fiber, sugar } = recipe.nutritionalInfo;
     return (
       <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-4">
         <h3 className="font-bold text-wasfah-deep-teal mb-2">Nutrition Facts</h3>
@@ -127,9 +128,7 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose, isPre
           <li><b>Fat:</b> {fat} g</li>
           <li><b>Carbs:</b> {carbs} g</li>
           <li><b>Fiber:</b> {fiber} g</li>
-          <li><b>Sugar:</b> {sugar} g</li>
-          <li><b>Sodium:</b> {sodium} mg</li>
-          <li><b>Cholesterol:</b> {cholesterol} mg</li>
+          {sugar && <li><b>Sugar:</b> {sugar} g</li>}
         </ul>
       </div>
     );
