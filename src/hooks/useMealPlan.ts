@@ -6,15 +6,17 @@ import { useToast } from '@/hooks/use-toast';
 export interface MealPlanMeal {
   id: string;
   meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  notes: string | null;
+  scheduled_time: string | null;
   recipe: {
     id: string;
     title: string;
     description: string;
     image_url: string;
     cooking_time: number;
+    prep_time: number;
     servings: number;
     difficulty: 'Easy' | 'Medium' | 'Hard';
+    calories: number;
   };
 }
 
@@ -38,8 +40,26 @@ export const useMealPlan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      // First get the meal plan for the date
+      const { data: mealPlanData, error: mealPlanError } = await supabase
         .from('meal_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', date)
+        .single();
+
+      if (mealPlanError && mealPlanError.code !== 'PGRST116') {
+        throw mealPlanError;
+      }
+
+      if (!mealPlanData) {
+        setMealPlans([]);
+        return;
+      }
+
+      // Get meal plan meals with recipe data
+      const { data: mealsData, error: mealsError } = await supabase
+        .from('meal_plan_meals')
         .select(`
           *,
           recipes (
@@ -48,51 +68,40 @@ export const useMealPlan = () => {
             description,
             image_url,
             cooking_time,
+            prep_time,
             servings,
-            difficulty
+            difficulty,
+            calories
           )
         `)
-        .eq('user_id', user.id)
-        .eq('date', date);
+        .eq('meal_plan_id', mealPlanData.id);
 
-      if (error) throw error;
+      if (mealsError) throw mealsError;
 
-      if (data && data.length > 0) {
-        // Group meal plans by date and structure them properly
-        const groupedMeals: { [key: string]: MealPlanMeal[] } = {};
-        
-        data.forEach((meal: any) => {
-          const mealPlanMeal: MealPlanMeal = {
-            id: meal.id,
-            meal_type: meal.meal_type as 'breakfast' | 'lunch' | 'dinner' | 'snack',
-            notes: meal.notes,
-            recipe: meal.recipes || {
-              id: '',
-              title: 'Unknown Recipe',
-              description: '',
-              image_url: '',
-              cooking_time: 0,
-              servings: 1,
-              difficulty: 'Easy' as const
-            }
-          };
+      const meals: MealPlanMeal[] = mealsData?.map((meal: any) => ({
+        id: meal.id,
+        meal_type: meal.meal_type,
+        scheduled_time: meal.scheduled_time,
+        recipe: meal.recipes || {
+          id: '',
+          title: 'Unknown Recipe',
+          description: '',
+          image_url: '',
+          cooking_time: 0,
+          prep_time: 0,
+          servings: 1,
+          difficulty: 'Easy' as const,
+          calories: 0
+        }
+      })) || [];
 
-          if (!groupedMeals[meal.date]) {
-            groupedMeals[meal.date] = [];
-          }
-          groupedMeals[meal.date].push(mealPlanMeal);
-        });
+      const mealPlan: MealPlan = {
+        id: mealPlanData.id,
+        date: mealPlanData.date,
+        meals
+      };
 
-        const mealPlansArray = Object.entries(groupedMeals).map(([date, meals]) => ({
-          id: meals[0]?.id || '',
-          date,
-          meals
-        }));
-
-        setMealPlans(mealPlansArray);
-      } else {
-        setMealPlans([]);
-      }
+      setMealPlans([mealPlan]);
     } catch (err: any) {
       setError(err.message);
       toast({
@@ -105,20 +114,41 @@ export const useMealPlan = () => {
     }
   };
 
-  const addMealToPlan = async (date: string, recipeId: string, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack', notes?: string) => {
+  const addMealToPlan = async (date: string, recipeId: string, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack', scheduledTime?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Add meal to plan using the existing meal_plans table structure
-      const { error } = await supabase
+      // First, ensure meal plan exists for the date
+      let { data: mealPlan, error: mealPlanError } = await supabase
         .from('meal_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', date)
+        .single();
+
+      if (mealPlanError && mealPlanError.code === 'PGRST116') {
+        // Create meal plan if it doesn't exist
+        const { data: newMealPlan, error: createError } = await supabase
+          .from('meal_plans')
+          .insert([{ user_id: user.id, date }])
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        mealPlan = newMealPlan;
+      } else if (mealPlanError) {
+        throw mealPlanError;
+      }
+
+      // Add meal to plan
+      const { error } = await supabase
+        .from('meal_plan_meals')
         .insert([{
-          user_id: user.id,
-          date: date,
+          meal_plan_id: mealPlan.id,
           recipe_id: recipeId,
           meal_type: mealType,
-          notes: notes || null
+          scheduled_time: scheduledTime || null
         }]);
 
       if (error) throw error;
@@ -143,7 +173,7 @@ export const useMealPlan = () => {
   const removeMealFromPlan = async (mealId: string, date: string) => {
     try {
       const { error } = await supabase
-        .from('meal_plans')
+        .from('meal_plan_meals')
         .delete()
         .eq('id', mealId);
 

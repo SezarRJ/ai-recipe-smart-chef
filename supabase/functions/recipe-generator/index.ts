@@ -15,10 +15,10 @@ serve(async (req) => {
   }
 
   try {
-    const { message, context } = await req.json()
+    const { ingredients, preferences, restrictions } = await req.json()
     
-    if (!message) {
-      throw new Error('No message provided')
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      throw new Error('No ingredients provided')
     }
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -26,19 +26,39 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured')
     }
 
-    // Create a system prompt for the AI chef
-    const systemPrompt = `You are WasfahAI, an expert culinary assistant specialized in Middle Eastern and international cuisine. You help users with:
+    // Create a detailed prompt for recipe generation
+    const prompt = `Generate a detailed recipe using these ingredients: ${ingredients.join(', ')}
 
-1. Recipe recommendations based on available ingredients
-2. Cooking techniques and tips
-3. Ingredient substitutions
-4. Meal planning suggestions
-5. Dietary accommodations (halal, vegetarian, gluten-free, etc.)
-6. Cultural cooking traditions
+${preferences ? `Cuisine preferences: ${preferences}` : ''}
+${restrictions ? `Dietary restrictions: ${restrictions}` : ''}
 
-Be helpful, knowledgeable, and encouraging. Always consider Middle Eastern preferences while being inclusive of international cuisines. Provide practical, actionable advice.
+Please provide a response in the following JSON format:
+{
+  "title": "Recipe Name",
+  "description": "Brief description",
+  "prep_time": 15,
+  "cook_time": 30,
+  "servings": 4,
+  "difficulty": "Easy|Medium|Hard",
+  "cuisine_type": "cuisine type",
+  "ingredients": [
+    {
+      "name": "ingredient name",
+      "amount": "quantity",
+      "unit": "unit of measurement"
+    }
+  ],
+  "instructions": [
+    "Step 1",
+    "Step 2"
+  ],
+  "tips": [
+    "Optional cooking tip"
+  ],
+  "calories": 350
+}
 
-${context ? `Additional context: ${context}` : ''}`
+Make sure the recipe is practical, delicious, and uses most of the provided ingredients.`
 
     // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -52,15 +72,15 @@ ${context ? `Additional context: ${context}` : ''}`
         messages: [
           {
             role: 'system',
-            content: systemPrompt
+            content: 'You are a professional chef who creates amazing recipes. Always respond with valid JSON format.'
           },
           {
             role: 'user',
-            content: message
+            content: prompt
           }
         ],
-        temperature: 0.7,
-        max_tokens: 1000
+        temperature: 0.8,
+        max_tokens: 1500
       }),
     })
 
@@ -76,11 +96,25 @@ ${context ? `Additional context: ${context}` : ''}`
       throw new Error('No response from AI')
     }
 
-    console.log('AI Chef response generated successfully')
+    // Try to parse the JSON response
+    let recipe
+    try {
+      recipe = JSON.parse(aiResponse)
+    } catch (parseError) {
+      // If JSON parsing fails, try to extract JSON from the response
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        recipe = JSON.parse(jsonMatch[0])
+      } else {
+        throw new Error('Invalid JSON response from AI')
+      }
+    }
+
+    console.log('Recipe generated successfully')
 
     return new Response(
       JSON.stringify({ 
-        response: aiResponse,
+        recipe,
         timestamp: new Date().toISOString()
       }),
       { 
@@ -92,7 +126,7 @@ ${context ? `Additional context: ${context}` : ''}`
     )
 
   } catch (error) {
-    console.error('AI Chef error:', error.message)
+    console.error('Recipe generation error:', error.message)
     
     return new Response(
       JSON.stringify({ 

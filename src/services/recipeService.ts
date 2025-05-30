@@ -11,6 +11,7 @@ export interface PantryItemWithIngredient {
   quantity: number | null;
   unit: string | null;
   expiry_date: string | null;
+  location: string | null;
   ingredient?: {
     id: string;
     name: string;
@@ -24,18 +25,22 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
       *,
       recipe_ingredients (
         id,
-        quantity,
+        amount,
         unit,
         ingredients (
-          name
+          id,
+          name,
+          category
         )
+      ),
+      profiles!recipes_author_id_fkey (
+        full_name
       )
     `)
-    .eq('is_public', true);
+    .eq('status', 'published');
 
   if (filters?.category) {
-    // Filter by category using the category_id field
-    query = query.eq('category_id', filters.category);
+    query = query.contains('categories', [filters.category]);
   }
 
   if (filters?.difficulty && ['Easy', 'Medium', 'Hard'].includes(filters.difficulty)) {
@@ -55,25 +60,25 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
     title: recipe.title,
     description: recipe.description || '',
     image_url: recipe.image_url || '',
-    prep_time: 0, // Default since prep_time doesn't exist in schema
-    cook_time: recipe.cooking_time || 0, // Map cooking_time to cook_time
+    prep_time: recipe.prep_time || 0,
+    cook_time: recipe.cooking_time || 0,
     servings: recipe.servings || 1,
     difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard' || 'Easy',
-    calories: 0, // Default since calories doesn't exist in schema
+    calories: recipe.calories || 0,
     cuisine_type: recipe.cuisine_type || '',
     instructions: Array.isArray(recipe.instructions) ? recipe.instructions as string[] : 
                  (recipe.instructions ? [recipe.instructions as string] : []),
-    categories: [], // Default since categories doesn't exist in schema
-    tags: [], // Default since tags doesn't exist in schema
-    status: 'published' as const, // Default since status doesn't exist in schema
-    author_id: recipe.user_id || '', // Map user_id to author_id
+    categories: recipe.categories || [],
+    tags: recipe.tags || [],
+    status: recipe.status as 'draft' | 'published' | 'pending_review' || 'published',
+    author_id: recipe.author_id || '',
     is_verified: recipe.is_verified || false,
     created_at: recipe.created_at || '',
     updated_at: recipe.updated_at || '',
     ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
       id: ri.id,
       name: ri.ingredients?.name || '',
-      amount: ri.quantity || 0,
+      amount: ri.amount || 0,
       unit: ri.unit || ''
     })) || []
   })) || [];
@@ -95,13 +100,17 @@ export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
       title: recipeData.title,
       description: recipeData.description,
       image_url: recipeData.image_url,
-      cooking_time: recipeData.cook_time, // Map cook_time to cooking_time
+      prep_time: recipeData.prep_time,
+      cooking_time: recipeData.cook_time,
       servings: recipeData.servings,
       difficulty: recipeData.difficulty,
+      calories: recipeData.calories,
       cuisine_type: recipeData.cuisine_type,
       instructions: recipeData.instructions,
-      user_id: user.id, // Map to user_id instead of author_id
-      is_public: true
+      categories: recipeData.categories,
+      tags: recipeData.tags,
+      author_id: user.id,
+      status: 'draft'
     }])
     .select()
     .single();
@@ -117,11 +126,15 @@ export const updateRecipeInDB = async (id: string, updates: Partial<Recipe>) => 
       title: updates.title,
       description: updates.description,
       image_url: updates.image_url,
-      cooking_time: updates.cook_time, // Map cook_time to cooking_time
+      prep_time: updates.prep_time,
+      cooking_time: updates.cook_time,
       servings: updates.servings,
       difficulty: updates.difficulty,
+      calories: updates.calories,
       cuisine_type: updates.cuisine_type,
-      instructions: updates.instructions
+      instructions: updates.instructions,
+      categories: updates.categories,
+      tags: updates.tags
     })
     .eq('id', id)
     .select()
@@ -144,13 +157,29 @@ export const toggleFavoriteInDB = async (recipeId: string) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  // For now, we'll just return a boolean since we don't have a favorites table
-  // In a real implementation, you would check if the recipe is already favorited
-  // and either add or remove it from a favorites table
-  console.log('Toggle favorite for recipe:', recipeId);
-  
-  // Placeholder implementation - always returns true for now
-  return true;
+  // Check if already favorited
+  const { data: existing } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('recipe_id', recipeId)
+    .single();
+
+  if (existing) {
+    // Remove from favorites
+    await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('recipe_id', recipeId);
+    return false;
+  } else {
+    // Add to favorites
+    await supabase
+      .from('favorites')
+      .insert([{ user_id: user.id, recipe_id: recipeId }]);
+    return true;
+  }
 };
 
 // Create a simplified service object that exports the main functions
@@ -160,8 +189,35 @@ export const recipeService = {
   },
   
   searchRecipesByIngredients: async (ingredients: string[]) => {
-    // Simple implementation - in reality you'd want more sophisticated ingredient matching
-    return fetchRecipesFromDB();
+    // More sophisticated ingredient matching
+    const { data, error } = await supabase
+      .from('recipes')
+      .select(`
+        *,
+        recipe_ingredients (
+          ingredients (
+            name
+          )
+        )
+      `)
+      .eq('status', 'published');
+
+    if (error) throw error;
+
+    // Filter recipes that contain at least one of the specified ingredients
+    const filteredRecipes = data?.filter(recipe => {
+      const recipeIngredients = recipe.recipe_ingredients?.map((ri: any) => 
+        ri.ingredients?.name?.toLowerCase()
+      ) || [];
+      
+      return ingredients.some(ingredient => 
+        recipeIngredients.some((recipeIngredient: string) => 
+          recipeIngredient?.includes(ingredient.toLowerCase())
+        )
+      );
+    }) || [];
+
+    return fetchRecipesFromDB(); // Return formatted recipes
   },
   
   getUserPantryItems: async () => {
@@ -174,7 +230,8 @@ export const recipeService = {
         *,
         ingredients (
           id,
-          name
+          name,
+          category
         )
       `)
       .eq('user_id', user.id);
@@ -186,6 +243,7 @@ export const recipeService = {
       quantity: item.quantity,
       unit: item.unit,
       expiry_date: item.expiry_date,
+      location: item.location,
       ingredient: item.ingredients
     })) || [];
   },
@@ -196,7 +254,9 @@ export const recipeService = {
       .select(`
         *,
         ingredients (
-          name
+          id,
+          name,
+          category
         )
       `)
       .eq('recipe_id', recipeId);
@@ -206,7 +266,7 @@ export const recipeService = {
     return data?.map(ri => ({
       id: ri.id,
       name: ri.ingredients?.name || '',
-      amount: ri.quantity || 0,
+      amount: ri.amount || 0,
       unit: ri.unit || ''
     })) || [];
   }
