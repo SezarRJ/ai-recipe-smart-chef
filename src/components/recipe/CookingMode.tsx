@@ -9,7 +9,7 @@ import {
   RefreshCw,
   ChefHat 
 } from 'lucide-react';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 

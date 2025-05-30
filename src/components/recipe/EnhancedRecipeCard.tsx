@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Clock, Users, Star } from 'lucide-react';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 import { Link } from 'react-router-dom';
 import { AnimatedCard } from '@/components/ui/enhanced-animations';
 

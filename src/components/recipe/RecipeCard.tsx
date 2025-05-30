@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 import { Link } from 'react-router-dom';
 
 interface RecipeCardProps {

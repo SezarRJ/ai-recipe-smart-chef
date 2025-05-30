@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { RecipeCard } from './RecipeCard';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 
 interface RecipeGridProps {
   recipes: Recipe[];

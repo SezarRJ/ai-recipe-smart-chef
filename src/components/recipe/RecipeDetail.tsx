@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { Recipe } from '@/types';
+import { Recipe } from '@/types/index';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Clock, ChefHat, Users, ArrowUpRight, Heart, Share, Info, Plus, Globe } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Clock, ChefHat, Users, Heart, Share2, PlayCircle, Plus, Eye, Star } from 'lucide-react';
 import { RecipeSocialInteractions } from './RecipeSocialInteractions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,28 +22,19 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
 }) => {
   const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(recipe.isFavorite);
-  const [likeCount, setLikeCount] = useState(recipe.rating * 10);
+  const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(new Set());
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
-  const handleLike = (recipeId: string) => {
+  const handleToggleFavorite = () => {
     setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
     toast({
       title: isLiked ? "Removed from favorites" : "Added to favorites",
       description: isLiked ? "Recipe removed from your favorites" : "Recipe added to your favorites",
     });
   };
 
-  const handleComment = (recipeId: string, comment: string) => {
-    console.log(`New comment on recipe ${recipeId}: ${comment}`);
-    toast({
-      title: "Comment added",
-      description: "Your comment has been posted successfully",
-    });
-  };
-
-  const handleShare = (recipeId: string) => {
-    // Copy recipe URL to clipboard
-    const recipeUrl = `${window.location.origin}/recipes/${recipeId}`;
+  const handleShare = () => {
+    const recipeUrl = `${window.location.origin}/recipes/${recipe.id}`;
     navigator.clipboard.writeText(recipeUrl).then(() => {
       toast({
         title: "Recipe shared",
@@ -65,198 +56,214 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
     });
   };
 
-  const handleToggleFavorite = () => {
-    setIsLiked(!isLiked);
+  const toggleIngredient = (ingredientId: string) => {
+    const newChecked = new Set(checkedIngredients);
+    if (newChecked.has(ingredientId)) {
+      newChecked.delete(ingredientId);
+    } else {
+      newChecked.add(ingredientId);
+    }
+    setCheckedIngredients(newChecked);
+  };
+
+  const toggleStep = (stepIndex: number) => {
+    const newCompleted = new Set(completedSteps);
+    if (newCompleted.has(stepIndex)) {
+      newCompleted.delete(stepIndex);
+    } else {
+      newCompleted.add(stepIndex);
+    }
+    setCompletedSteps(newCompleted);
+  };
+
+  const handleLike = (recipeId: string) => {
+    handleToggleFavorite();
+  };
+
+  const handleComment = (recipeId: string, comment: string) => {
+    console.log(`New comment on recipe ${recipeId}: ${comment}`);
     toast({
-      title: isLiked ? "Removed from favorites" : "Added to favorites",
-      description: isLiked ? "Recipe removed from your favorites" : "Recipe added to your favorites",
+      title: "Comment added",
+      description: "Your comment has been posted successfully",
     });
   };
 
-  const handleShareClick = () => {
-    handleShare(recipe.id);
+  const handleSocialShare = (recipeId: string) => {
+    handleShare();
   };
 
   return (
-    <div>
-      <div 
-        className="w-full h-56 bg-cover bg-center"
-        style={{ backgroundImage: `url(${recipe.image})` }}
-      />
-      
-      <div className="container px-4 py-4">
-        <div className="flex items-start justify-between mb-2">
-          <h1 className="recipe-title text-2xl font-bold text-wasfah-deep-teal flex-1">
+    <div className="bg-white min-h-screen">
+      {/* Hero Image Section with Overlaid Content */}
+      <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
+        <img 
+          src={recipe.image} 
+          alt={recipe.title}
+          className="w-full h-full object-cover"
+        />
+        
+        {/* Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        
+        {/* Overlaid Action Icons (Top Right) */}
+        <div className="absolute top-6 right-6 flex space-x-3">
+          <button
+            onClick={handleToggleFavorite}
+            className="p-3 rounded-full bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50"
+          >
+            <Heart 
+              className={`h-6 w-6 text-white ${isLiked ? 'fill-current' : ''}`}
+            />
+          </button>
+          <button
+            onClick={handleShare}
+            className="p-3 rounded-full bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50"
+          >
+            <Share2 className="h-6 w-6 text-white" />
+          </button>
+        </div>
+        
+        {/* Overlaid Content (Bottom Left) */}
+        <div className="absolute bottom-6 left-6 right-6 text-white">
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 leading-tight">
             {recipe.title}
           </h1>
-          {recipe.cuisineType && (
-            <div className="flex items-center ml-3">
-              <Globe className="h-4 w-4 text-wasfah-bright-teal mr-1" />
-              <span className="text-sm text-wasfah-bright-teal font-medium">{recipe.cuisineType}</span>
-            </div>
-          )}
+          <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl">
+            {recipe.description}
+          </p>
         </div>
-        
-        <div className="flex items-center mt-1 text-sm">
-          <span className="text-wasfah-mint">★</span>
-          <span className="ml-1 text-gray-700">{recipe.rating}</span>
-          <span className="mx-1 text-gray-400">|</span>
-          <span className="text-gray-700">{recipe.ratingCount} ratings</span>
+      </div>
+
+      {/* Key Stats Bar */}
+      <div className="bg-white border-b border-gray-100 py-4 px-6">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-wasfah-bright-teal" />
+              <span className="font-medium text-gray-700">{recipe.prepTime + recipe.cookTime} min</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Users className="h-5 w-5 text-wasfah-bright-teal" />
+              <span className="font-medium text-gray-700">{recipe.servings} servings</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <ChefHat className="h-5 w-5 text-wasfah-bright-teal" />
+              <span className="font-medium text-gray-700">{recipe.difficulty}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1">
+              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <span className="font-medium text-gray-700">{recipe.rating}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Eye className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">{Math.floor(recipe.rating * 20)}</span>
+            </div>
+          </div>
         </div>
-        
-        <p className="mt-3 text-gray-600">
-          {recipe.description}
-        </p>
-        
-        <div className="grid grid-cols-4 gap-2 mt-4">
-          <Card className="p-3 text-center">
-            <div className="flex justify-center text-wasfah-bright-teal mb-1">
-              <Clock size={18} />
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Ingredients Section (Left Column on Desktop) */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Ingredients</h2>
+              <div className="space-y-3">
+                {recipe.ingredients.map((ingredient) => {
+                  const isChecked = checkedIngredients.has(ingredient.id);
+                  return (
+                    <div 
+                      key={ingredient.id} 
+                      className={`flex items-start space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                        isChecked 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-white border-gray-200 hover:border-wasfah-bright-teal/30'
+                      }`}
+                      onClick={() => toggleIngredient(ingredient.id)}
+                    >
+                      <Checkbox 
+                        id={ingredient.id}
+                        checked={isChecked}
+                        onCheckedChange={() => toggleIngredient(ingredient.id)}
+                        className="h-5 w-5 mt-0.5"
+                      />
+                      <label
+                        htmlFor={ingredient.id}
+                        className={`flex-1 cursor-pointer ${
+                          isChecked ? 'line-through text-gray-500' : 'text-gray-700'
+                        }`}
+                      >
+                        <span className="font-semibold text-wasfah-deep-teal">
+                          {ingredient.amount} {ingredient.unit}
+                        </span>{' '}
+                        {ingredient.name}
+                        {!ingredient.inPantry && (
+                          <span className="text-wasfah-coral-red font-medium ml-1">(missing)</span>
+                        )}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full mt-6 border-2 border-wasfah-bright-teal text-wasfah-bright-teal hover:bg-wasfah-bright-teal hover:text-white"
+                onClick={onAddToShoppingList}
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Add Missing to Shopping List
+              </Button>
             </div>
-            <p className="text-sm font-semibold">{recipe.prepTime + recipe.cookTime}m</p>
-            <p className="text-xs text-gray-500">Time</p>
-          </Card>
+          </div>
           
-          <Card className="p-3 text-center">
-            <div className="flex justify-center text-wasfah-bright-teal mb-1">
-              <Users size={18} />
-            </div>
-            <p className="text-sm font-semibold">{recipe.servings}</p>
-            <p className="text-xs text-gray-500">Servings</p>
-          </Card>
-          
-          <Card className="p-3 text-center">
-            <div className="flex justify-center text-wasfah-bright-teal mb-1">
-              <ChefHat size={18} />
-            </div>
-            <p className="text-sm font-semibold">{recipe.difficulty}</p>
-            <p className="text-xs text-gray-500">Difficulty</p>
-          </Card>
-          
-          <Card className="p-3 text-center">
-            <div className="flex justify-center text-wasfah-bright-teal mb-1">
-              <ArrowUpRight size={18} />
-            </div>
-            <p className="text-sm font-semibold">{recipe.calories}</p>
-            <p className="text-xs text-gray-500">Calories</p>
-          </Card>
-        </div>
-        
-        <Tabs defaultValue="ingredients" className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="ingredients">Ingredients</TabsTrigger>
-            <TabsTrigger value="instructions">Instructions</TabsTrigger>
-            <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="ingredients" className="space-y-4 mt-4">
-            <div className="mt-3 space-y-3">
-              {recipe.ingredients.map((ingredient) => (
-                <div key={ingredient.id} className="flex items-center space-x-2">
-                  <Checkbox id={ingredient.id} />
-                  <label
-                    htmlFor={ingredient.id}
-                    className={`text-gray-700 ${ingredient.inPantry ? '' : 'text-wasfah-coral-red'}`}
+          {/* Instructions Section (Right Column on Desktop) */}
+          <div className="lg:col-span-2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Instructions</h2>
+            <div className="space-y-6">
+              {recipe.instructions.map((instruction, index) => {
+                const isCompleted = completedSteps.has(index);
+                return (
+                  <div 
+                    key={index}
+                    className={`p-6 rounded-xl border-2 transition-all cursor-pointer ${
+                      isCompleted 
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-white border-gray-200 hover:border-wasfah-bright-teal/30 hover:shadow-md'
+                    }`}
+                    onClick={() => toggleStep(index)}
                   >
-                    {ingredient.quantity} {ingredient.unit} {ingredient.name}
-                    {!ingredient.inPantry && ' (missing)'}
-                  </label>
-                </div>
-              ))}
+                    <div className="flex items-start space-x-4">
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+                        isCompleted 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-wasfah-bright-teal text-white'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <p className={`text-lg leading-relaxed ${
+                        isCompleted ? 'line-through text-gray-500' : 'text-gray-700'
+                      }`}>
+                        {instruction}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            
-            <Button
-              variant="outline"
-              className="w-full mt-4 border-wasfah-bright-teal text-wasfah-bright-teal hover:bg-wasfah-bright-teal/10"
-              onClick={onAddToShoppingList}
-            >
-              Add missing to shopping list
-            </Button>
-          </TabsContent>
-          
-          <TabsContent value="instructions" className="space-y-4 mt-4">
-            <ol className="mt-3 space-y-4 list-decimal list-inside">
-              {recipe.instructions.map((instruction, index) => (
-                <li key={index} className="text-gray-700 pl-2">
-                  {instruction}
-                </li>
-              ))}
-            </ol>
-          </TabsContent>
-          
-          <TabsContent value="nutrition" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <div className="flex justify-between p-2 border-b">
-                <span className="font-medium">Calories</span>
-                <span>{recipe.calories} kcal</span>
-              </div>
-              <div className="flex justify-between p-2 border-b">
-                <span className="font-medium">Protein</span>
-                <span>{recipe.nutritionalInfo?.protein || 0} g</span>
-              </div>
-              <div className="flex justify-between p-2 border-b">
-                <span className="font-medium">Carbohydrates</span>
-                <span>{recipe.nutritionalInfo?.carbs || 0} g</span>
-              </div>
-              <div className="flex justify-between p-2 border-b">
-                <span className="font-medium">Fat</span>
-                <span>{recipe.nutritionalInfo?.fat || 0} g</span>
-              </div>
-              <div className="flex justify-between p-2 border-b">
-                <span className="font-medium">Fiber</span>
-                <span>{recipe.nutritionalInfo?.fiber || 0} g</span>
-              </div>
-              <div className="flex justify-between p-2 border-b">
-                <span className="font-medium">Sugar</span>
-                <span>{recipe.nutritionalInfo?.sugar || 0} g</span>
-              </div>
-            </div>
-            <div className="bg-gray-50 p-3 rounded-md">
-              <p className="text-sm text-gray-600 flex items-center">
-                <Info size={14} className="mr-2 text-wasfah-bright-teal" />
-                Values are per serving
-              </p>
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="flex space-x-3 mt-6">
-          <Button
-            className="flex-1 bg-wasfah-bright-teal hover:bg-wasfah-teal text-white"
-            onClick={onStartCookingMode}
-          >
-            <ChefHat size={18} className="mr-2" />
-            Start Cooking Mode
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="flex-1 border-wasfah-bright-teal text-wasfah-bright-teal hover:bg-wasfah-bright-teal hover:text-white"
-            onClick={handleAddToMealPlan}
-          >
-            <Plus size={18} className="mr-2" />
-            Add to Meal Plan
-          </Button>
+          </div>
         </div>
-        
-        <div className="flex justify-between items-center mt-4 pt-4 border-t">
-          <button 
-            className="flex items-center text-gray-600 hover:text-wasfah-coral-red transition-colors"
-            onClick={handleToggleFavorite}
-          >
-            <Heart className={`h-6 w-6 mr-2 ${isLiked ? 'fill-wasfah-coral-red text-wasfah-coral-red' : ''}`} />
-            <span>{isLiked ? 'Favorited' : 'Favorite'}</span>
-          </button>
-          
-          <button 
-            className="flex items-center text-gray-600 hover:text-wasfah-bright-teal transition-colors"
-            onClick={handleShareClick}
-          >
-            <Share className="h-6 w-6 mr-2" />
-            <span>Share</span>
-          </button>
-        </div>
-        
+      </div>
+
+      <Separator className="my-8" />
+
+      {/* Social Interactions & Rating Section */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
         <RecipeSocialInteractions
           recipeId={recipe.id}
           commentCount={recipe.ratingCount}
@@ -268,8 +275,57 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
           comments={[]}
           onLike={handleLike}
           onComment={handleComment}
-          onShare={handleShare}
+          onShare={handleSocialShare}
+          className="justify-center"
         />
+      </div>
+
+      <Separator className="my-8" />
+
+      {/* Additional Actions */}
+      <div className="max-w-6xl mx-auto px-6 pb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-2 border-wasfah-bright-teal text-wasfah-bright-teal hover:bg-wasfah-bright-teal hover:text-white font-semibold py-4"
+            onClick={handleAddToMealPlan}
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Add to Meal Plan
+          </Button>
+          
+          <Card className="p-4 bg-gradient-to-br from-wasfah-bright-teal/10 to-wasfah-teal/10 border-wasfah-bright-teal/20">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-wasfah-deep-teal">{recipe.calories}</div>
+              <div className="text-sm text-gray-600">Calories per serving</div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Sticky Primary Action Button (Mobile) */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 lg:hidden">
+        <Button
+          size="lg"
+          className="w-full bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal hover:from-wasfah-teal hover:to-wasfah-deep-teal text-white font-semibold py-4"
+          onClick={onStartCookingMode}
+        >
+          <PlayCircle className="mr-2 h-6 w-6" />
+          Start Cooking
+        </Button>
+      </div>
+
+      {/* Desktop Primary Action Button */}
+      <div className="hidden lg:block fixed bottom-8 right-8">
+        <Button
+          size="lg"
+          className="bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal hover:from-wasfah-teal hover:to-wasfah-deep-teal text-white font-semibold py-4 px-8 shadow-lg"
+          onClick={onStartCookingMode}
+        >
+          <PlayCircle className="mr-2 h-6 w-6" />
+          Start Cooking
+        </Button>
       </div>
     </div>
   );
