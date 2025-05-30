@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,43 +7,37 @@ import { WasfahLogo } from '@/components/icons/WasfahLogo';
 
 const images = [
   {
-    url: 'https://images.unsplash.com/photo-1540189549336-e6e9dc99517b?auto=format&fit=crop&w=1920&q=80',
-    alt: 'Delicious food spread',
+    url: 'https://images.unsplash.com/photo-1604908554200-87c618f4bfc9?auto=format&fit=crop&w=1920&q=80',
+    alt: 'Fresh Vegetables',
   },
   {
-    url: 'https://images.unsplash.com/photo-1563729781174-b440682dce7e?auto=format&fit=crop&w=1920&q=80',
-    alt: 'Assortment of desserts',
+    url: 'https://images.unsplash.com/photo-1574226516831-e1dff420e8f8?auto=format&fit=crop&w=1920&q=80',
+    alt: 'Colorful Fruits',
   },
   {
-    url: 'https://images.unsplash.com/photo-1504471786931-c0ff11b99743?auto=format&fit=crop&w=1920&q=80',
-    alt: 'Refreshing drinks',
+    url: 'https://images.unsplash.com/photo-1571077493571-5c3fdd73f27c?auto=format&fit=crop&w=1920&q=80',
+    alt: 'Refreshing Drinks',
   },
 ];
 
 const SplashScreen = () => {
   const navigate = useNavigate();
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => setIdx(i => (i + 1) % images.length), 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-wasfah-bright-teal via-wasfah-mint to-wasfah-coral-red">
-      {/* Background Slideshow */}
-      <div className="absolute inset-0">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-wasfah-bright-teal via-wasfah-mint to-wasfah-coral-red relative overflow-hidden">
+      {/* Static Image Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 w-full max-w-4xl z-0">
         {images.map((img, i) => (
           <img
             key={i}
             src={img.url}
             alt={img.alt}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === idx ? 'opacity-100' : 'opacity-0'}`}
+            className="w-full h-64 object-cover rounded-2xl shadow-lg"
           />
         ))}
-        <div className="absolute inset-0 bg-black/60" />
       </div>
 
+      {/* Foreground Content */}
       <div className="w-full max-w-md space-y-8 relative z-10">
         {/* Logo & Title */}
         <div className="text-center">
@@ -69,16 +63,6 @@ const SplashScreen = () => {
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Discover, Create, Connect</h2>
             <p className="text-gray-600 mb-4">Browse recipes, plan meals, and join a vibrant food community.</p>
-            {/* Image Indicators */}
-            <div className="flex justify-center space-x-2 mt-4">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setIdx(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${i === idx ? 'bg-wasfah-bright-teal w-8' : 'bg-gray-300 w-2'}`}
-                />
-              ))}
-            </div>
           </CardContent>
         </Card>
 
@@ -101,6 +85,7 @@ const SplashScreen = () => {
             Sign In
           </Button>
         </div>
+
         <div className="text-center">
           <Button
             variant="ghost"
@@ -109,17 +94,4 @@ const SplashScreen = () => {
           >
             Skip for now
           </Button>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-        <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white/80 text-sm">
-          Powered by AI • Made with ❤️
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default SplashScreen;
+       
