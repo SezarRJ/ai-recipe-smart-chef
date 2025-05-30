@@ -10,7 +10,7 @@ const images = [
     alt: 'Main dish',
   },
   {
-    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert dish (replaces man)
+    url: 'https://images.unsplash.com/photo-1505250469679-203ad9ced0cb?auto=format&fit=crop&w=1920&q=80', // Dessert/sweets
     alt: 'Dessert dish',
   },
   {
@@ -41,7 +41,7 @@ const SplashScreen = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-end items-center p-0 relative overflow-hidden bg-gradient-to-br from-teal-500 via-emerald-400 to-red-400">
+    <div className="min-h-screen flex flex-col justify-end items-center p-0 relative overflow-hidden">
       {/* Background Slideshow */}
       <div className="absolute inset-0">
         {images.map((img, i) => (
@@ -53,14 +53,13 @@ const SplashScreen = () => {
             style={{ filter: 'none' }}
           />
         ))}
-        <div className="absolute inset-0 bg-black/60" />
       </div>
 
       {/* All content at the bottom */}
       <div className="w-full max-w-md relative z-10 flex flex-col items-center space-y-4 pb-8">
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-2">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm mb-2">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2">
             <WasfahLogo className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">WasfahAI</h1>
@@ -72,7 +71,7 @@ const SplashScreen = () => {
         </div>
 
         {/* Discover, Create, Connect Bar */}
-        <div className="px-4 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs text-white font-semibold shadow-sm mb-2">
+        <div className="px-4 py-1 rounded-full bg-white/20 text-xs text-white font-semibold shadow-sm mb-2">
           Discover, Create, Connect
         </div>
 
