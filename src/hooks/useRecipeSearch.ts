@@ -20,13 +20,17 @@ export const useRecipeSearch = () => {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [filters, setFilters] = useState<SearchFilters>({});
 
-  // Get ingredients from pantry using RPC function
+  // Get ingredients from pantry using simplified approach
   const pantryQuery = useQuery({
     queryKey: ['pantryItems'],
     queryFn: async () => {
-      const { data, error } = await recipeService.getUserPantryItems();
-      if (error) throw error;
-      return data || [];
+      try {
+        const pantryData = await recipeService.getUserPantryItems();
+        return pantryData;
+      } catch (error) {
+        console.error('Error fetching pantry items:', error);
+        return [];
+      }
     },
     enabled: false,
   });
@@ -108,7 +112,7 @@ export const useRecipeSearch = () => {
       if (pantryData && pantryData.length > 0) {
         // Extract ingredient names from pantry items
         const pantryIngredients = pantryData
-          .map((item: any) => item.ingredient_name || item.name || '')
+          .map((item: any) => item.ingredient?.name || item.name || '')
           .filter(name => name.length > 0);
 
         if (pantryIngredients.length > 0) {

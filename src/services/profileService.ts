@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 export interface UserProfile {
   id: string;
@@ -19,7 +18,7 @@ export const profileService = {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
+      .eq('user_id', userId)
       .single();
 
     if (error) {
@@ -27,14 +26,28 @@ export const profileService = {
       return null;
     }
 
-    return data;
+    // Transform the data to match our interface
+    return {
+      id: data.id,
+      full_name: data.full_name,
+      avatar_url: data.avatar_url,
+      bio: null, // Not in current schema
+      dietary_preferences: null, // Not in current schema
+      cuisine_preferences: null, // Not in current schema
+      allergies: null, // Not in current schema
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   },
 
   async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
-      .eq('id', userId)
+      .update({
+        full_name: updates.full_name,
+        avatar_url: updates.avatar_url
+      })
+      .eq('user_id', userId)
       .select()
       .single();
 
@@ -43,13 +56,28 @@ export const profileService = {
       throw error;
     }
 
-    return data;
+    return {
+      id: data.id,
+      full_name: data.full_name,
+      avatar_url: data.avatar_url,
+      bio: null,
+      dietary_preferences: null,
+      cuisine_preferences: null,
+      allergies: null,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   },
 
   async createProfile(profile: Omit<UserProfile, 'created_at' | 'updated_at'>): Promise<UserProfile | null> {
     const { data, error } = await supabase
       .from('profiles')
-      .insert([profile])
+      .insert([{
+        id: profile.id,
+        user_id: profile.id, // Use id as user_id
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url
+      }])
       .select()
       .single();
 
@@ -58,6 +86,16 @@ export const profileService = {
       throw error;
     }
 
-    return data;
+    return {
+      id: data.id,
+      full_name: data.full_name,
+      avatar_url: data.avatar_url,
+      bio: null,
+      dietary_preferences: null,
+      cuisine_preferences: null,
+      allergies: null,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   }
 };
