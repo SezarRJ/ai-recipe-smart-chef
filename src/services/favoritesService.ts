@@ -10,26 +10,60 @@ export interface Favorite {
 
 export const favoritesService = {
   async getFavorites(userId: string): Promise<string[]> {
-    // For now, return empty array since favorites table doesn't exist
-    console.log('Favorites service - getting favorites for user:', userId);
-    return [];
+    const { data, error } = await supabase
+      .from('user_favorites')
+      .select('recipe_id')
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error fetching favorites:', error);
+      return [];
+    }
+
+    return data?.map(fav => fav.recipe_id) || [];
   },
 
   async addToFavorites(userId: string, recipeId: string): Promise<boolean> {
-    // For now, just log the action
-    console.log('Favorites service - adding to favorites:', { userId, recipeId });
+    const { error } = await supabase
+      .from('user_favorites')
+      .insert({ user_id: userId, recipe_id: recipeId });
+
+    if (error) {
+      console.error('Error adding to favorites:', error);
+      throw error;
+    }
+
     return true;
   },
 
   async removeFromFavorites(userId: string, recipeId: string): Promise<boolean> {
-    // For now, just log the action
-    console.log('Favorites service - removing from favorites:', { userId, recipeId });
+    const { error } = await supabase
+      .from('user_favorites')
+      .delete()
+      .eq('user_id', userId)
+      .eq('recipe_id', recipeId);
+
+    if (error) {
+      console.error('Error removing from favorites:', error);
+      throw error;
+    }
+
     return true;
   },
 
   async isFavorite(userId: string, recipeId: string): Promise<boolean> {
-    // For now, return false
-    console.log('Favorites service - checking if favorite:', { userId, recipeId });
-    return false;
+    const { data, error } = await supabase
+      .from('user_favorites')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('recipe_id', recipeId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error checking favorite status:', error);
+      return false;
+    }
+
+    return !!data;
   }
 };

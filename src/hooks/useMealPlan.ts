@@ -40,13 +40,15 @@ export const useMealPlan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Use the existing meal_plans table to get basic meal plan data
+      console.log('Fetching meal plan for date:', date, 'user:', user.id);
+
       const { data: mealPlanData, error: mealPlanError } = await supabase
         .from('meal_plans')
         .select(`
           id,
           date,
           meal_type,
+          scheduled_time,
           recipe_id,
           recipes (
             id,
@@ -54,8 +56,10 @@ export const useMealPlan = () => {
             description,
             image_url,
             cooking_time,
+            prep_time,
             servings,
-            difficulty
+            difficulty,
+            calories
           )
         `)
         .eq('user_id', user.id)
@@ -63,21 +67,23 @@ export const useMealPlan = () => {
 
       if (mealPlanError) throw mealPlanError;
 
+      console.log('Fetched meal plan data:', mealPlanData);
+
       // Transform data to match expected format
       const transformedMeals: MealPlanMeal[] = mealPlanData?.map((item: any) => ({
         id: item.id,
         meal_type: item.meal_type || 'breakfast',
-        scheduled_time: null,
+        scheduled_time: item.scheduled_time,
         recipe: {
           id: item.recipes?.id || '',
           title: item.recipes?.title || '',
           description: item.recipes?.description || '',
           image_url: item.recipes?.image_url || '',
           cooking_time: item.recipes?.cooking_time || 0,
-          prep_time: 0, // Default since not in schema
+          prep_time: item.recipes?.prep_time || 0,
           servings: item.recipes?.servings || 1,
           difficulty: item.recipes?.difficulty || 'Easy',
-          calories: 0 // Default since not in schema
+          calories: item.recipes?.calories || 0
         }
       })) || [];
 
@@ -89,6 +95,7 @@ export const useMealPlan = () => {
 
       setMealPlans([mealPlan]);
     } catch (err: any) {
+      console.error('Error fetching meal plan:', err);
       setError(err.message);
       toast({
         title: 'Error fetching meal plan',
@@ -105,14 +112,16 @@ export const useMealPlan = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Insert into existing meal_plans table
+      console.log('Adding meal to plan:', { date, recipeId, mealType, scheduledTime });
+
       const { error } = await supabase
         .from('meal_plans')
         .insert({
           user_id: user.id,
           date,
           recipe_id: recipeId,
-          meal_type: mealType
+          meal_type: mealType,
+          scheduled_time: scheduledTime || null
         });
 
       if (error) throw error;
@@ -125,6 +134,7 @@ export const useMealPlan = () => {
       // Refresh meal plan
       fetchMealPlan(date);
     } catch (err: any) {
+      console.error('Error adding meal to plan:', err);
       toast({
         title: 'Error adding meal to plan',
         description: err.message,
@@ -136,6 +146,8 @@ export const useMealPlan = () => {
 
   const removeMealFromPlan = async (mealId: string, date: string) => {
     try {
+      console.log('Removing meal from plan:', mealId);
+      
       const { error } = await supabase
         .from('meal_plans')
         .delete()
@@ -150,6 +162,7 @@ export const useMealPlan = () => {
       // Refresh meal plan
       fetchMealPlan(date);
     } catch (err: any) {
+      console.error('Error removing meal from plan:', err);
       toast({
         title: 'Error removing meal from plan',
         description: err.message,

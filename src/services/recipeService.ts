@@ -33,7 +33,8 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
         )
       )
     `)
-    .eq('is_public', true);
+    .eq('is_public', true)
+    .eq('is_published', true);
 
   if (filters?.category) {
     query = query.eq('category_id', filters.category);
@@ -56,21 +57,23 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
     title: recipe.title,
     description: recipe.description || '',
     image_url: recipe.image_url || '',
-    prep_time: 0, // Default value since not in current schema
+    prep_time: recipe.prep_time || 0,
     cook_time: recipe.cooking_time || 0,
     servings: recipe.servings || 1,
     difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard' || 'Easy',
-    calories: 0, // Default value since not in current schema
+    calories: recipe.calories || 0,
     cuisine_type: recipe.cuisine_type || '',
     instructions: Array.isArray(recipe.instructions) ? recipe.instructions as string[] : 
                  (recipe.instructions ? [recipe.instructions as string] : []),
-    categories: [], // Default value since not in current schema
-    tags: [], // Default value since not in current schema
-    status: 'published' as const, // Default value since not in current schema
-    author_id: recipe.user_id || '', // Use user_id as author_id
+    categories: [], // Will be populated from category_id if needed
+    tags: [], // Can be added later
+    status: recipe.is_published ? 'published' : 'draft' as const,
+    author_id: recipe.user_id || '',
     is_verified: recipe.is_verified || false,
     created_at: recipe.created_at || '',
     updated_at: recipe.updated_at || '',
+    rating: recipe.rating || 0,
+    ratingCount: recipe.rating_count || 0,
     ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
       id: ri.id,
       name: ri.ingredients?.name || '',
@@ -96,13 +99,19 @@ export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
       title: recipeData.title,
       description: recipeData.description,
       image_url: recipeData.image_url,
+      prep_time: recipeData.prep_time,
       cooking_time: recipeData.cook_time,
       servings: recipeData.servings,
       difficulty: recipeData.difficulty,
       cuisine_type: recipeData.cuisine_type,
       instructions: recipeData.instructions,
+      calories: recipeData.calories,
+      protein: recipeData.protein,
+      carbs: recipeData.carbs,
+      fat: recipeData.fat,
       user_id: user.id,
-      is_public: true
+      is_public: true,
+      is_published: false // Start as draft
     }])
     .select()
     .single();
@@ -118,11 +127,17 @@ export const updateRecipeInDB = async (id: string, updates: Partial<Recipe>) => 
       title: updates.title,
       description: updates.description,
       image_url: updates.image_url,
+      prep_time: updates.prep_time,
       cooking_time: updates.cook_time,
       servings: updates.servings,
       difficulty: updates.difficulty,
       cuisine_type: updates.cuisine_type,
-      instructions: updates.instructions
+      instructions: updates.instructions,
+      calories: updates.calories,
+      protein: updates.protein,
+      carbs: updates.carbs,
+      fat: updates.fat,
+      is_published: updates.status === 'published'
     })
     .eq('id', id)
     .select()
@@ -142,9 +157,36 @@ export const deleteRecipeFromDB = async (id: string) => {
 };
 
 export const toggleFavoriteInDB = async (recipeId: string) => {
-  // For now, just log the action since favorites table doesn't exist
-  console.log('Toggle favorite for recipe:', recipeId);
-  return true;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  // Check if already favorited
+  const { data: existing } = await supabase
+    .from('user_favorites')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('recipe_id', recipeId)
+    .single();
+
+  if (existing) {
+    // Remove from favorites
+    const { error } = await supabase
+      .from('user_favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('recipe_id', recipeId);
+    
+    if (error) throw error;
+    return false;
+  } else {
+    // Add to favorites
+    const { error } = await supabase
+      .from('user_favorites')
+      .insert({ user_id: user.id, recipe_id: recipeId });
+    
+    if (error) throw error;
+    return true;
+  }
 };
 
 // Create a simplified service object that exports the main functions
@@ -154,7 +196,6 @@ export const recipeService = {
   },
   
   searchRecipesByIngredients: async (ingredients: string[]) => {
-    // More sophisticated ingredient matching
     const { data, error } = await supabase
       .from('recipes')
       .select(`
@@ -165,12 +206,13 @@ export const recipeService = {
           )
         )
       `)
-      .eq('is_public', true);
+      .eq('is_public', true)
+      .eq('is_published', true);
 
     if (error) throw error;
 
     // Filter recipes that contain at least one of the specified ingredients
-    const filteredRecipes = data?.filter(recipe => {
+    const filteredData = data?.filter(recipe => {
       const recipeIngredients = recipe.recipe_ingredients?.map((ri: any) => 
         ri.ingredients?.name?.toLowerCase()
       ) || [];
@@ -182,7 +224,38 @@ export const recipeService = {
       );
     }) || [];
 
-    return fetchRecipesFromDB(); // Return formatted recipes
+    // Format the filtered recipes
+    const formattedRecipes: Recipe[] = filteredData.map(recipe => ({
+      id: recipe.id,
+      title: recipe.title,
+      description: recipe.description || '',
+      image_url: recipe.image_url || '',
+      prep_time: recipe.prep_time || 0,
+      cook_time: recipe.cooking_time || 0,
+      servings: recipe.servings || 1,
+      difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard' || 'Easy',
+      calories: recipe.calories || 0,
+      cuisine_type: recipe.cuisine_type || '',
+      instructions: Array.isArray(recipe.instructions) ? recipe.instructions as string[] : 
+                   (recipe.instructions ? [recipe.instructions as string] : []),
+      categories: [],
+      tags: [],
+      status: 'published' as const,
+      author_id: recipe.user_id || '',
+      is_verified: recipe.is_verified || false,
+      created_at: recipe.created_at || '',
+      updated_at: recipe.updated_at || '',
+      rating: recipe.rating || 0,
+      ratingCount: recipe.rating_count || 0,
+      ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
+        id: ri.id,
+        name: ri.ingredients?.name || '',
+        amount: ri.quantity || 0,
+        unit: ri.unit || ''
+      })) || []
+    }));
+
+    return formattedRecipes;
   },
   
   getUserPantryItems: async () => {
@@ -207,7 +280,7 @@ export const recipeService = {
       quantity: item.quantity,
       unit: item.unit,
       expiry_date: item.expiry_date,
-      location: null, // Not in current schema
+      location: null,
       ingredient: item.ingredients
     })) || [];
   },

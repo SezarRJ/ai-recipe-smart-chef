@@ -21,9 +21,12 @@ export const useRecipes = () => {
     setError(null);
 
     try {
+      console.log('Fetching recipes with filters:', filters);
       const formattedRecipes = await fetchRecipesFromDB(filters);
+      console.log('Fetched recipes:', formattedRecipes);
       setRecipes(formattedRecipes);
     } catch (err: any) {
+      console.error('Error fetching recipes:', err);
       setError(err.message);
       toast({
         title: 'Error fetching recipes',
@@ -37,15 +40,20 @@ export const useRecipes = () => {
 
   const createRecipe = async (recipeData: Partial<Recipe>) => {
     try {
+      console.log('Creating recipe:', recipeData);
       const data = await createRecipeInDB(recipeData);
+      console.log('Recipe created:', data);
       
       toast({
         title: 'Recipe created successfully',
         description: 'Your recipe has been saved as a draft.'
       });
 
+      // Refresh recipes
+      await fetchRecipes();
       return data;
     } catch (err: any) {
+      console.error('Error creating recipe:', err);
       toast({
         title: 'Error creating recipe',
         description: err.message,
@@ -57,14 +65,19 @@ export const useRecipes = () => {
 
   const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
     try {
+      console.log('Updating recipe:', id, updates);
       const data = await updateRecipeInDB(id, updates);
+      console.log('Recipe updated:', data);
 
       toast({
         title: 'Recipe updated successfully'
       });
 
+      // Refresh recipes
+      await fetchRecipes();
       return data;
     } catch (err: any) {
+      console.error('Error updating recipe:', err);
       toast({
         title: 'Error updating recipe',
         description: err.message,
@@ -76,6 +89,7 @@ export const useRecipes = () => {
 
   const deleteRecipe = async (id: string) => {
     try {
+      console.log('Deleting recipe:', id);
       await deleteRecipeFromDB(id);
 
       toast({
@@ -84,6 +98,7 @@ export const useRecipes = () => {
 
       setRecipes(prev => prev.filter(recipe => recipe.id !== id));
     } catch (err: any) {
+      console.error('Error deleting recipe:', err);
       toast({
         title: 'Error deleting recipe',
         description: err.message,
@@ -95,6 +110,7 @@ export const useRecipes = () => {
 
   const toggleFavorite = async (recipeId: string) => {
     try {
+      console.log('Toggling favorite for recipe:', recipeId);
       const isFavorited = await toggleFavoriteInDB(recipeId);
       
       toast({
@@ -104,6 +120,7 @@ export const useRecipes = () => {
       // Refresh recipes to update favorite status
       fetchRecipes();
     } catch (err: any) {
+      console.error('Error updating favorites:', err);
       toast({
         title: 'Error updating favorites',
         description: err.message,

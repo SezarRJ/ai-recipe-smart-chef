@@ -15,7 +15,9 @@ export const useFavorites = () => {
 
     setLoading(true);
     try {
+      console.log('Fetching favorites for user:', user.id);
       const favoriteIds = await favoritesService.getFavorites(user.id);
+      console.log('Fetched favorites:', favoriteIds);
       setFavorites(favoriteIds);
     } catch (error) {
       console.error('Error fetching favorites:', error);
@@ -37,6 +39,8 @@ export const useFavorites = () => {
     const isFavorited = favorites.includes(recipeId);
 
     try {
+      console.log('Toggling favorite:', { recipeId, isFavorited, userId: user.id });
+      
       if (isFavorited) {
         await favoritesService.removeFromFavorites(user.id, recipeId);
         setFavorites(prev => prev.filter(id => id !== recipeId));
@@ -51,6 +55,7 @@ export const useFavorites = () => {
         });
       }
     } catch (error) {
+      console.error('Error toggling favorite:', error);
       toast({
         title: 'Error updating favorites',
         description: 'Please try again',

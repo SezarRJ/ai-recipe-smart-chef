@@ -174,26 +174,44 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allergies: string[] | null
           avatar_url: string | null
+          bio: string | null
+          chef_avatar: string | null
           created_at: string
+          cuisine_preferences: string[] | null
+          dietary_preferences: string[] | null
           full_name: string | null
           id: string
+          nutritional_goals: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          allergies?: string[] | null
           avatar_url?: string | null
+          bio?: string | null
+          chef_avatar?: string | null
           created_at?: string
+          cuisine_preferences?: string[] | null
+          dietary_preferences?: string[] | null
           full_name?: string | null
           id?: string
+          nutritional_goals?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          allergies?: string[] | null
           avatar_url?: string | null
+          bio?: string | null
+          chef_avatar?: string | null
           created_at?: string
+          cuisine_preferences?: string[] | null
+          dietary_preferences?: string[] | null
           full_name?: string | null
           id?: string
+          nutritional_goals?: Json | null
           updated_at?: string
           user_id?: string
         }
@@ -275,53 +293,80 @@ export type Database = {
       }
       recipes: {
         Row: {
+          calories: number | null
+          carbs: number | null
           category_id: string | null
           cooking_time: number | null
           created_at: string
           cuisine_type: string | null
           description: string | null
           difficulty: string | null
+          fat: number | null
           id: string
           image_url: string | null
           instructions: Json | null
           is_public: boolean | null
+          is_published: boolean | null
           is_verified: boolean | null
+          prep_time: number | null
+          protein: number | null
+          rating: number | null
+          rating_count: number | null
           servings: number | null
           title: string
+          total_time: number | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          calories?: number | null
+          carbs?: number | null
           category_id?: string | null
           cooking_time?: number | null
           created_at?: string
           cuisine_type?: string | null
           description?: string | null
           difficulty?: string | null
+          fat?: number | null
           id?: string
           image_url?: string | null
           instructions?: Json | null
           is_public?: boolean | null
+          is_published?: boolean | null
           is_verified?: boolean | null
+          prep_time?: number | null
+          protein?: number | null
+          rating?: number | null
+          rating_count?: number | null
           servings?: number | null
           title: string
+          total_time?: number | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          calories?: number | null
+          carbs?: number | null
           category_id?: string | null
           cooking_time?: number | null
           created_at?: string
           cuisine_type?: string | null
           description?: string | null
           difficulty?: string | null
+          fat?: number | null
           id?: string
           image_url?: string | null
           instructions?: Json | null
           is_public?: boolean | null
+          is_published?: boolean | null
           is_verified?: boolean | null
+          prep_time?: number | null
+          protein?: number | null
+          rating?: number | null
+          rating_count?: number | null
           servings?: number | null
           title?: string
+          total_time?: number | null
           updated_at?: string
           user_id?: string | null
         }
@@ -399,6 +444,35 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "daily_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          recipe_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          recipe_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          recipe_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
         ]
