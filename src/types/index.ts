@@ -1,44 +1,19 @@
+// src/types/index.ts (or wherever your main interfaces are defined)
 
+// --- IMPORTANT: ADD OR UPDATE THESE INTERFACES ---
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  preferences: {
-    dietary: string[];
-    allergies: string[];
-  };
-  dietaryPreferences?: string[];
-  cuisinePreferences?: string[];
-  allergies?: string[];
-  chefAvatar?: string;
-  nutritionalGoals?: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
-}
-
-export interface PantryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  category: string;
-  location?: string;
-  expiryDate?: string;
-}
-
-export interface Ingredient {
-  id: string;
-  name: string;
-  amount: string;
-  unit: string;
-  category: string;
-  inPantry?: boolean;
-  quantity?: number;
+export interface ScanHistoryItem {
+  // Add properties based on the errors in ScanDishComponent/ScanDishPage
+  id: string; // TS2339 error
+  name: string; // TS2339 error
+  calories: number; // TS2339 error
+  protein: number;  // TS2339 error
+  carbs: number;    // TS2339 error
+  fat: number;      // TS2339 error
+  // Add other properties that are part of your scanned dish history
+  timestamp: string; // e.g., ISO string
+  image: string;     // URL to the scanned dish image
+  // ... any other properties your actual ScanHistoryItem object might have
 }
 
 export interface Recipe {
@@ -49,41 +24,34 @@ export interface Recipe {
   prepTime: number;
   cookTime: number;
   servings: number;
-  difficulty: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
   calories: number;
+  protein: number; // TS2339 error for recipeService.ts
+  carbs: number;   // TS2339 error for recipeService.ts
+  fat: number;     // TS2339 error for recipeService.ts
   rating: number;
   ratingCount: number;
-  cuisineType?: string;
-  ingredients: Ingredient[];
+  ingredients: Array<{ name: string; quantity: number; unit: string; }>;
   instructions: string[];
   categories: string[];
   tags: string[];
   isFavorite: boolean;
-  tips?: string[];
-  nutritionalInfo?: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-    sugar?: number;
-  };
+  // NEW: Add stepImages property for CookingMode.tsx errors
+  stepImages?: { [key: number]: string }; // Map of step number to image URL
+  // Or if it's just an array of URLs for main steps: stepImages?: string[];
+  // Choose the type that best represents your step images. { [key: number]: string } is more flexible.
+  // ... any other properties your actual Recipe object might have
 }
 
-export interface Meal {
-  id: string;
-  type: string;
+// Ensure this interface exists, likely near your CookingMode component or in types/index.ts
+export interface CookingModeProps {
   recipe: Recipe;
-  scheduledTime?: string;
+  onClose: () => void;
+  isPremiumUser: boolean; // ADD THIS PROPERTY for RecipeDetailPage.tsx error
+  // ... any other existing props for CookingMode
 }
 
-export interface MealPlan {
-  id: string;
-  date: string;
-  meals: Meal[];
-  totalCalories?: number;
-  totalProtein?: number;
-  totalCarbs?: number;
-  totalFat?: number;
-}
-
+// --- OPTIONAL: If your ToastVariant is not in use-toast.ts but in a central types file ---
+// This type is usually defined by shadcn-ui in components/ui/use-toast.ts or components/ui/toast.ts
+// If it's in a central types file, add 'success' here:
+export type ToastVariant = "link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "success"; // ADD "success"
