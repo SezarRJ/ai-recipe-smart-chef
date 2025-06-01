@@ -39,16 +39,31 @@ const AIChefAssistant: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    const response = await askAIChef(input);
+    try {
+      console.log('Sending message to AI Chef:', input);
+      const response = await askAIChef(input);
+      console.log('AI Chef response:', response);
 
-    const aiMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: response.response,
-      isUser: false,
-      timestamp: new Date(),
-    };
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: response.response || 'Sorry, I encountered an error processing your request.',
+        isUser: false,
+        timestamp: new Date(),
+      };
 
-    setMessages(prev => [...prev, aiMessage]);
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error communicating with AI Chef:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Sorry, I\'m having trouble right now. Please check that your OpenAI API key is configured properly and try again.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
