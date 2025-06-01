@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -42,14 +41,14 @@ const CookingMode = () => {
           "Serve immediately or chill for up to 2 hours before serving"
         ],
         ingredients: [
-          { name: "Chickpeas", amount: 2, unit: "cans" },
-          { name: "Cucumber", amount: 1, unit: "large" },
-          { name: "Tomatoes", amount: 2, unit: "medium" },
-          { name: "Red onion", amount: 0.5, unit: "small" },
-          { name: "Olive oil", amount: 3, unit: "tablespoons" },
-          { name: "Lemon juice", amount: 2, unit: "tablespoons" },
-          { name: "Feta cheese", amount: 100, unit: "grams" },
-          { name: "Fresh parsley", amount: 0.25, unit: "cup" }
+          { name: "Chickpeas", quantity: 2, unit: "cans" },
+          { name: "Cucumber", quantity: 1, unit: "large" },
+          { name: "Tomatoes", quantity: 2, unit: "medium" },
+          { name: "Red onion", quantity: 0.5, unit: "small" },
+          { name: "Olive oil", quantity: 3, unit: "tablespoons" },
+          { name: "Lemon juice", quantity: 2, unit: "tablespoons" },
+          { name: "Feta cheese", quantity: 100, unit: "grams" },
+          { name: "Fresh parsley", quantity: 0.25, unit: "cup" }
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
