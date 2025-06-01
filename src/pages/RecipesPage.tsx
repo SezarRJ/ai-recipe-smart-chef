@@ -31,10 +31,6 @@ export default function RecipesPage() {
     setSelectedCategory(category);
   };
 
-  const handleRecipeClick = (recipe: Recipe) => {
-    console.log('Recipe clicked:', recipe);
-  };
-
   return (
     <PageContainer 
       header={{ 
@@ -62,7 +58,6 @@ export default function RecipesPage() {
 
         <RecipeGrid 
           recipes={filteredRecipes}
-          onRecipeClick={handleRecipeClick}
           columns={2}
           cardSize="medium"
         />
