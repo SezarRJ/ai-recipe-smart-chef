@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, X, Loader2 } from 'lucide-react';
-import { MobileHeader } from '@/components/MobileHeader';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
@@ -103,8 +104,6 @@ export default function FindByIngredients() {
     console.log('=== TEST COMPLETE ===');
   };
 
-
-
   const handleIngredientToggle = (ingredient: string) => {
     setSelectedIngredients(prev =>
       prev.includes(ingredient)
@@ -146,6 +145,9 @@ Format each recipe as:
   "servings": 4,
   "cuisine_type": "International",
   "calories": 350,
+  "protein": 25,
+  "carbs": 30,
+  "fat": 15,
   "ingredients": [
     {"name": "ingredient", "amount": 1, "unit": "cup"}
   ],
@@ -323,6 +325,9 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
           servings: 4,
           cuisine_type: cuisineType,
           calories: Math.floor(Math.random() * 200) + 250,
+          protein: Math.floor(Math.random() * 20) + 15,
+          carbs: Math.floor(Math.random() * 30) + 20,
+          fat: Math.floor(Math.random() * 15) + 10,
           ingredients: selectedIngredients.map(ing => ({
             name: ing,
             amount: getSmartAmount(ing),
@@ -377,43 +382,46 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
       }
 
       // Step 3: Format AI recipes to match our Recipe interface
-      const formattedRecipes = aiRecipes.map((recipe: any, index: number) => ({
+      const formattedRecipes: Recipe[] = aiRecipes.map((recipe: any, index: number) => ({
         id: `ai-recipe-${Date.now()}-${index}`,
         title: recipe.title || `Recipe with ${selectedIngredients.join(', ')}`,
         description: recipe.description || `A recipe using ${selectedIngredients.join(', ')}`,
         image_url: '', // AI doesn't generate images
         image: '', // Required by Recipe interface
         prep_time: recipe.prep_time || 15,
-        prepTime: recipe.prep_time || 15, // Required by Recipe interface
-        cook_time: recipe.cook_time || recipe.cooking_time || 30,
-        cookTime: recipe.cook_time || recipe.cooking_time || 30, // Required by Recipe interface
+        cooking_time: recipe.cook_time || recipe.cooking_time || 30,
+        total_time: (recipe.prep_time || 15) + (recipe.cook_time || recipe.cooking_time || 30),
         servings: recipe.servings || 4,
-        difficulty: recipe.difficulty || 'Medium',
+        difficulty: recipe.difficulty || 'Medium' as 'Easy' | 'Medium' | 'Hard',
         calories: recipe.calories || 300,
+        protein: recipe.protein || Math.floor(Math.random() * 20) + 15,
+        carbs: recipe.carbs || Math.floor(Math.random() * 30) + 20,
+        fat: recipe.fat || Math.floor(Math.random() * 15) + 10,
+        rating: 0,
+        rating_count: 0,
         cuisine_type: recipe.cuisine_type || 'International',
         instructions: Array.isArray(recipe.instructions) ? recipe.instructions : 
                      (recipe.instructions ? [recipe.instructions] : ['Follow recipe steps']),
         categories: [],
         tags: ['AI Generated'],
-        status: 'published' as const,
-        author_id: 'ai-chef',
-        is_verified: true,
+        isFavorite: false,
+        is_published: true,
+        is_public: true,
+        user_id: 'ai-chef',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        rating: 0,
-        ratingCount: 0,
-        isFavorite: false, // Required by Recipe interface
+        is_verified: true,
         ingredients: Array.isArray(recipe.ingredients) ? 
           recipe.ingredients.map((ing: any) => ({
             id: `ing-${Math.random()}`,
             name: typeof ing === 'string' ? ing : (ing.name || ing.ingredient || 'Unknown'),
-            amount: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
+            quantity: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
             unit: typeof ing === 'object' ? (ing.unit || 'cup') : 'cup'
           })) : 
           selectedIngredients.map(ing => ({
             id: `ing-${Math.random()}`,
             name: ing,
-            amount: 1,
+            quantity: 1,
             unit: 'cup'
           }))
       }));
@@ -435,19 +443,23 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
       console.error('Error in AI recipe search:', error);
       
       // Fallback: Create a simple recipe suggestion
-      const fallbackRecipe = {
+      const fallbackRecipe: Recipe = {
         id: `fallback-recipe-${Date.now()}`,
         title: `Creative Recipe with ${selectedIngredients.slice(0, 2).join(' & ')}`,
         description: `A delicious combination using ${selectedIngredients.join(', ')}. This AI-suggested recipe combines these ingredients in a tasty way.`,
         image_url: '',
-        image: '', // Required by Recipe interface
+        image: '',
         prep_time: 15,
-        prepTime: 15, // Required by Recipe interface
-        cook_time: 25,
-        cookTime: 25, // Required by Recipe interface
+        cooking_time: 25,
+        total_time: 40,
         servings: 4,
         difficulty: 'Medium' as const,
         calories: 320,
+        protein: 20,
+        carbs: 25,
+        fat: 12,
+        rating: 0,
+        rating_count: 0,
         cuisine_type: 'Fusion',
         instructions: [
           'Prepare and wash all ingredients',
@@ -459,18 +471,17 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
         ],
         categories: [],
         tags: ['AI Generated', 'Creative'],
-        status: 'published' as const,
-        author_id: 'ai-chef',
-        is_verified: true,
+        isFavorite: false,
+        is_published: true,
+        is_public: true,
+        user_id: 'ai-chef',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        rating: 0,
-        ratingCount: 0,
-        isFavorite: false, // Required by Recipe interface
+        is_verified: true,
         ingredients: selectedIngredients.map(ing => ({
           id: `ing-${Math.random()}`,
           name: ing,
-          amount: 1,
+          quantity: 1,
           unit: 'cup'
         }))
       };

@@ -1,3 +1,4 @@
+
 import React, { useState, ElementType } from 'react';
 import {
   Utensils, Cake, Coffee, Camera, Mic, Soup, Salad, Egg, Milk, Drumstick,
@@ -238,6 +239,9 @@ Format each recipe as:
   "servings": 4,
   "cuisine_type": "International",
   "calories": 350,
+  "protein": 25,
+  "carbs": 30,
+  "fat": 15,
   "ingredients": [
     {"name": "ingredient", "amount": 1, "unit": "cup"}
   ],
@@ -303,6 +307,9 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
               servings: 4,
               cuisine_type: 'Fusion',
               calories: 320,
+              protein: 20,
+              carbs: 25,
+              fat: 12,
               instructions: [
                 'Prepare and wash all ingredients',
                 'Heat oil in a large pan',
@@ -320,43 +327,46 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
           ];
         }
 
-        results = aiRecipes.map((recipe: any, index: number) => ({
+        results = aiRecipes.map((recipe: any, index: number): Recipe => ({
           id: `ai-recipe-${Date.now()}-${index}`,
           title: recipe.title || `Recipe with ${ingredientNames.join(', ')}`,
           description: recipe.description || `A recipe using ${ingredientNames.join(', ')}`,
           image_url: '',
           image: '',
           prep_time: recipe.prep_time || 15,
-          prepTime: recipe.prep_time || 15,
-          cook_time: recipe.cook_time || recipe.cooking_time || 30,
-          cookTime: recipe.cook_time || recipe.cooking_time || 30,
+          cooking_time: recipe.cook_time || recipe.cooking_time || 30,
+          total_time: (recipe.prep_time || 15) + (recipe.cook_time || recipe.cooking_time || 30),
           servings: recipe.servings || 4,
-          difficulty: recipe.difficulty || 'Medium',
+          difficulty: recipe.difficulty || 'Medium' as 'Easy' | 'Medium' | 'Hard',
           calories: recipe.calories || 300,
-          cuisine_type: recipe.cuisine_type || 'International',
+          protein: recipe.protein || Math.floor(Math.random() * 20) + 15,
+          carbs: recipe.carbs || Math.floor(Math.random() * 30) + 20,
+          fat: recipe.fat || Math.floor(Math.random() * 15) + 10,
+          rating: 0,
+          rating_count: 0,
           instructions: Array.isArray(recipe.instructions) ? recipe.instructions :
             (recipe.instructions ? [recipe.instructions] : ['Follow recipe steps']),
           categories: [],
           tags: ['AI Generated'],
-          status: 'published' as const,
+          isFavorite: false,
+          is_published: true,
+          is_public: true,
+          user_id: 'ai-chef',
           author_id: 'ai-chef',
-          is_verified: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          rating: 0,
-          ratingCount: 0,
-          isFavorite: false,
+          is_verified: true,
           ingredients: Array.isArray(recipe.ingredients) ?
             recipe.ingredients.map((ing: any) => ({
               id: `ing-${Math.random()}`,
               name: typeof ing === 'string' ? ing : (ing.name || ing.ingredient || 'Unknown'),
-              amount: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
+              quantity: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
               unit: typeof ing === 'object' ? (ing.unit || 'cup') : 'cup'
             })) :
             ingredientNames.map(ing => ({
               id: `ing-${Math.random()}`,
               name: ing,
-              amount: 1,
+              quantity: 1,
               unit: 'cup'
             }))
         }));
@@ -415,8 +425,7 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
       <PageContainer
         header={{
           title: t('search.results') || 'Search Results',
-          showBackButton: true,
-          onBack: () => setShowResults(false)
+          showBackButton: true
         }}
         className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
       >
@@ -429,7 +438,7 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
               {t('search.withIngredients') || 'Recipes using your selected ingredients'}
             </p>
           </div>
-          <RecipeGrid recipes={searchResults} missingIngredients={false} />
+          <RecipeGrid recipes={searchResults} />
           {searchResults.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
