@@ -91,6 +91,13 @@ import AdminSharedRecipeModeration from "./pages/admin/AdminSharedRecipeModerati
 import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
 import AdminTicketSystem from './pages/admin/AdminTicketSystem';
 
+// Admin pages
+import IngredientsManagement from '@/pages/admin/IngredientsManagement';
+import MaintenancePage from '@/pages/admin/MaintenancePage';
+import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
+import CommunityPage from '@/pages/admin/CommunityPage';
+import NotificationsPage from '@/pages/admin/NotificationsPage';
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -215,6 +222,11 @@ function App() {
                               <Route path="recipe-approval" element={<AdminRecipeApproval />} />
                               <Route path="shared-recipes" element={<AdminSharedRecipeModeration />} />
                               <Route path="tickets" element={<AdminTicketSystem />} />
+                              <Route path="ingredients" element={<IngredientsManagement />} />
+                              <Route path="maintenance" element={<MaintenancePage />} />
+                              <Route path="support" element={<SupportTicketsPage />} />
+                              <Route path="community" element={<CommunityPage />} />
+                              <Route path="notifications" element={<NotificationsPage />} />
                             </Route>
                             <Route path="*" element={<NotFound />} />
                           </Routes>

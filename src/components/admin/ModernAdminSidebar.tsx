@@ -54,6 +54,9 @@ const businessItems: SidebarItem[] = [
   { title: 'Rewards', href: '/admin/rewards', icon: Gift },
   { title: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { title: 'Communications', href: '/admin/communications', icon: MessageCircle },
+  { title: 'Support Tickets', href: '/admin/support', icon: MessageCircle },
+  { title: 'Community', href: '/admin/community', icon: Users },
+  { title: 'Notifications', href: '/admin/notifications', icon: MessageCircle },
 ];
 
 const systemItems: SidebarItem[] = [

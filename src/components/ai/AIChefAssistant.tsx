@@ -1,27 +1,27 @@
 
 import React, { useState } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2, Send, Bot, User } from 'lucide-react';
 import { useAIChef } from '@/hooks/useAIChef';
 
 interface Message {
   id: string;
   content: string;
-  isUser: boolean;
+  role: 'user' | 'assistant';
   timestamp: Date;
 }
 
-const AIChefAssistant: React.FC = () => {
+export default function AIChefAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hi! I\'m your AI Chef Assistant. Ask me anything about cooking, recipes, or ingredients!',
-      isUser: false,
-      timestamp: new Date(),
-    },
+      content: 'Hello! I\'m your AI Chef Assistant. Ask me anything about cooking, recipes, ingredients, or culinary techniques!',
+      role: 'assistant',
+      timestamp: new Date()
+    }
   ]);
   const [input, setInput] = useState('');
   const { askAIChef, isLoading } = useAIChef();
@@ -32,34 +32,30 @@ const AIChefAssistant: React.FC = () => {
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
-      isUser: true,
-      timestamp: new Date(),
+      role: 'user',
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
     try {
-      console.log('Sending message to AI Chef:', input);
       const response = await askAIChef(input);
-      console.log('AI Chef response:', response);
-
-      const aiMessage: Message = {
+      
+      const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: response.response || 'Sorry, I encountered an error processing your request.',
-        isUser: false,
-        timestamp: new Date(),
+        content: response.response,
+        role: 'assistant',
+        timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error communicating with AI Chef:', error);
-      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: 'Sorry, I\'m having trouble right now. Please check that your OpenAI API key is configured properly and try again.',
-        isUser: false,
-        timestamp: new Date(),
+        content: 'Sorry, I encountered an error. Please try again later.',
+        role: 'assistant',
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, errorMessage]);
@@ -81,63 +77,58 @@ const AIChefAssistant: React.FC = () => {
           AI Chef Assistant
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4">
+      <CardContent className="flex-1 flex flex-col gap-4 p-4">
+        <ScrollArea className="flex-1 pr-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.isUser
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {!message.isUser && <Bot className="h-4 w-4 mt-0.5" />}
-                    {message.isUser && <User className="h-4 w-4 mt-0.5" />}
-                    <div className="flex-1">
-                      <p className="text-sm">{message.content}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
-                      </p>
-                    </div>
+                <div className={`flex gap-3 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    message.role === 'user' ? 'bg-blue-500' : 'bg-green-500'
+                  }`}>
+                    {message.role === 'user' ? (
+                      <User className="h-4 w-4 text-white" />
+                    ) : (
+                      <Bot className="h-4 w-4 text-white" />
+                    )}
+                  </div>
+                  <div className={`rounded-lg p-3 ${
+                    message.role === 'user' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-100 text-gray-900'
+                  }`}>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {message.timestamp.toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
               </div>
             ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-muted rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Thinking...</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </ScrollArea>
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me about cooking..."
-              disabled={isLoading}
-            />
-            <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
+        
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me anything about cooking..."
+            disabled={isLoading}
+            className="flex-1"
+          />
+          <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
               <Send className="h-4 w-4" />
-            </Button>
-          </div>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
   );
-};
-
-export default AIChefAssistant;
+}
