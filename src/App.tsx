@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -91,12 +92,12 @@ import AdminSharedRecipeModeration from "./pages/admin/AdminSharedRecipeModerati
 import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
 import AdminTicketSystem from './pages/admin/AdminTicketSystem';
 
-// Admin pages
+// Admin pages with aliases to avoid conflicts
 import IngredientsManagement from '@/pages/admin/IngredientsManagement';
 import MaintenancePage from '@/pages/admin/MaintenancePage';
 import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
-import CommunityPage from '@/pages/admin/CommunityPage';
-import NotificationsPage from '@/pages/admin/NotificationsPage';
+import AdminCommunityPage from '@/pages/admin/CommunityPage';
+import AdminNotificationsPage from '@/pages/admin/NotificationsPage';
 
 const queryClient = new QueryClient();
 
@@ -175,7 +176,7 @@ function App() {
                                 </AdminAuthGuard>
                               } />
                               <Route path="recipes" element={<AdminRecipes />} />
-                              <Route path="ingredients" element={<div className="p-6"><h2 className="text-2xl font-bold mb-4">Admin Ingredients</h2><p>Ingredients management coming soon...</p></div>} />
+                              <Route path="ingredients" element={<IngredientsManagement />} />
                               <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
                               <Route path="translations" element={<AdminTranslationsManager />} />
                               <Route path="content-library" element={<AdminContentLibrary />} />
@@ -209,7 +210,7 @@ function App() {
                               } />
                               <Route path="maintenance" element={
                                 <AdminAuthGuard requireSuperAdmin={true}>
-                                  <div className="p-6"><h2 className="text-2xl font-bold mb-4">Admin Maintenance</h2><p>Maintenance tools coming soon...</p></div>
+                                  <MaintenancePage />
                                 </AdminAuthGuard>
                               } />
                               <Route path="settings" element={
@@ -217,16 +218,13 @@ function App() {
                                   <AdminSettingsPage />
                                 </AdminAuthGuard>
                               } />
-                              <Route path="notifications" element={<AdminNotificationSystem />} />
+                              <Route path="notifications" element={<AdminNotificationsPage />} />
                               <Route path="advertisements" element={<AdminAdvertisementManager />} />
                               <Route path="recipe-approval" element={<AdminRecipeApproval />} />
                               <Route path="shared-recipes" element={<AdminSharedRecipeModeration />} />
                               <Route path="tickets" element={<AdminTicketSystem />} />
-                              <Route path="ingredients" element={<IngredientsManagement />} />
-                              <Route path="maintenance" element={<MaintenancePage />} />
                               <Route path="support" element={<SupportTicketsPage />} />
-                              <Route path="community" element={<CommunityPage />} />
-                              <Route path="notifications" element={<NotificationsPage />} />
+                              <Route path="community" element={<AdminCommunityPage />} />
                             </Route>
                             <Route path="*" element={<NotFound />} />
                           </Routes>
