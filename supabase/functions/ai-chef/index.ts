@@ -1,46 +1,33 @@
 
-import "https://deno.land/x/xhr@0.1.0/mod.ts"
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { message, context } = await req.json()
+    console.log('=== AI Chef Function Started ===');
     
-    if (!message) {
-      throw new Error('No message provided')
-    }
-
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured')
+      console.error('OpenAI API key not configured');
+      throw new Error('OpenAI API key not configured');
     }
 
-    // Create a system prompt for the AI chef
-    const systemPrompt = `You are WasfahAI, an expert culinary assistant specialized in Middle Eastern and international cuisine. You help users with:
+    const { query, context } = await req.json();
+    console.log('AI Chef request:', { query: query?.substring(0, 100), context });
 
-1. Recipe recommendations based on available ingredients
-2. Cooking techniques and tips
-3. Ingredient substitutions
-4. Meal planning suggestions
-5. Dietary accommodations (halal, vegetarian, gluten-free, etc.)
-6. Cultural cooking traditions
+    if (!query) {
+      throw new Error('Query is required');
+    }
 
-Be helpful, knowledgeable, and encouraging. Always consider Middle Eastern preferences while being inclusive of international cuisines. Provide practical, actionable advice.
-
-${context ? `Additional context: ${context}` : ''}`
-
-    // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -48,64 +35,45 @@ ${context ? `Additional context: ${context}` : ''}`
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o-mini',
         messages: [
-          {
-            role: 'system',
-            content: systemPrompt
+          { 
+            role: 'system', 
+            content: 'You are a professional chef AI assistant. Always respond with valid JSON when asked for recipes, otherwise respond naturally.'
           },
-          {
-            role: 'user',
-            content: message
-          }
+          { role: 'user', content: query }
         ],
         temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: 3000,
       }),
-    })
+    });
 
     if (!response.ok) {
-      const errorData = await response.text()
-      throw new Error(`OpenAI API error: ${errorData}`)
+      console.error(`OpenAI API error: ${response.status}`);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
-    const data = await response.json()
-    const aiResponse = data.choices[0]?.message?.content
+    const data = await response.json();
+    const responseContent = data.choices[0].message.content.trim();
+    
+    console.log('AI Chef response received');
 
-    if (!aiResponse) {
-      throw new Error('No response from AI')
-    }
-
-    console.log('AI Chef response generated successfully')
-
-    return new Response(
-      JSON.stringify({ 
-        response: aiResponse,
-        timestamp: new Date().toISOString()
-      }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
-    )
+    return new Response(JSON.stringify({ 
+      response: responseContent,
+      type: context?.requestType || 'general'
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (error) {
-    console.error('AI Chef error:', error.message)
+    console.error('AI Chef error:', error.message);
     
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        timestamp: new Date().toISOString()
-      }),
-      {
-        status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        },
-      }
-    )
+    return new Response(JSON.stringify({ 
+      response: `I'm experiencing technical difficulties. Please try again later. Error: ${error.message}`,
+      type: 'error'
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
-})
+});
