@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PantryItem } from '@/types/index';
 
 export default function PantryPage() {
-  _s();
   const [activeTab, setActiveTab] = useState('all');
   const { pantryItems, loading, addPantryItem, deletePantryItem } = usePantry();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -163,7 +162,6 @@ export default function PantryPage() {
                   <PantryItemCard
                     key={item.id}
                     item={item}
-                    onUpdate={(id, updates) => console.log('Update item:', id, updates)}
                     onDelete={() => deletePantryItem(item.id)}
                   />
                 ))
@@ -178,7 +176,6 @@ export default function PantryPage() {
                   <PantryItemCard
                     key={item.id}
                     item={item}
-                    onUpdate={(id, updates) => console.log('Update item:', id, updates)}
                     onDelete={() => deletePantryItem(item.id)}
                   />
                 ))}
@@ -196,11 +193,10 @@ export default function PantryPage() {
                 <div key={category}>
                   <h3 className="font-bold mb-2 text-wasfah-deep-teal">{category}</h3>
                   <div className="space-y-3">
-                    {items.map((item) => (
+                    {Array.isArray(items) && items.map((item) => (
                       <PantryItemCard
                         key={item.id}
                         item={item}
-                        onUpdate={(id, updates) => console.log('Update item:', id, updates)}
                         onDelete={() => deletePantryItem(item.id)}
                       />
                     ))}

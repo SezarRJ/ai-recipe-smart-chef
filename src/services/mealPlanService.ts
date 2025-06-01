@@ -5,18 +5,6 @@ export const mealPlanService = {
   getMealPlan: async (date: string): Promise<MealPlan | null> => {
     console.log('Fetching meal plan for date:', date);
     
-    // Mock meal plan data
-    const mealPlan: MealPlan = {
-      id: `meal-plan-${date}`,
-      user_id: 'mock-user-id',
-      date: date,
-      meals: [],
-      total_calories: 0,
-      total_protein: 0,
-      total_carbs: 0,
-      total_fat: 0
-    };
-
     const mockMeals: Meal[] = [
       {
         id: 'meal-1',
@@ -34,14 +22,19 @@ export const mealPlanService = {
       }
     ];
 
-    return {
-      ...mealPlan,
+    // Mock meal plan data
+    const mealPlan: MealPlan = {
+      id: `meal-plan-${date}`,
+      user_id: 'mock-user-id',
+      date: date,
       meals: mockMeals,
       total_calories: mockMeals.reduce((sum, meal) => sum + meal.recipe.calories, 0),
       total_protein: mockMeals.reduce((sum, meal) => sum + meal.recipe.protein, 0),
       total_carbs: mockMeals.reduce((sum, meal) => sum + meal.recipe.carbs, 0),
       total_fat: mockMeals.reduce((sum, meal) => sum + meal.recipe.fat, 0)
     };
+
+    return mealPlan;
   },
 
   addMealToPlan: async (date: string, mealType: string, recipeId: string): Promise<boolean> => {

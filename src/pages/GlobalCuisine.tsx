@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -172,9 +173,9 @@ const GlobalCuisinePage = () => {
     servings: recipe.servings,
     difficulty: 'Medium' as const,
     calories: recipe.nutrition?.calories || 300,
-    protein: recipe.nutrition?.protein || 20, // Add missing protein
-    carbs: recipe.nutrition?.carbohydrates || 30, // Add missing carbs
-    fat: recipe.nutrition?.fat || 10, // Add missing fat
+    protein: Number(recipe.nutrition?.protein) || 20, // Ensure it's a number
+    carbs: Number(recipe.nutrition?.carbohydrates) || 30, // Ensure it's a number
+    fat: Number(recipe.nutrition?.fat) || 10, // Ensure it's a number
     cuisine_type: recipe.cuisines?.[0] || '',
     instructions: recipe.instructions?.replace(/<[^>]*>/g, '').split('.').filter(s => s.trim()).map(s => s.trim()) || [],
     categories: recipe.cuisines || [],

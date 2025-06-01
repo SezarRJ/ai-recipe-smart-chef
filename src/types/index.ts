@@ -49,6 +49,7 @@ export interface Recipe {
   is_published?: boolean;
   is_public?: boolean;
   user_id?: string;
+  author_id?: string; // For compatibility
   created_at?: string;
   updated_at?: string;
   cuisine_type?: string;
@@ -106,6 +107,7 @@ export interface Meal {
   type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
   recipe: Recipe;
   scheduled_for: string;
+  notes?: string; // Add optional notes field
 }
 
 export interface MealPlan {
