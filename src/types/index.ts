@@ -20,8 +20,11 @@ export interface Recipe {
   title: string;
   description: string;
   image: string;
+  image_url?: string; // For compatibility
   prep_time: number;
   cooking_time: number;
+  cook_time?: number; // For compatibility
+  total_time?: number;
   servings: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   calories: number;
@@ -30,7 +33,14 @@ export interface Recipe {
   fat: number;
   rating: number;
   rating_count: number;
-  ingredients: Array<{ id?: string; name: string; quantity: number; unit: string; }>;
+  ingredients: Array<{ 
+    id?: string; 
+    name: string; 
+    quantity: number; 
+    unit: string;
+    amount?: number; // For compatibility
+    inPantry?: boolean; // For compatibility
+  }>;
   instructions: string[];
   categories: string[];
   tags: string[];
@@ -41,11 +51,16 @@ export interface Recipe {
   user_id?: string;
   created_at?: string;
   updated_at?: string;
+  cuisine_type?: string;
+  tips?: string[];
+  category_id?: string;
+  is_verified?: boolean;
 }
 
 export interface CookingModeProps {
   recipe: Recipe;
   onClose: () => void;
+  isPremiumUser?: boolean;
 }
 
 export interface PantryItem {
@@ -72,12 +87,18 @@ export interface User {
   id: string;
   email: string;
   full_name: string;
+  name?: string; // For compatibility
   avatar_url?: string;
   bio?: string;
   dietary_preferences?: string[];
+  dietaryPreferences?: string[]; // For compatibility
   cuisine_preferences?: string[];
+  cuisinePreferences?: string[]; // For compatibility
   allergies?: string[];
   nutritional_goals?: any;
+  nutritionalGoals?: any; // For compatibility
+  chef_avatar?: string;
+  chefAvatar?: string; // For compatibility
 }
 
 export interface Meal {
@@ -99,3 +120,22 @@ export interface MealPlan {
 }
 
 export type ToastVariant = "link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "success";
+
+// New interfaces for community moderation
+export interface SharedRecipe extends Recipe {
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_by: string;
+  submitted_at: string;
+  moderated_by?: string;
+  moderated_at?: string;
+  moderation_notes?: string;
+}
+
+export interface ModerationAction {
+  id: string;
+  recipe_id: string;
+  action: 'approve' | 'reject';
+  moderator_id: string;
+  notes?: string;
+  timestamp: string;
+}

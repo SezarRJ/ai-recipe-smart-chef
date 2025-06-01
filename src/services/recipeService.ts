@@ -50,8 +50,11 @@ export const recipeService = {
         title: recipe.title,
         description: recipe.description || '',
         image: recipe.image_url || '',
+        image_url: recipe.image_url || '',
         prep_time: recipe.prep_time || 0,
         cooking_time: recipe.cooking_time || 0,
+        cook_time: recipe.cooking_time || 0, // For compatibility
+        total_time: (recipe.prep_time || 0) + (recipe.cooking_time || 0),
         servings: recipe.servings || 1,
         difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard' || 'Easy',
         calories: recipe.calories || 0,
@@ -64,7 +67,8 @@ export const recipeService = {
           id: ri.id,
           name: ri.ingredients?.name || '',
           quantity: ri.quantity || 0,
-          unit: ri.unit || ''
+          unit: ri.unit || '',
+          amount: ri.quantity || 0, // For compatibility
         })) || [],
         instructions: Array.isArray(recipe.instructions) ? recipe.instructions : [],
         categories: recipe.recipe_categories ? [recipe.recipe_categories.name] : [],
@@ -74,7 +78,10 @@ export const recipeService = {
         is_public: recipe.is_public,
         user_id: recipe.user_id,
         created_at: recipe.created_at,
-        updated_at: recipe.updated_at
+        updated_at: recipe.updated_at,
+        cuisine_type: recipe.cuisine_type,
+        category_id: recipe.category_id,
+        is_verified: recipe.is_verified
       })) || [];
     } catch (error) {
       console.error('Error fetching recipes:', error);
@@ -106,8 +113,11 @@ export const recipeService = {
         title: data.title,
         description: data.description || '',
         image: data.image_url || '',
+        image_url: data.image_url || '',
         prep_time: data.prep_time || 0,
         cooking_time: data.cooking_time || 0,
+        cook_time: data.cooking_time || 0,
+        total_time: (data.prep_time || 0) + (data.cooking_time || 0),
         servings: data.servings || 1,
         difficulty: data.difficulty as 'Easy' | 'Medium' | 'Hard' || 'Easy',
         calories: data.calories || 0,
@@ -120,7 +130,8 @@ export const recipeService = {
           id: ri.id,
           name: ri.ingredients?.name || '',
           quantity: ri.quantity || 0,
-          unit: ri.unit || ''
+          unit: ri.unit || '',
+          amount: ri.quantity || 0,
         })) || [],
         instructions: Array.isArray(data.instructions) ? data.instructions : [],
         categories: data.recipe_categories ? [data.recipe_categories.name] : [],
@@ -130,7 +141,10 @@ export const recipeService = {
         is_public: data.is_public,
         user_id: data.user_id,
         created_at: data.created_at,
-        updated_at: data.updated_at
+        updated_at: data.updated_at,
+        cuisine_type: data.cuisine_type,
+        category_id: data.category_id,
+        is_verified: data.is_verified
       };
     } catch (error) {
       console.error('Error fetching recipe by ID:', error);
@@ -145,7 +159,7 @@ export const recipeService = {
         .insert({
           title: recipe.title,
           description: recipe.description,
-          image_url: recipe.image,
+          image_url: recipe.image || recipe.image_url,
           prep_time: recipe.prep_time,
           cooking_time: recipe.cooking_time,
           servings: recipe.servings,
@@ -177,7 +191,7 @@ export const recipeService = {
         .update({
           title: updates.title,
           description: updates.description,
-          image_url: updates.image,
+          image_url: updates.image || updates.image_url,
           prep_time: updates.prep_time,
           cooking_time: updates.cooking_time,
           servings: updates.servings,
@@ -248,7 +262,7 @@ export const recipeService = {
     return recipeService.getRecipes();
   },
 
-  getUserPantryItems: async (userId: string) => {
+  getUserPantryItems: async (userId?: string) => {
     // Mock pantry items for now
     return [];
   },
