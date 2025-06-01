@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -61,6 +60,7 @@ import CookingMode from './pages/CookingMode';
 import CookingHistory from './pages/CookingHistory';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import AiChefPage from "./pages/AiChefPage";
 
 // Admin pages
 import AdminPage from "./pages/AdminPage";
@@ -162,6 +162,7 @@ function App() {
                             <Route path="/shopping-list" element={<ShoppingListPage />} />
                             <Route path="/terms-of-service" element={<TermsOfService />} />
                             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                            <Route path="/ai-chef" element={<AiChefPage />} />
                             <Route path="/admin/login" element={<AdminLoginPage />} />
                             <Route path="/admin" element={
                               <AdminAuthGuard>

@@ -1,166 +1,44 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-export interface User {
-  id: string;
-  email: string;
-  full_name?: string;
-  avatar_url?: string;
-  role?: 'user' | 'admin' | 'super_admin';
-}
+import { User } from '@supabase/supabase-js';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const checkUser = async () => {
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      
-      if (authUser) {
-        // Get user role
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', authUser.id)
-          .single();
-
-        // Get profile data
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('full_name, avatar_url')
-          .eq('user_id', authUser.id)
-          .single();
-
-        // Ensure role is one of the expected values
-        const validRoles = ['user', 'admin', 'super_admin'] as const;
-        const userRole = validRoles.includes(roleData?.role as any) ? roleData.role as 'user' | 'admin' | 'super_admin' : 'user';
-
-        setUser({
-          id: authUser.id,
-          email: authUser.email!,
-          full_name: profileData?.full_name || undefined,
-          avatar_url: profileData?.avatar_url || undefined,
-          role: userRole
-        });
-      } else {
-        setUser(null);
-      }
-    } catch (err: any) {
-      setError(err.message);
-      console.error('Error checking user:', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully signed in.'
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Sign in failed',
-        description: err.message,
-        variant: 'destructive'
-      });
-      throw err;
-    }
-  };
-
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Account created!',
-        description: 'Please check your email to verify your account.'
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Sign up failed',
-        description: err.message,
-        variant: 'destructive'
-      });
-      throw err;
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      setUser(null);
-      toast({
-        title: 'Signed out',
-        description: 'You have been successfully signed out.'
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Sign out failed',
-        description: err.message,
-        variant: 'destructive'
-      });
-      throw err;
-    }
-  };
-
-  const hasRole = (role: 'admin' | 'super_admin') => {
-    if (!user) return false;
-    if (role === 'admin') {
-      return user.role === 'admin' || user.role === 'super_admin';
-    }
-    return user.role === role;
-  };
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    checkUser();
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session?.user);
+      setLoading(false);
+    };
 
+    getInitialSession();
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          checkUser();
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
+      async (event, session) => {
+        setUser(session?.user ?? null);
+        setIsAuthenticated(!!session?.user);
+        setLoading(false);
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return {
     user,
     loading,
-    error,
-    signIn,
-    signUp,
-    signOut,
-    hasRole,
-    isAuthenticated: !!user
+    isAuthenticated,
+    signOut
   };
 };

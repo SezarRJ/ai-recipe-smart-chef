@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,9 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   ExternalLink, Settings, Key, Database, 
   Globe, Zap, Shield, CheckCircle, X,
-  Cpu, Link, Code, Webhook
+  Cpu, Link, Code, Webhook, Plus
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface Integration {
   id: string;
@@ -73,6 +75,14 @@ export default function AdminIntegrationsManager() {
   const { toast } = useToast();
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [integrationList, setIntegrationList] = useState(integrations);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newIntegration, setNewIntegration] = useState({
+    name: '',
+    description: '',
+    category: 'api' as const,
+    apiKey: '',
+    webhookUrl: ''
+  });
 
   const handleToggleIntegration = (id: string) => {
     setIntegrationList(prev => 
@@ -87,6 +97,42 @@ export default function AdminIntegrationsManager() {
     toast({
       title: integration?.enabled ? "Integration Disabled" : "Integration Enabled",
       description: `${integration?.name} has been ${integration?.enabled ? 'disabled' : 'enabled'}.`,
+    });
+  };
+
+  const handleAddIntegration = () => {
+    if (!newIntegration.name || !newIntegration.description) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const integration: Integration = {
+      id: newIntegration.name.toLowerCase().replace(/\s+/g, '-'),
+      name: newIntegration.name,
+      description: newIntegration.description,
+      icon: Code,
+      enabled: false,
+      status: 'disconnected',
+      category: newIntegration.category
+    };
+
+    setIntegrationList(prev => [...prev, integration]);
+    setIsAddDialogOpen(false);
+    setNewIntegration({
+      name: '',
+      description: '',
+      category: 'api',
+      apiKey: '',
+      webhookUrl: ''
+    });
+
+    toast({
+      title: "Integration Added",
+      description: `${newIntegration.name} has been added successfully.`,
     });
   };
 
@@ -119,10 +165,64 @@ export default function AdminIntegrationsManager() {
             <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
             <p className="text-muted-foreground">Manage third-party integrations and API connections</p>
           </div>
-          <Button>
-            <Link className="h-4 w-4 mr-2" />
-            Add Integration
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Integration
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Integration</DialogTitle>
+                <DialogDescription>
+                  Configure a new third-party integration for your application.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Integration Name</Label>
+                  <Input
+                    id="name"
+                    value={newIntegration.name}
+                    onChange={(e) => setNewIntegration({...newIntegration, name: e.target.value})}
+                    placeholder="e.g., Google Maps API"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    value={newIntegration.description}
+                    onChange={(e) => setNewIntegration({...newIntegration, description: e.target.value})}
+                    placeholder="Brief description of the integration"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    id="category"
+                    value={newIntegration.category}
+                    onChange={(e) => setNewIntegration({...newIntegration, category: e.target.value as any})}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="api">API</option>
+                    <option value="payment">Payment</option>
+                    <option value="analytics">Analytics</option>
+                    <option value="social">Social</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddIntegration}>
+                  Add Integration
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Tabs defaultValue="all" className="space-y-4">
