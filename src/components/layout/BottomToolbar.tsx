@@ -8,8 +8,8 @@ const BottomToolbar = () => {
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Don't show toolbar on admin pages or auth pages, or the root path '/'
-  if (pathname.startsWith('/admin') || pathname === '/auth' || pathname === '/') {
+  // Don't show toolbar on admin pages, auth pages, or splash screen
+  if (pathname.startsWith('/admin') || pathname === '/auth' || pathname === '/' || pathname === '/splash') {
     return null;
   }
 

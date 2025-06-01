@@ -1,20 +1,17 @@
-// src/components/dish/ScanDishComponent.tsx
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, RefreshCcw, XCircle, ChevronRight, CheckCircle } from 'lucide-react'; // Import necessary icons
-import { ScanHistoryItem } from '@/types/index'; // Import the updated ScanHistoryItem interface
+import { Camera, RefreshCcw, XCircle, ChevronRight, CheckCircle } from 'lucide-react';
+import { ScanHistoryItem } from '@/types/index';
 
-// --- Named export for ScanDishResult component ---
-// This component displays a single historical scan result
-export function ScanDishResult({ scanResult }: { scanResult: ScanHistoryItem }) { // Ensure scanResult is typed
+export function ScanDishResult({ scanResult }: { scanResult: ScanHistoryItem }) {
   return (
     <Card className="flex items-center p-4 rounded-lg shadow-sm border mb-3">
       <div className="flex-shrink-0 mr-4">
         <img
-          src={scanResult.image} // Assuming image property exists
+          src={scanResult.image}
           alt={scanResult.name}
           className="w-16 h-16 object-cover rounded-md"
           onError={(e) => { e.currentTarget.src = 'https://placehold.co/64x64/cccccc/333333?text=N/A'; }}
@@ -33,16 +30,12 @@ export function ScanDishResult({ scanResult }: { scanResult: ScanHistoryItem }) 
   );
 }
 
-
-// --- Default export for the main ScanDishComponent ---
-// This component manages the scanning process and displays history
-export default function ScanDishComponent() { // Changed to default export
+export default function ScanDishComponent() {
   const { toast } = useToast();
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<ScanHistoryItem | null>(null);
   const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
 
-  // Mock scan function
   const mockScan = () => {
     setIsScanning(true);
     toast({
@@ -62,6 +55,7 @@ export default function ScanDishComponent() { // Changed to default export
           fat: 20,
           timestamp: new Date().toISOString(),
           image: 'https://placehold.co/100x100/ADD8E6/000?text=Chicken',
+          ingredients: ['Chicken Breast', 'Brown Rice', 'Olive Oil']
         },
         {
           id: 'dish2',
@@ -72,16 +66,7 @@ export default function ScanDishComponent() { // Changed to default export
           fat: 8,
           timestamp: new Date().toISOString(),
           image: 'https://placehold.co/100x100/90EE90/000?text=Salad',
-        },
-        {
-          id: 'dish3',
-          name: 'Beef Steak with Potatoes',
-          calories: 700,
-          protein: 60,
-          carbs: 40,
-          fat: 35,
-          timestamp: new Date().toISOString(),
-          image: 'https://placehold.co/100x100/FFDAB9/000?text=Steak',
+          ingredients: ['Lettuce', 'Tomato', 'Cucumber']
         },
       ];
       const randomResult = mockResults[Math.floor(Math.random() * mockResults.length)];
@@ -91,7 +76,7 @@ export default function ScanDishComponent() { // Changed to default export
       toast({
         title: "Scan Complete!",
         description: `Identified: ${randomResult.name}`,
-        variant: "default", // Changed from "success" for now
+        variant: "default",
       });
     }, 2000);
   };
@@ -139,7 +124,6 @@ export default function ScanDishComponent() { // Changed to default export
       ) : (
         <div className="space-y-3">
           {scanHistory.map((item) => (
-            // Using the named exported component ScanDishResult
             <ScanDishResult key={item.id} scanResult={item} />
           ))}
         </div>
