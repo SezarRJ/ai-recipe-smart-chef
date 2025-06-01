@@ -12,14 +12,20 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard = ({ recipe }: RecipeCardProps) => {
-  const { data: ingredients, isLoading } = useQuery({
+  const { data: ingredients = [], isLoading } = useQuery({
     queryKey: ['recipeIngredients', recipe.id],
-    queryFn: () => recipeService.getIngredientsForRecipe(recipe.id),
+    queryFn: async () => {
+      try {
+        return await recipeService.getIngredientsForRecipe(recipe.id);
+      } catch (error) {
+        console.error('Error fetching ingredients:', error);
+        return [];
+      }
+    },
     enabled: !!recipe.id,
   });
 
   const handleAddToMealPlan = () => {
-    // This would open a dialog/modal to select day and meal type
     toast({
       title: "Feature coming soon!",
       description: "Add to meal plan will be available in the next update"
@@ -80,7 +86,7 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
             <p className="text-xs text-gray-500">Loading ingredients...</p>
           ) : (
             <div className="flex flex-wrap gap-1">
-              {ingredients?.slice(0, 3).map((ingredient, idx) => (
+              {ingredients.slice(0, 3).map((ingredient: any, idx: number) => (
                 <span 
                   key={idx} 
                   className="text-xs bg-gray-100 px-2 py-0.5 rounded"
@@ -88,7 +94,7 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
                   {ingredient.name}
                 </span>
               ))}
-              {ingredients && ingredients.length > 3 && (
+              {ingredients.length > 3 && (
                 <span className="text-xs text-gray-500">
                   +{ingredients.length - 3} more
                 </span>

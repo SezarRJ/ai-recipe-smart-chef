@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -199,7 +200,7 @@ export default function FavoritesPage() {
                             </div>
                             <div className="flex items-center text-xs text-gray-500 mt-1">
                               <Clock className="h-3 w-3 mr-1" />
-                              <span>{item.recipe.prepTime + item.recipe.cookTime} min</span>
+                              <span>{item.recipe.prep_time + item.recipe.cook_time} min</span>
                             </div>
                             <div className="flex justify-between items-center mt-1">
                               <span className="text-xs text-wasfah-deep-teal font-medium">
