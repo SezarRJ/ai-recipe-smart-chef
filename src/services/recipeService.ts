@@ -70,7 +70,7 @@ export const recipeService = {
           unit: ri.unit || '',
           amount: ri.quantity || 0, // For compatibility
         })) || [],
-        instructions: Array.isArray(recipe.instructions) ? recipe.instructions : [],
+        instructions: Array.isArray(recipe.instructions) ? recipe.instructions.map(inst => String(inst)) : [],
         categories: recipe.recipe_categories ? [recipe.recipe_categories.name] : [],
         tags: [],
         isFavorite: false,
@@ -133,7 +133,7 @@ export const recipeService = {
           unit: ri.unit || '',
           amount: ri.quantity || 0,
         })) || [],
-        instructions: Array.isArray(data.instructions) ? data.instructions : [],
+        instructions: Array.isArray(data.instructions) ? data.instructions.map(inst => String(inst)) : [],
         categories: data.recipe_categories ? [data.recipe_categories.name] : [],
         tags: [],
         isFavorite: false,
@@ -274,4 +274,4 @@ export const recipeService = {
 };
 
 // Export the Recipe type for compatibility
-export { Recipe };
+export type { Recipe };

@@ -140,7 +140,7 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-wasfah-bright-teal" />
-              <span className="font-medium text-gray-700">{recipe.prepTime + recipe.cookTime} min</span>
+              <span className="font-medium text-gray-700">{recipe.prep_time + recipe.cooking_time} min</span>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-wasfah-bright-teal" />
@@ -173,37 +173,35 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
             <div className="sticky top-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Ingredients</h2>
               <div className="space-y-3">
-                {recipe.ingredients.map((ingredient) => {
-                  const isChecked = checkedIngredients.has(ingredient.id);
+                {recipe.ingredients.map((ingredient, index) => {
+                  const ingredientId = ingredient.id || `ingredient-${index}`;
+                  const isChecked = checkedIngredients.has(ingredientId);
                   return (
                     <div 
-                      key={ingredient.id} 
+                      key={ingredientId} 
                       className={`flex items-start space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
                         isChecked 
                           ? 'bg-green-50 border-green-200' 
                           : 'bg-white border-gray-200 hover:border-wasfah-bright-teal/30'
                       }`}
-                      onClick={() => toggleIngredient(ingredient.id)}
+                      onClick={() => toggleIngredient(ingredientId)}
                     >
                       <Checkbox 
-                        id={ingredient.id}
+                        id={ingredientId}
                         checked={isChecked}
-                        onCheckedChange={() => toggleIngredient(ingredient.id)}
+                        onCheckedChange={() => toggleIngredient(ingredientId)}
                         className="h-5 w-5 mt-0.5"
                       />
                       <label
-                        htmlFor={ingredient.id}
+                        htmlFor={ingredientId}
                         className={`flex-1 cursor-pointer ${
                           isChecked ? 'line-through text-gray-500' : 'text-gray-700'
                         }`}
                       >
                         <span className="font-semibold text-wasfah-deep-teal">
-                          {ingredient.amount} {ingredient.unit}
+                          {ingredient.quantity} {ingredient.unit}
                         </span>{' '}
                         {ingredient.name}
-                        {!ingredient.inPantry && (
-                          <span className="text-wasfah-coral-red font-medium ml-1">(missing)</span>
-                        )}
                       </label>
                     </div>
                   );
@@ -266,10 +264,10 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({
       <div className="max-w-6xl mx-auto px-6 py-8">
         <RecipeSocialInteractions
           recipeId={recipe.id}
-          commentCount={recipe.ratingCount}
+          commentCount={recipe.rating_count}
           shares={Math.floor(recipe.rating * 5)}
           rating={recipe.rating}
-          ratingCount={recipe.ratingCount}
+          ratingCount={recipe.rating_count}
           usedCount={Math.floor(recipe.rating * 20)}
           isLiked={isLiked}
           comments={[]}

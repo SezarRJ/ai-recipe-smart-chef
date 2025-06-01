@@ -1,14 +1,13 @@
+
 import { Recipe, User, PantryItem, MealPlan } from '@/types/index';
 
 export const mockUser: User = {
   id: '1',
-  name: 'John Doe',
+  full_name: 'John Doe',
   email: 'john@example.com',
-  avatar: '/placeholder.svg',
-  preferences: {
-    dietary: ['vegetarian'],
-    allergies: ['nuts']
-  }
+  avatar_url: '/placeholder.svg',
+  dietary_preferences: ['vegetarian'],
+  allergies: ['nuts']
 };
 
 export const categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks', 'Beverages'];
@@ -70,18 +69,18 @@ export const mockRecipes: Recipe[] = [
     title: 'Mediterranean Salad',
     description: 'Fresh and healthy Mediterranean salad with olive oil dressing',
     image: '/placeholder.svg',
-    prepTime: 15,
-    cookTime: 0,
+    prep_time: 15,
+    cooking_time: 0,
     servings: 4,
     difficulty: 'Easy',
     calories: 250,
     rating: 4.5,
-    ratingCount: 120,
-    cuisineType: 'Mediterranean',
+    rating_count: 120,
+    cuisine_type: 'Mediterranean',
     ingredients: [
-      { id: '1', name: 'Lettuce', amount: '1', unit: 'head', category: 'vegetables' },
-      { id: '2', name: 'Tomatoes', amount: '2', unit: 'medium', category: 'vegetables' },
-      { id: '3', name: 'Olive Oil', amount: '3', unit: 'tbsp', category: 'oils' }
+      { id: '1', name: 'Lettuce', quantity: 1, unit: 'head' },
+      { id: '2', name: 'Tomatoes', quantity: 2, unit: 'medium' },
+      { id: '3', name: 'Olive Oil', quantity: 3, unit: 'tbsp' }
     ],
     instructions: [
       'Wash and chop the lettuce',
@@ -97,18 +96,18 @@ export const mockRecipes: Recipe[] = [
     title: 'Chicken Stir Fry',
     description: 'Quick and delicious chicken stir fry with vegetables',
     image: '/placeholder.svg',
-    prepTime: 20,
-    cookTime: 15,
+    prep_time: 20,
+    cooking_time: 15,
     servings: 4,
     difficulty: 'Medium',
     calories: 380,
     rating: 4.3,
-    ratingCount: 89,
-    cuisineType: 'Asian',
+    rating_count: 89,
+    cuisine_type: 'Asian',
     ingredients: [
-      { id: '4', name: 'Chicken Breast', amount: '500', unit: 'g', category: 'meat' },
-      { id: '5', name: 'Bell Peppers', amount: '2', unit: 'pieces', category: 'vegetables' },
-      { id: '6', name: 'Soy Sauce', amount: '2', unit: 'tbsp', category: 'sauces' }
+      { id: '4', name: 'Chicken Breast', quantity: 500, unit: 'g' },
+      { id: '5', name: 'Bell Peppers', quantity: 2, unit: 'pieces' },
+      { id: '6', name: 'Soy Sauce', quantity: 2, unit: 'tbsp' }
     ],
     instructions: [
       'Cut chicken into strips',
@@ -126,27 +125,28 @@ export const favoriteRecipes = mockRecipes.filter(recipe => recipe.isFavorite);
 // Add the missing mockMealPlan using the correct type from types/index.ts
 export const mockMealPlan: MealPlan = {
   id: 'meal-plan-1',
+  user_id: 'user-1',
   date: new Date().toISOString().split('T')[0],
   meals: [
     {
       id: 'breakfast-1',
-      type: 'breakfast',
+      type: 'Breakfast',
       recipe: {
         id: '1',
         title: 'Avocado Toast',
         description: 'Healthy avocado toast with eggs',
         image: '/placeholder.svg',
-        prepTime: 5,
-        cookTime: 10,
+        prep_time: 5,
+        cooking_time: 10,
         servings: 1,
         difficulty: 'Easy',
         calories: 280,
         rating: 4.5,
-        ratingCount: 120,
-        cuisineType: 'American',
+        rating_count: 120,
+        cuisine_type: 'American',
         ingredients: [
-          { id: '1', name: 'Avocado', amount: '1', unit: 'piece', category: 'vegetables' },
-          { id: '2', name: 'Bread', amount: '2', unit: 'slices', category: 'grains' }
+          { id: '1', name: 'Avocado', quantity: 1, unit: 'piece' },
+          { id: '2', name: 'Bread', quantity: 2, unit: 'slices' }
         ],
         instructions: [
           'Toast the bread',
@@ -156,27 +156,28 @@ export const mockMealPlan: MealPlan = {
         categories: ['Breakfast'],
         tags: ['healthy', 'quick'],
         isFavorite: false
-      }
+      },
+      scheduled_for: new Date().toISOString()
     },
     {
       id: 'lunch-1',
-      type: 'lunch',
+      type: 'Lunch',
       recipe: {
         id: '2',
         title: 'Mediterranean Salad',
         description: 'Fresh and healthy Mediterranean salad with olive oil dressing',
         image: '/placeholder.svg',
-        prepTime: 15,
-        cookTime: 0,
+        prep_time: 15,
+        cooking_time: 0,
         servings: 2,
         difficulty: 'Easy',
         calories: 250,
         rating: 4.3,
-        ratingCount: 89,
-        cuisineType: 'Mediterranean',
+        rating_count: 89,
+        cuisine_type: 'Mediterranean',
         ingredients: [
-          { id: '1', name: 'Lettuce', amount: '1', unit: 'head', category: 'vegetables' },
-          { id: '2', name: 'Tomatoes', amount: '2', unit: 'medium', category: 'vegetables' }
+          { id: '1', name: 'Lettuce', quantity: 1, unit: 'head' },
+          { id: '2', name: 'Tomatoes', quantity: 2, unit: 'medium' }
         ],
         instructions: [
           'Wash and chop lettuce',
@@ -186,27 +187,28 @@ export const mockMealPlan: MealPlan = {
         categories: ['Salad'],
         tags: ['healthy', 'vegetarian'],
         isFavorite: false
-      }
+      },
+      scheduled_for: new Date().toISOString()
     },
     {
       id: 'dinner-1',
-      type: 'dinner',
+      type: 'Dinner',
       recipe: {
         id: '3',
         title: 'Chicken Stir Fry',
         description: 'Quick and delicious chicken stir fry with vegetables',
         image: '/placeholder.svg',
-        prepTime: 20,
-        cookTime: 25,
+        prep_time: 20,
+        cooking_time: 25,
         servings: 4,
         difficulty: 'Medium',
         calories: 380,
         rating: 4.1,
-        ratingCount: 156,
-        cuisineType: 'Asian',
+        rating_count: 156,
+        cuisine_type: 'Asian',
         ingredients: [
-          { id: '1', name: 'Chicken Breast', amount: '500', unit: 'g', category: 'meat' },
-          { id: '2', name: 'Bell Peppers', amount: '2', unit: 'pieces', category: 'vegetables' }
+          { id: '1', name: 'Chicken Breast', quantity: 500, unit: 'g' },
+          { id: '2', name: 'Bell Peppers', quantity: 2, unit: 'pieces' }
         ],
         instructions: [
           'Cut chicken into strips',
@@ -216,7 +218,12 @@ export const mockMealPlan: MealPlan = {
         categories: ['Main Course'],
         tags: ['protein', 'quick'],
         isFavorite: false
-      }
+      },
+      scheduled_for: new Date().toISOString()
     }
-  ]
+  ],
+  total_calories: 910,
+  total_protein: 45,
+  total_carbs: 68,
+  total_fat: 32
 };

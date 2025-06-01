@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import ScanDishComponent, { ScanDishResult } from '@/components/dish/ScanDishComponent';
+import { ScanDishComponent } from '@/components/dish/ScanDishComponent';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

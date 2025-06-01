@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,13 +35,13 @@ export const RecommendedRecipes: React.FC<RecommendedRecipesProps> = ({
       title: 'Quick Pasta Primavera',
       description: 'Fresh vegetables with pasta in a light sauce',
       image: '/placeholder.svg',
-      prepTime: 15,
-      cookTime: 20,
+      prep_time: 15,
+      cooking_time: 20,
       servings: 4,
       difficulty: 'Easy' as const,
       calories: 320,
       rating: 4.5,
-      ratingCount: 128,
+      rating_count: 128,
       ingredients: [],
       instructions: [],
       categories: ['Italian', 'Vegetarian'],
@@ -52,13 +53,13 @@ export const RecommendedRecipes: React.FC<RecommendedRecipesProps> = ({
       title: 'Mediterranean Bowl',
       description: 'Healthy bowl with quinoa and fresh vegetables',
       image: '/placeholder.svg',
-      prepTime: 10,
-      cookTime: 15,
+      prep_time: 10,
+      cooking_time: 15,
       servings: 2,
       difficulty: 'Easy' as const,
       calories: 280,
       rating: 4.7,
-      ratingCount: 89,
+      rating_count: 89,
       ingredients: [],
       instructions: [],
       categories: ['Mediterranean', 'Healthy'],

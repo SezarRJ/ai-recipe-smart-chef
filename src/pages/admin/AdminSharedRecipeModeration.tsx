@@ -2,26 +2,18 @@
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Search, Eye, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Eye, 
+  MessageSquare,
+  ChefHat
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { SharedRecipe } from '@/types/index';
 
@@ -29,267 +21,340 @@ import { SharedRecipe } from '@/types/index';
 const mockSharedRecipes: SharedRecipe[] = [
   {
     id: '1',
-    title: 'Homemade Pizza Margherita',
-    description: 'Classic Italian pizza with fresh tomatoes and mozzarella',
-    image: '/lovable-uploads/fe3b59a8-1853-4e9f-90d0-2c00d1a21d78.png',
-    prep_time: 30,
-    cooking_time: 15,
+    title: 'Authentic Italian Carbonara',
+    description: 'Traditional Roman pasta dish with eggs, cheese, and pancetta',
+    image: '/placeholder.svg',
+    prep_time: 15,
+    cooking_time: 20,
     servings: 4,
-    difficulty: 'Medium' as const,
-    calories: 280,
-    protein: 12,
-    carbs: 35,
-    fat: 10,
+    difficulty: 'Medium',
+    calories: 580,
+    protein: 25,
+    carbs: 65,
+    fat: 22,
     rating: 0,
     rating_count: 0,
-    ingredients: [
-      { name: 'Pizza dough', quantity: 1, unit: 'piece' },
-      { name: 'Tomato sauce', quantity: 200, unit: 'ml' },
-      { name: 'Mozzarella cheese', quantity: 150, unit: 'g' }
-    ],
-    instructions: ['Prepare dough', 'Add sauce', 'Add cheese', 'Bake for 15 minutes'],
-    categories: ['Italian'],
-    tags: ['pizza', 'vegetarian'],
+    ingredients: [],
+    instructions: ['Boil pasta', 'Cook pancetta', 'Mix eggs and cheese', 'Combine all ingredients'],
+    categories: ['Italian', 'Pasta'],
+    tags: ['traditional', 'comfort-food'],
     isFavorite: false,
     status: 'pending',
     submitted_by: 'user123',
-    submitted_at: '2023-09-20T10:00:00Z',
-    user_id: 'user123'
+    submitted_at: '2023-09-20T10:30:00Z'
   },
   {
     id: '2',
-    title: 'Spicy Thai Curry',
-    description: 'Authentic Thai green curry with vegetables',
-    image: '/lovable-uploads/3d48f7fe-a194-4102-a10d-a942ddfb054c.png',
+    title: 'Vegan Buddha Bowl',
+    description: 'Nutritious bowl with quinoa, roasted vegetables, and tahini dressing',
+    image: '/placeholder.svg',
     prep_time: 20,
     cooking_time: 25,
-    servings: 3,
-    difficulty: 'Hard' as const,
-    calories: 320,
-    protein: 8,
-    carbs: 25,
+    servings: 2,
+    difficulty: 'Easy',
+    calories: 420,
+    protein: 15,
+    carbs: 58,
     fat: 18,
     rating: 0,
     rating_count: 0,
-    ingredients: [
-      { name: 'Green curry paste', quantity: 2, unit: 'tbsp' },
-      { name: 'Coconut milk', quantity: 400, unit: 'ml' },
-      { name: 'Mixed vegetables', quantity: 300, unit: 'g' }
-    ],
-    instructions: ['Heat curry paste', 'Add coconut milk', 'Add vegetables', 'Simmer for 20 minutes'],
-    categories: ['Thai'],
-    tags: ['curry', 'spicy', 'vegan'],
+    ingredients: [],
+    instructions: ['Cook quinoa', 'Roast vegetables', 'Prepare dressing', 'Assemble bowl'],
+    categories: ['Vegan', 'Healthy'],
+    tags: ['plant-based', 'nutritious'],
     isFavorite: false,
     status: 'approved',
-    submitted_by: 'user456',
-    submitted_at: '2023-09-19T14:30:00Z',
-    user_id: 'user456'
+    submitted_by: 'healthyfoodie',
+    submitted_at: '2023-09-19T14:20:00Z',
+    moderated_by: 'admin',
+    moderated_at: '2023-09-19T16:45:00Z'
+  },
+  {
+    id: '3',
+    title: 'Spicy Korean Kimchi Ramen',
+    description: 'Instant ramen elevated with kimchi, vegetables, and a soft-boiled egg',
+    image: '/placeholder.svg',
+    prep_time: 10,
+    cooking_time: 15,
+    servings: 1,
+    difficulty: 'Easy',
+    calories: 380,
+    protein: 18,
+    carbs: 45,
+    fat: 12,
+    rating: 0,
+    rating_count: 0,
+    ingredients: [],
+    instructions: ['Boil water', 'Add ramen and kimchi', 'Cook egg', 'Serve hot'],
+    categories: ['Korean', 'Quick'],
+    tags: ['spicy', 'comfort-food'],
+    isFavorite: false,
+    status: 'rejected',
+    submitted_by: 'spicylover',
+    submitted_at: '2023-09-18T09:15:00Z',
+    moderated_by: 'admin',
+    moderated_at: '2023-09-18T11:30:00Z',
+    moderation_notes: 'Recipe lacks detailed instructions and nutritional information'
   }
 ];
 
 const AdminSharedRecipeModeration = () => {
   const [recipes, setRecipes] = useState<SharedRecipe[]>(mockSharedRecipes);
   const [selectedRecipe, setSelectedRecipe] = useState<SharedRecipe | null>(null);
-  const [moderationDialog, setModerationDialog] = useState(false);
-  const [moderationAction, setModerationAction] = useState<'approve' | 'reject'>('approve');
   const [moderationNotes, setModerationNotes] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleModerate = (recipe: SharedRecipe, action: 'approve' | 'reject') => {
-    setSelectedRecipe(recipe);
-    setModerationAction(action);
-    setModerationDialog(true);
-  };
+  const pendingRecipes = recipes.filter(r => r.status === 'pending');
+  const approvedRecipes = recipes.filter(r => r.status === 'approved');
+  const rejectedRecipes = recipes.filter(r => r.status === 'rejected');
 
-  const handleSubmitModeration = () => {
-    if (!selectedRecipe) return;
+  const handleModerate = (recipeId: string, action: 'approved' | 'rejected') => {
+    setRecipes(prev => prev.map(recipe => 
+      recipe.id === recipeId 
+        ? {
+            ...recipe,
+            status: action,
+            moderated_by: 'admin',
+            moderated_at: new Date().toISOString(),
+            moderation_notes: moderationNotes
+          }
+        : recipe
+    ));
 
-    setRecipes(prev => 
-      prev.map(recipe => 
-        recipe.id === selectedRecipe.id 
-          ? { 
-              ...recipe, 
-              status: moderationAction,
-              moderated_at: new Date().toISOString(),
-              moderation_notes: moderationNotes
-            }
-          : recipe
-      )
-    );
-
-    toast.success(`Recipe ${moderationAction}d successfully!`);
-    setModerationDialog(false);
-    setModerationNotes('');
+    toast.success(`Recipe ${action} successfully!`);
     setSelectedRecipe(null);
+    setModerationNotes('');
   };
 
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      pending: <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Pending</Badge>,
-      approved: <Badge variant="outline" className="bg-green-50 text-green-700">Approved</Badge>,
-      rejected: <Badge variant="outline" className="bg-red-50 text-red-700">Rejected</Badge>
-    };
-    return badges[status as keyof typeof badges] || <Badge variant="outline">{status}</Badge>;
+  const getStatusBadge = (status: SharedRecipe['status']) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+    }
   };
 
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    recipe.submitted_by.toLowerCase().includes(searchQuery.toLowerCase())
+  const RecipeCard = ({ recipe }: { recipe: SharedRecipe }) => (
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedRecipe(recipe)}>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <h3 className="font-medium text-lg mb-1">{recipe.title}</h3>
+            <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
+          </div>
+          <div className="ml-4">
+            {getStatusBadge(recipe.status)}
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <ChefHat className="h-4 w-4" />
+              {recipe.submitted_by}
+            </span>
+            <span>{recipe.prep_time + recipe.cooking_time} min</span>
+            <span>{recipe.difficulty}</span>
+          </div>
+          <span>{new Date(recipe.submitted_at).toLocaleDateString()}</span>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
-    <AdminPageWrapper title="Shared Recipe Moderation">
+    <AdminPageWrapper title="Recipe Moderation">
       <div className="space-y-6">
+        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-yellow-600">{recipes.filter(r => r.status === 'pending').length}</div>
-            <div className="text-sm text-gray-600">Pending Review</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-green-600">{recipes.filter(r => r.status === 'approved').length}</div>
-            <div className="text-sm text-gray-600">Approved</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-red-600">{recipes.filter(r => r.status === 'rejected').length}</div>
-            <div className="text-sm text-gray-600">Rejected</div>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-yellow-600">{pendingRecipes.length}</div>
+                  <div className="text-sm text-gray-600">Pending Review</div>
+                </div>
+                <Clock className="h-8 w-8 text-yellow-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-green-600">{approvedRecipes.length}</div>
+                  <div className="text-sm text-gray-600">Approved</div>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-red-600">{rejectedRecipes.length}</div>
+                  <div className="text-sm text-gray-600">Rejected</div>
+                </div>
+                <XCircle className="h-8 w-8 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search recipes or users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+        {/* Recipe Lists */}
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="pending">Pending ({pendingRecipes.length})</TabsTrigger>
+            <TabsTrigger value="approved">Approved ({approvedRecipes.length})</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected ({rejectedRecipes.length})</TabsTrigger>
+          </TabsList>
 
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Recipe</TableHead>
-                <TableHead>Submitted By</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted Date</TableHead>
-                <TableHead className="w-[200px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRecipes.map((recipe) => (
-                <TableRow key={recipe.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={recipe.image} 
-                        alt={recipe.title}
-                        className="w-12 h-12 rounded object-cover"
-                      />
+          <TabsContent value="pending" className="space-y-4 mt-6">
+            {pendingRecipes.length > 0 ? (
+              pendingRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                  No pending recipes to review.
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="approved" className="space-y-4 mt-6">
+            {approvedRecipes.length > 0 ? (
+              approvedRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                  No approved recipes yet.
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="rejected" className="space-y-4 mt-6">
+            {rejectedRecipes.length > 0 ? (
+              rejectedRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center text-gray-500">
+                  No rejected recipes.
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Recipe Detail Modal */}
+        {selectedRecipe && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">{selectedRecipe.title}</h2>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(selectedRecipe.status)}
+                    <Button onClick={() => setSelectedRecipe(null)} variant="outline">
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <img
+                      src={selectedRecipe.image}
+                      alt={selectedRecipe.title}
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-gray-700">{selectedRecipe.description}</p>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <div className="font-medium">{recipe.title}</div>
-                        <div className="text-sm text-gray-500">{recipe.difficulty} • {recipe.prep_time + recipe.cooking_time}min</div>
+                        <strong>Prep Time:</strong> {selectedRecipe.prep_time} min
+                      </div>
+                      <div>
+                        <strong>Cook Time:</strong> {selectedRecipe.cooking_time} min
+                      </div>
+                      <div>
+                        <strong>Servings:</strong> {selectedRecipe.servings}
+                      </div>
+                      <div>
+                        <strong>Difficulty:</strong> {selectedRecipe.difficulty}
+                      </div>
+                      <div>
+                        <strong>Calories:</strong> {selectedRecipe.calories}
+                      </div>
+                      <div>
+                        <strong>Submitted by:</strong> {selectedRecipe.submitted_by}
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{recipe.submitted_by}</TableCell>
-                  <TableCell>{getStatusBadge(recipe.status)}</TableCell>
-                  <TableCell>{new Date(recipe.submitted_at).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedRecipe(recipe)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {recipe.status === 'pending' && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleModerate(recipe, 'approve')}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleModerate(recipe, 'reject')}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        <Dialog open={moderationDialog} onOpenChange={setModerationDialog}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>
-                {moderationAction === 'approve' ? 'Approve' : 'Reject'} Recipe
-              </DialogTitle>
-              <DialogDescription>
-                {moderationAction === 'approve' 
-                  ? 'This recipe will be approved and made public.' 
-                  : 'This recipe will be rejected and hidden from users.'}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              {selectedRecipe && (
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="font-medium">{selectedRecipe.title}</div>
-                  <div className="text-sm text-gray-600 mt-1">{selectedRecipe.description}</div>
+                  </div>
                 </div>
-              )}
-              <div>
-                <label className="text-sm font-medium">
-                  {moderationAction === 'approve' ? 'Approval Notes' : 'Rejection Reason'}
-                </label>
-                <Textarea
-                  placeholder={
-                    moderationAction === 'approve' 
-                      ? 'Add any notes (optional)...'
-                      : 'Please provide a reason for rejection...'
-                  }
-                  value={moderationNotes}
-                  onChange={(e) => setModerationNotes(e.target.value)}
-                  className="mt-1"
-                />
+
+                <div>
+                  <h3 className="font-semibold mb-2">Instructions:</h3>
+                  <ol className="list-decimal list-inside space-y-1">
+                    {selectedRecipe.instructions.map((instruction, index) => (
+                      <li key={index} className="text-gray-700">{instruction}</li>
+                    ))}
+                  </ol>
+                </div>
+
+                {selectedRecipe.status === 'pending' && (
+                  <div className="space-y-4 border-t pt-6">
+                    <div>
+                      <label htmlFor="moderation-notes" className="block text-sm font-medium mb-2">
+                        Moderation Notes (optional)
+                      </label>
+                      <Textarea
+                        id="moderation-notes"
+                        value={moderationNotes}
+                        onChange={(e) => setModerationNotes(e.target.value)}
+                        placeholder="Add any notes about your decision..."
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => handleModerate(selectedRecipe.id, 'approved')}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Approve Recipe
+                      </Button>
+                      <Button
+                        onClick={() => handleModerate(selectedRecipe.id, 'rejected')}
+                        variant="destructive"
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reject Recipe
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedRecipe.moderation_notes && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-2">Moderation Notes:</h4>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded">{selectedRecipe.moderation_notes}</p>
+                  </div>
+                )}
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setModerationDialog(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSubmitModeration}
-                className={
-                  moderationAction === 'approve' 
-                    ? 'bg-green-600 hover:bg-green-700' 
-                    : 'bg-red-600 hover:bg-red-700'
-                }
-              >
-                {moderationAction === 'approve' ? 'Approve' : 'Reject'} Recipe
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </div>
+        )}
       </div>
     </AdminPageWrapper>
   );
