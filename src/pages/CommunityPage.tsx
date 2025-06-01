@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Heart, MessageSquare, Share2, Users, Award, ChefHat, Star, Send } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Heart, MessageSquare, Share2, Users, Award, ChefHat, Star, Send, Plus, Search, Check, X, Clock, Eye } from 'lucide-react';
 import { mockRecipes } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -43,9 +52,70 @@ const popularMembers = [
   { id: '4', name: 'Emma L.', avatar: '/placeholder-avatar.png', recipes: 19, followers: 650, level: 6 }
 ];
 
+const mockSharedRecipes = [
+  {
+    id: 'sr1',
+    title: 'Grandma\'s Secret Pasta Sauce',
+    description: 'A family recipe passed down for generations with a special blend of herbs.',
+    author: {
+      id: 'user-201',
+      name: 'Sofia Martinez',
+      avatar: '/placeholder-avatar.png',
+      level: 5
+    },
+    image: 'https://images.unsplash.com/photo-1551782450-17144efb9c50?auto=format&fit=crop&w=1200&q=80',
+    ingredients: ['Tomatoes', 'Garlic', 'Basil', 'Oregano', 'Olive Oil'],
+    cookingTime: '45 minutes',
+    difficulty: 'Medium',
+    servings: 4,
+    status: 'pending',
+    submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    category: 'Italian'
+  },
+  {
+    id: 'sr2',
+    title: 'Korean Kimchi Fried Rice',
+    description: 'Authentic Korean comfort food made with fermented kimchi and day-old rice.',
+    author: {
+      id: 'user-202',
+      name: 'Min-jun Kim',
+      avatar: '/placeholder-avatar.png',
+      level: 7
+    },
+    image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?auto=format&fit=crop&w=1200&q=80',
+    ingredients: ['Kimchi', 'Rice', 'Eggs', 'Scallions', 'Sesame Oil'],
+    cookingTime: '20 minutes',
+    difficulty: 'Easy',
+    servings: 2,
+    status: 'pending',
+    submittedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    category: 'Korean'
+  },
+  {
+    id: 'sr3',
+    title: 'Moroccan Tagine with Apricots',
+    description: 'Traditional slow-cooked stew with tender lamb and sweet dried apricots.',
+    author: {
+      id: 'user-203',
+      name: 'Amina Hassan',
+      avatar: '/placeholder-avatar.png',
+      level: 8
+    },
+    image: 'https://images.unsplash.com/photo-1544124499-58912cbddaad?auto=format&fit=crop&w=1200&q=80',
+    ingredients: ['Lamb', 'Apricots', 'Onions', 'Cinnamon', 'Ginger'],
+    cookingTime: '2 hours',
+    difficulty: 'Hard',
+    servings: 6,
+    status: 'pending',
+    submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    category: 'Moroccan'
+  }
+];
+
 const CommunityPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('popular');
+  const [sharedRecipes, setSharedRecipes] = useState(mockSharedRecipes);
 
   const handleLike = useCallback((recipeId) => {
     console.log(`Simulating like for recipe: ${recipeId}`);
@@ -70,6 +140,87 @@ const CommunityPage = () => {
       description: "Simulated: Followed member."
     });
   }, [toast]);
+
+  const [selectedRecipeForReview, setSelectedRecipeForReview] = useState(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewAction, setReviewAction] = useState('approve');
+  const [reviewNotes, setReviewNotes] = useState('');
+
+  const handleReviewRecipe = useCallback((recipe, action) => {
+    setSelectedRecipeForReview(recipe);
+    setReviewAction(action);
+    setReviewDialogOpen(true);
+  }, []);
+
+  const handleSubmitReview = useCallback(() => {
+    if (!selectedRecipeForReview) return;
+
+    if (reviewAction === 'approve') {
+      setSharedRecipes(prev => 
+        prev.map(recipe => 
+          recipe.id === selectedRecipeForReview.id 
+            ? { 
+                ...recipe, 
+                status: 'accepted',
+                acceptedAt: new Date().toISOString(),
+                acceptedBy: 'Admin User',
+                reviewNotes: reviewNotes
+              }
+            : recipe
+        )
+      );
+
+      toast({
+        title: "Recipe Approved",
+        description: `"${selectedRecipeForReview.title}" has been approved and added to the community recipes.`
+      });
+    } else {
+      if (!reviewNotes.trim()) {
+        toast({
+          title: "Review Notes Required",
+          description: "Please provide a reason for rejection.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setSharedRecipes(prev => 
+        prev.map(recipe => 
+          recipe.id === selectedRecipeForReview.id 
+            ? { 
+                ...recipe, 
+                status: 'rejected',
+                rejectedAt: new Date().toISOString(),
+                rejectedBy: 'Admin User',
+                reviewNotes: reviewNotes
+              }
+            : recipe
+        )
+      );
+
+      toast({
+        title: "Recipe Rejected",
+        description: `"${selectedRecipeForReview.title}" has been rejected.`,
+        variant: "destructive"
+      });
+    }
+
+    setReviewDialogOpen(false);
+    setReviewNotes('');
+    setSelectedRecipeForReview(null);
+  }, [selectedRecipeForReview, reviewAction, reviewNotes, toast]);
+
+  const handleAcceptSharedRecipe = useCallback((recipeId) => {
+    const recipe = sharedRecipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+    handleReviewRecipe(recipe, 'approve');
+  }, [sharedRecipes, handleReviewRecipe]);
+
+  const handleRejectSharedRecipe = useCallback((recipeId) => {
+    const recipe = sharedRecipes.find(r => r.id === recipeId);
+    if (!recipe) return;
+    handleReviewRecipe(recipe, 'reject');
+  }, [sharedRecipes, handleReviewRecipe]);
 
   const formatTimeAgo = (date) => {
     const now = new Date();
@@ -106,13 +257,28 @@ const CommunityPage = () => {
               <span>Active Community</span>
             </div>
           </div>
+
+          {/* Quick Actions */}
+          <div className="flex gap-2 mt-4">
+            <Link to="/create-recipe">
+              <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0">
+                <Plus className="h-4 w-4 mr-2" />
+                Share Recipe
+              </Button>
+            </Link>
+            <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0">
+              <Search className="h-4 w-4 mr-2" />
+              Find Friends
+            </Button>
+          </div>
         </div>
 
         {/* Tabs Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="popular">Popular</TabsTrigger>
             <TabsTrigger value="latest">Latest</TabsTrigger>
+            <TabsTrigger value="shared">Shared Recipes</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
           </TabsList>
 
@@ -142,6 +308,154 @@ const CommunityPage = () => {
             ))}
           </TabsContent>
 
+          {/* Shared Recipes Tab */}
+          <TabsContent value="shared" className="space-y-6">
+            <h2 className="text-xl font-bold text-wasfah-deep-teal dark:text-wasfah-bright-teal flex items-center mb-4">
+              <ChefHat className="mr-3 h-6 w-6" />
+              Community Shared Recipes
+            </h2>
+
+            <div className="space-y-4">
+              {sharedRecipes.map((recipe) => (
+                <Card key={recipe.id} className="overflow-hidden rounded-xl shadow-md">
+                  <CardContent className="p-0">
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Avatar className="h-10 w-10 mr-3">
+                          <AvatarImage src={recipe.author.avatar} alt={recipe.author.name} />
+                          <AvatarFallback>{recipe.author.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center">
+                            <span className="font-medium text-gray-800 dark:text-gray-200">{recipe.author.name}</span>
+                            <div className="ml-2 bg-gray-100 dark:bg-gray-700 text-xs px-2 py-0.5 rounded-full flex items-center text-gray-700 dark:text-gray-300">
+                              <ChefHat className="h-3 w-3 mr-1 text-wasfah-bright-teal dark:text-wasfah-mint" />
+                              <span>Level {recipe.author.level}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Submitted {Math.floor((Date.now() - recipe.submittedAt.getTime()) / (1000 * 60 * 60 * 24))} days ago
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {recipe.status === 'pending' && (
+                          <>
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pending Review
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                              onClick={() => {
+                                toast({
+                                  title: "View Recipe Details",
+                                  description: `Viewing full details for "${recipe.title}"`
+                                });
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 border-green-600 hover:bg-green-50"
+                              onClick={() => handleAcceptSharedRecipe(recipe.id)}
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Accept
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-600 hover:bg-red-50"
+                              onClick={() => handleRejectSharedRecipe(recipe.id)}
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        {recipe.status === 'accepted' && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700">
+                            <Check className="h-3 w-3 mr-1" />
+                            Accepted
+                          </Badge>
+                        )}
+                        {recipe.status === 'rejected' && (
+                          <Badge variant="outline" className="bg-red-50 text-red-700">
+                            <X className="h-3 w-3 mr-1" />
+                            Rejected
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className="w-full h-48 bg-cover bg-center relative"
+                      style={{ backgroundImage: `url(${recipe.image})` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <h3 className="font-bold text-xl text-white mb-1">{recipe.title}</h3>
+                        <p className="text-white/90 text-sm">{recipe.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4">
+                      <div className="grid grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-1" />
+                          <span>{recipe.cookingTime}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-1" />
+                          <span>{recipe.servings} servings</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 mr-1" />
+                          <span>{recipe.difficulty}</span>
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Category: </span>
+                        <Badge variant="outline" className="text-xs">{recipe.category}</Badge>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Key Ingredients: </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {recipe.ingredients.slice(0, 5).map((ingredient, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {ingredient}
+                            </Badge>
+                          ))}
+                          {recipe.ingredients.length > 5 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{recipe.ingredients.length - 5} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {sharedRecipes.length === 0 && (
+              <div className="text-center py-12">
+                <ChefHat className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 text-lg">No shared recipes to review</p>
+                <p className="text-gray-400 text-sm">New community submissions will appear here</p>
+              </div>
+            )}
+          </TabsContent>
+
           {/* Members Tab */}
           <TabsContent value="members" className="space-y-6">
             <h2 className="text-xl font-bold text-wasfah-deep-teal dark:text-wasfah-bright-teal flex items-center mb-4">
@@ -160,6 +474,64 @@ const CommunityPage = () => {
             </Button>
           </TabsContent>
         </Tabs>
+
+        {/* Review Dialog */}
+        <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
+                {reviewAction === 'approve' ? 'Approve' : 'Reject'} Recipe
+              </DialogTitle>
+              <DialogDescription>
+                {reviewAction === 'approve' 
+                  ? 'This recipe will be published and visible to all community members.'
+                  : 'This recipe will be rejected and the user will be notified.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedRecipeForReview && (
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <img
+                    src={selectedRecipeForReview.image}
+                    alt={selectedRecipeForReview.title}
+                    className="w-12 h-12 rounded-lg object-cover"
+                  />
+                  <div>
+                    <div className="font-medium">{selectedRecipeForReview.title}</div>
+                    <div className="text-sm text-gray-500">by {selectedRecipeForReview.author.name}</div>
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium">
+                  {reviewAction === 'approve' ? 'Approval Notes (Optional)' : 'Rejection Reason (Required)'}
+                </label>
+                <Textarea
+                  placeholder={
+                    reviewAction === 'approve' 
+                      ? 'Add any notes for approval...'
+                      : 'Please provide a reason for rejection...'
+                  }
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setReviewDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitReview}
+                className={reviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+              >
+                {reviewAction === 'approve' ? 'Approve Recipe' : 'Reject Recipe'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageContainer>
   );

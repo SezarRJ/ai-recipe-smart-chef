@@ -183,18 +183,25 @@ export default function AuthPage() {
           </p>
         </motion.div>
 
-        <div className="absolute top-4 right-4 z-20 w-32">
+        <div className="absolute top-4 right-4 z-20 w-36">
           <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="bg-transparent text-white border-white/50 hover:border-white transition-colors dark:text-gray-200 dark:border-gray-600 dark:hover:border-gray-500">
-              <div className="flex items-center text-sm">
-                <Languages size={16} className="mr-2" />
+            <SelectTrigger className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:border-white hover:bg-white/30 transition-all duration-200 shadow-lg dark:text-gray-200 dark:border-gray-600 dark:hover:border-gray-500">
+              <div className="flex items-center text-sm font-medium">
+                <Languages size={18} className="mr-2 animate-pulse" />
                 <SelectValue placeholder={t("Select language", "اختر اللغة")} />
               </div>
             </SelectTrigger>
-            <SelectContent className="dark:bg-gray-800 dark:text-gray-200">
+            <SelectContent className="dark:bg-gray-800 dark:text-gray-200 bg-white/95 backdrop-blur-sm border-gray-200 shadow-xl">
               {languages.map((lang) => (
-                <SelectItem key={lang.code} value={lang.code}>
-                  {lang.name}
+                <SelectItem 
+                  key={lang.code} 
+                  value={lang.code}
+                  className="hover:bg-wasfah-bright-teal/10 hover:text-wasfah-bright-teal font-medium"
+                >
+                  <div className="flex items-center">
+                    <Languages size={14} className="mr-2 opacity-70" />
+                    {lang.name}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>

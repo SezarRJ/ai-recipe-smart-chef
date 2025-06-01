@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Search, HelpCircle, MessageCircle, Mail, Phone, Book, Video, ChevronDown } from 'lucide-react';
+import { Search, HelpCircle, MessageSquare, Mail, Phone, Book, Video, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function HelpPage() {
@@ -49,7 +48,7 @@ export default function HelpPage() {
 
   const helpCategories = [
     { icon: <Book size={20} />, title: "Getting Started", count: 8 },
-    { icon: <MessageCircle size={20} />, title: "Recipes & Cooking", count: 12 },
+    { icon: <MessageSquare size={20} />, title: "Recipes & Cooking", count: 12 },
     { icon: <HelpCircle size={20} />, title: "Account & Settings", count: 6 },
     { icon: <Video size={20} />, title: "Video Tutorials", count: 4 }
   ];
@@ -136,7 +135,7 @@ export default function HelpPage() {
                 <p className="text-xs text-gray-500">Response in 24h</p>
               </div>
               <div className="text-center p-4 border rounded-lg">
-                <MessageCircle className="h-8 w-8 text-wasfah-bright-teal mx-auto mb-2" />
+                <MessageSquare className="h-8 w-8 text-wasfah-bright-teal mx-auto mb-2" />
                 <h3 className="font-medium">Live Chat</h3>
                 <p className="text-sm text-gray-600">Available 9AM-6PM</p>
                 <Button variant="outline" size="sm" className="mt-2">Start Chat</Button>

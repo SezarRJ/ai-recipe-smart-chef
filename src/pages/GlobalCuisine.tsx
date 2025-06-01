@@ -1,272 +1,327 @@
+import React, { useState, useEffect } from 'react';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { RecipeGrid } from '@/components/recipe/RecipeGrid';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Flag, Utensils, Martini, Search, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { globalCuisineService, Recipe, SearchParams } from '@/services/globalCuisineService';
+import { toast } from '@/hooks/use-toast';
 
-import { useState } from "react";
-import { MobileNavigation } from "@/components/MobileNavigation";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Clock, Users, Star, Search, Filter, ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const GlobalCuisine = () => {
-  const { t } = useLanguage();
+const GlobalCuisinePage = () => {
   const navigate = useNavigate();
-  const [selectedCountry, setSelectedCountry] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
-  const [showFilters, setShowFilters] = useState(false);
-  const [dietaryFilter, setDietaryFilter] = useState<string>("");
-  const [cookingTimeFilter, setCookingTimeFilter] = useState<string>("");
-  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
+  const { language, t, isRTL } = useLanguage();
+  const [selectedMainCategory, setSelectedMainCategory] = useState('main');
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
+  const [selectedCuisine, setSelectedCuisine] = useState('');
+  const [selectedDiet, setSelectedDiet] = useState('');
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const cuisineCountries = [
-    { code: "all", name: "All Countries", flag: "🌍" },
-    { code: "it", name: "Italian", flag: "🇮🇹" },
-    { code: "cn", name: "Chinese", flag: "🇨🇳" },
-    { code: "mx", name: "Mexican", flag: "🇲🇽" },
-    { code: "in", name: "Indian", flag: "🇮🇳" },
-    { code: "jp", name: "Japanese", flag: "🇯🇵" },
-    { code: "fr", name: "French", flag: "🇫🇷" },
-    { code: "th", name: "Thai", flag: "🇹🇭" },
-    { code: "gr", name: "Greek", flag: "🇬🇷" },
-    { code: "tr", name: "Turkish", flag: "🇹🇷" },
-    { code: "ma", name: "Moroccan", flag: "🇲🇦" },
-    { code: "lb", name: "Lebanese", flag: "🇱🇧" },
-    { code: "sy", name: "Syrian", flag: "🇸🇾" },
-    { code: "iq", name: "Iraqi", flag: "🇮🇶" },
-    { code: "ye", name: "Yemeni", flag: "🇾🇪" },
-    { code: "kr", name: "Korean", flag: "🇰🇷" },
-    { code: "br", name: "Brazilian", flag: "🇧🇷" },
-    { code: "es", name: "Spanish", flag: "🇪🇸" },
-    { code: "us", name: "American", flag: "🇺🇸" },
-    { code: "de", name: "German", flag: "🇩🇪" }
-  ];
-
-  const foodCategories = [
-    { 
-      code: "all", 
-      name: "All Categories", 
-      icon: "🍽️", 
-      subcategories: [] 
+  // Categories with translations
+  const categories = {
+    main: {
+      en: 'Main Dishes',
+      ar: 'الأطباق الرئيسية',
+      fr: 'Plats principaux'
     },
-    { 
-      code: "food", 
-      name: "Food", 
-      icon: "🍖", 
-      subcategories: ["Main Dishes", "Appetizers", "Pickles", "Soups", "Sauces", "Others"]
+    appetizer: {
+      en: 'Appetizers',
+      ar: 'المقبلات',
+      fr: 'Entrées'
     },
-    { 
-      code: "desserts", 
-      name: "Desserts", 
-      icon: "🍰", 
-      subcategories: ["Traditional", "Western", "Pastries", "Ice Cream", "Others"]
+    dessert: {
+      en: 'Desserts',
+      ar: 'الحلويات',
+      fr: 'Desserts'
     },
-    { 
-      code: "drinks", 
-      name: "Drinks", 
-      icon: "🥤", 
-      subcategories: ["Detox", "Cocktails", "Alcoholic", "Hot Drinks", "Others"]
+    beverage: {
+      en: 'Beverages',
+      ar: 'المشروبات',
+      fr: 'Boissons'
+    },
+    soup: {
+      en: 'Soups',
+      ar: 'الشوربات',
+      fr: 'Soupes'
+    },
+    salad: {
+      en: 'Salads',
+      ar: 'السلطات',
+      fr: 'Salades'
     }
+  };
+
+  // Cuisine countries with flags
+  const cuisines = [
+    { name: 'italian', flag: '🇮🇹', label: { en: 'Italian', ar: 'إيطالي', fr: 'Italien' } },
+    { name: 'chinese', flag: '🇨🇳', label: { en: 'Chinese', ar: 'صيني', fr: 'Chinois' } },
+    { name: 'mexican', flag: '🇲🇽', label: { en: 'Mexican', ar: 'مكسيكي', fr: 'Mexicain' } },
+    { name: 'indian', flag: '🇮🇳', label: { en: 'Indian', ar: 'هندي', fr: 'Indien' } },
+    { name: 'japanese', flag: '🇯🇵', label: { en: 'Japanese', ar: 'ياباني', fr: 'Japonais' } },
+    { name: 'thai', flag: '🇹🇭', label: { en: 'Thai', ar: 'تايلندي', fr: 'Thaï' } },
+    { name: 'french', flag: '🇫🇷', label: { en: 'French', ar: 'فرنسي', fr: 'Français' } },
+    { name: 'greek', flag: '🇬🇷', label: { en: 'Greek', ar: 'يوناني', fr: 'Grec' } },
+    { name: 'spanish', flag: '🇪🇸', label: { en: 'Spanish', ar: 'إسباني', fr: 'Espagnol' } },
+    { name: 'korean', flag: '🇰🇷', label: { en: 'Korean', ar: 'كوري', fr: 'Coréen' } },
+    { name: 'turkish', flag: '🇹🇷', label: { en: 'Turkish', ar: 'تركي', fr: 'Turc' } },
+    { name: 'lebanese', flag: '🇱🇧', label: { en: 'Lebanese', ar: 'لبناني', fr: 'Libanais' } },
+    { name: 'moroccan', flag: '🇲🇦', label: { en: 'Moroccan', ar: 'مغربي', fr: 'Marocain' } },
+    { name: 'american', flag: '🇺🇸', label: { en: 'American', ar: 'أمريكي', fr: 'Américain' } }
   ];
 
-  const getSubcategories = () => {
-    const category = foodCategories.find(cat => cat.code === selectedCategory);
-    return category?.subcategories || [];
+  // Dietary options
+  const dietaryOptions = [
+    { value: 'vegetarian', label: { en: 'Vegetarian', ar: 'نباتي', fr: 'Végétarien' } },
+    { value: 'vegan', label: { en: 'Vegan', ar: 'نباتي صرف', fr: 'Végétalien' } },
+    { value: 'gluten-free', label: { en: 'Gluten Free', ar: 'خالي من الغلوتين', fr: 'Sans gluten' } },
+    { value: 'ketogenic', label: { en: 'Keto', ar: 'كيتو', fr: 'Kéto' } },
+    { value: 'paleo', label: { en: 'Paleo', ar: 'باليو', fr: 'Paléo' } },
+    { value: 'dairy-free', label: { en: 'Dairy Free', ar: 'خالي من الألبان', fr: 'Sans lactose' } }
+  ];
+
+  const getText = (textObj: any, fallback = '') => {
+    return textObj?.[language as keyof typeof textObj] || textObj?.en || fallback;
   };
 
-  const handleSearch = () => {
-    console.log('Searching with filters:', { 
-      selectedCountry, 
-      selectedCategory, 
-      selectedSubcategory,
-      dietaryFilter,
-      cookingTimeFilter,
-      difficultyFilter
-    });
+  const handleSearch = async () => {
+    setIsLoading(true);
+    setHasSearched(true);
+
+    try {
+      const searchParams: SearchParams = {
+        number: 20,
+        offset: 0
+      };
+
+      if (selectedCuisine) {
+        searchParams.cuisine = selectedCuisine;
+      }
+
+      if (selectedDiet) {
+        searchParams.diet = selectedDiet;
+      }
+
+      if (selectedMainCategory && selectedMainCategory !== 'main') {
+        searchParams.type = selectedMainCategory;
+      }
+
+      const result = await globalCuisineService.searchRecipes(searchParams);
+      setRecipes(result.results || []);
+
+      if (result.results.length === 0) {
+        toast({
+          title: language === 'ar' ? 'لا توجد نتائج' : 'No Results',
+          description: language === 'ar' ? 'لم يتم العثور على وصفات تطابق البحث' : 'No recipes found matching your search criteria',
+        });
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'حدث خطأ أثناء البحث' : 'An error occurred while searching',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const loadRandomRecipes = async () => {
+    setIsLoading(true);
+    try {
+      const result = await globalCuisineService.getRandomRecipes(undefined, 12);
+      setRecipes(result.recipes || []);
+    } catch (error) {
+      console.error('Error loading random recipes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRandomRecipes();
+  }, []);
+
+  const getCategoryIcon = (category: string) => {
+    switch(category) {
+      case 'main':
+        return <Utensils size={16} className={`${isRTL ? 'ml-2' : 'mr-2'}`} />;
+      case 'dessert':
+        return <span className={`text-lg ${isRTL ? 'ml-2' : 'mr-2'}`}>🍰</span>;
+      case 'beverage':
+        return <Martini size={16} className={`${isRTL ? 'ml-2' : 'mr-2'}`} />;
+      default:
+        return <Utensils size={16} className={`${isRTL ? 'ml-2' : 'mr-2'}`} />;
+    }
+  };
+
+  // Convert API recipes to the format expected by RecipeGrid
+  const convertedRecipes = recipes.map(recipe => ({
+    id: recipe.id.toString(),
+    title: recipe.title,
+    description: recipe.summary?.replace(/<[^>]*>/g, '').substring(0, 100) + '...' || '',
+    image_url: recipe.image,
+    image: recipe.image, // Required by Recipe interface
+    prep_time: Math.floor(recipe.readyInMinutes / 2),
+    prepTime: Math.floor(recipe.readyInMinutes / 2), // Required by Recipe interface
+    cook_time: Math.ceil(recipe.readyInMinutes / 2),
+    cookTime: Math.ceil(recipe.readyInMinutes / 2), // Required by Recipe interface
+    servings: recipe.servings,
+    difficulty: 'Medium' as const,
+    calories: recipe.nutrition?.calories || 300,
+    cuisine_type: recipe.cuisines?.[0] || '',
+    instructions: recipe.instructions?.replace(/<[^>]*>/g, '').split('.').filter(s => s.trim()).map(s => s.trim()) || [],
+    categories: recipe.cuisines || [],
+    tags: recipe.dishTypes || [],
+    status: 'published' as const,
+    author_id: 'api',
+    is_verified: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    rating: 4.5,
+    ratingCount: 89,
+    isFavorite: false, // Required by Recipe interface
+    ingredients: recipe.ingredients?.map(ing => ({
+      id: `ing-${Math.random()}`,
+      name: ing.name,
+      amount: ing.amount,
+      unit: ing.unit
+    })) || [],
+    nutritionalInfo: recipe.nutrition ? {
+      calories: Number(recipe.nutrition.calories) || 0,
+      protein: Number(recipe.nutrition.protein) || 0,
+      carbs: Number(recipe.nutrition.carbohydrates) || 0,
+      fat: Number(recipe.nutrition.fat) || 0,
+      fiber: 0
+    } : undefined
+  }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
-      <div className="container mx-auto px-4">
-        {/* Header with Back Button */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2 flex items-center gap-2">
-              <MapPin className="text-wasfah-orange" size={28} />
-              Global Cuisine
-            </h1>
-            <p className="text-gray-600 text-sm sm:text-base">
-              Discover authentic recipes from around the world
-            </p>
+    <PageContainer
+      header={{
+        title: language === 'ar' ? 'المأكولات العالمية' : language === 'fr' ? 'Cuisine Mondiale' : 'Global Cuisine',
+        showBackButton: true,
+        showSearch: true
+      }}
+    >
+      <div className={`space-y-6 pb-20 ${isRTL ? 'rtl' : 'ltr'}`}>
+        {/* Cuisine Selection */}
+        <Card className="p-4">
+          <div className="flex items-center mb-3">
+            <Flag className={`h-5 w-5 text-wasfah-deep-teal ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            <h3 className="font-semibold text-wasfah-deep-teal">
+              {language === 'ar' ? 'اختر المطبخ' : language === 'fr' ? 'Sélectionner la cuisine' : 'Select Cuisine'}
+            </h3>
           </div>
-        </div>
+          <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder={language === 'ar' ? 'اختر نوع المطبخ' : language === 'fr' ? 'Sélectionner le type de cuisine' : 'Select cuisine type'} />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {cuisines.map((cuisine) => (
+                <SelectItem key={cuisine.name} value={cuisine.name}>
+                  <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>{cuisine.flag}</span> 
+                  {getText(cuisine.label)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
 
-        {/* Countries Filter */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Select Country</h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-            {cuisineCountries.map((country) => (
-              <Button
-                key={country.code}
-                variant={selectedCountry === country.code ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCountry(country.code)}
-                className="flex flex-col items-center gap-1 h-auto py-3"
+        {/* Dietary Preferences */}
+        <Card className="p-4">
+          <div className="flex items-center mb-3">
+            <span className={`text-lg ${isRTL ? 'ml-2' : 'mr-2'}`}>🥗</span>
+            <h3 className="font-semibold text-wasfah-deep-teal">
+              {language === 'ar' ? 'التفضيلات الغذائية' : language === 'fr' ? 'Préférences alimentaires' : 'Dietary Preferences'}
+            </h3>
+          </div>
+          <Select value={selectedDiet} onValueChange={setSelectedDiet}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder={language === 'ar' ? 'اختر النظام الغذائي' : language === 'fr' ? 'Sélectionner le régime' : 'Select dietary preference'} />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {dietaryOptions.map((diet) => (
+                <SelectItem key={diet.value} value={diet.value}>
+                  {getText(diet.label)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
+
+        {/* Main Categories */}
+        <div className="overflow-x-auto pb-2">
+          <div className="flex space-x-2 min-w-max">
+            {Object.entries(categories).map(([key, categoryObj]) => (
+              <Button 
+                key={key}
+                variant={selectedMainCategory === key ? "default" : "outline"}
+                className={selectedMainCategory === key ? 
+                  "bg-wasfah-bright-teal hover:bg-wasfah-teal" : 
+                  "border-wasfah-bright-teal text-wasfah-bright-teal"}
+                onClick={() => setSelectedMainCategory(key)}
               >
-                <span className="text-2xl">{country.flag}</span>
-                <span className="text-xs text-center leading-tight">{country.name}</span>
+                {getCategoryIcon(key)}
+                {getText(categoryObj)}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Categories and Subcategories */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Select Category</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {foodCategories.map((category) => (
-              <Card
-                key={category.code}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  selectedCategory === category.code 
-                    ? 'ring-2 ring-wasfah-orange bg-orange-50' 
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => {
-                  setSelectedCategory(category.code);
-                  setSelectedSubcategory("all");
-                }}
-              >
-                <CardContent className="p-4 text-center">
-                  <div className="text-3xl mb-2">{category.icon}</div>
-                  <h4 className="font-semibold mb-1">{category.name}</h4>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Subcategories */}
-          {selectedCategory !== "all" && getSubcategories().length > 0 && (
-            <div>
-              <h4 className="font-medium mb-3">Select Subcategory</h4>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedSubcategory === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedSubcategory("all")}
-                >
-                  All
-                </Button>
-                {getSubcategories().map((sub) => (
-                  <Button
-                    key={sub}
-                    variant={selectedSubcategory === sub ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedSubcategory(sub)}
-                  >
-                    {sub}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Advanced Filters */}
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 mb-4"
-          >
-            <Filter size={16} />
-            Advanced Filters
-          </Button>
-
-          {showFilters && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Dietary Preferences</label>
-                    <Select value={dietaryFilter} onValueChange={setDietaryFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select dietary type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                        <SelectItem value="vegan">Vegan</SelectItem>
-                        <SelectItem value="gluten-free">Gluten-Free</SelectItem>
-                        <SelectItem value="keto">Keto</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Cooking Time</label>
-                    <Select value={cookingTimeFilter} onValueChange={setCookingTimeFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select cooking time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="under-30">Under 30 mins</SelectItem>
-                        <SelectItem value="30-60">30-60 mins</SelectItem>
-                        <SelectItem value="over-60">Over 1 hour</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Difficulty</label>
-                    <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="expert">Expert</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
         {/* Search Button */}
-        <div className="mb-6 text-center">
-          <Button 
-            onClick={handleSearch}
-            className="bg-gradient-to-r from-wasfah-orange to-wasfah-green text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto"
-          >
-            <Search size={20} />
-            Search Recipes
-          </Button>
-        </div>
+        <Button 
+          className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
+          onClick={handleSearch}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4 animate-spin`} />
+              {language === 'ar' ? 'جاري البحث...' : language === 'fr' ? 'Recherche...' : 'Searching...'}
+            </>
+          ) : (
+            <>
+              <Search className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+              {language === 'ar' ? 'البحث عن الوصفات' : language === 'fr' ? 'Rechercher des recettes' : 'Search Recipes'}
+            </>
+          )}
+        </Button>
 
-        {/* Placeholder Results */}
-        <div className="text-center py-12">
-          <MapPin size={48} className="mx-auto mb-4 text-gray-400" />
-          <h3 className="text-xl font-semibold mb-2">Search for recipes</h3>
-          <p className="text-gray-600">Use the filters above and click search to find recipes</p>
+        {/* Recipe Results */}
+        <div>
+          <h2 className="text-lg font-bold text-wasfah-deep-teal mb-4">
+            {hasSearched ? (
+              selectedCuisine ? (
+                <div className="flex items-center">
+                  <span className={`${isRTL ? 'ml-2' : 'mr-2'}`}>
+                    {cuisines.find(c => c.name === selectedCuisine)?.flag}
+                  </span>
+                  {getText(cuisines.find(c => c.name === selectedCuisine)?.label)} {language === 'ar' ? 'وصفات' : language === 'fr' ? 'Recettes' : 'Recipes'}
+                </div>
+              ) : (
+                language === 'ar' ? 'نتائج البحث' : language === 'fr' ? 'Résultats de recherche' : 'Search Results'
+              )
+            ) : (
+              language === 'ar' ? 'وصفات مقترحة لك' : language === 'fr' ? 'Recommandé pour vous' : 'Recommended for you'
+            )}
+          </h2>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-wasfah-bright-teal" />
+            </div>
+          ) : (
+            <RecipeGrid recipes={convertedRecipes} columns={2} cardSize="medium" />
+          )}
         </div>
       </div>
-
-      <MobileNavigation />
-    </div>
+    </PageContainer>
   );
 };
 
-export default GlobalCuisine;
+export default GlobalCuisinePage;

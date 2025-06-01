@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { mockPantryItems } from '@/data/mockData';
+import { usePantry } from '@/hooks/usePantry';
 import { Button } from '@/components/ui/button';
 import { PantryItemCard } from '@/components/pantry/PantryItemCard';
 import { Plus } from 'lucide-react';
@@ -18,7 +19,7 @@ import { PantryItem } from '@/types/index';
 
 export default function PantryPage() {
   const [activeTab, setActiveTab] = useState('all');
-  const [pantryItems, setPantryItems] = useState(mockPantryItems);
+  const { pantryItems, loading, addPantryItem, deletePantryItem } = usePantry();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newItem, setNewItem] = useState<Partial<PantryItem>>({
     name: '',
@@ -47,7 +48,7 @@ export default function PantryPage() {
     return daysLeft >= 0 && daysLeft <= 7;
   });
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.name || !newItem.quantity || !newItem.unit || !newItem.category) return;
 
     const newPantryItem: PantryItem = {
@@ -60,7 +61,7 @@ export default function PantryPage() {
       expiryDate: newItem.expiryDate
     };
 
-    setPantryItems([newPantryItem, ...pantryItems]);
+    await addPantryItem(newPantryItem);
     setIsAddDialogOpen(false);
     setNewItem({
       name: '',

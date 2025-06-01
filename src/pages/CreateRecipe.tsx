@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import { Plus, X, Clock, Users, ChefHat, Camera, Save } from 'lucide-react';
+import { Plus, X, Clock, Users, ChefHat, Camera, Save, Upload, Image } from 'lucide-react';
 
 interface Ingredient {
   id: string;
@@ -52,6 +52,9 @@ const CreateRecipe = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const difficulties = ["easy", "medium", "hard"];
   const cuisines = ["International", "Italian", "Asian", "Mexican", "Mediterranean", "Indian", "Middle Eastern", "American"];
@@ -110,6 +113,40 @@ const CreateRecipe = () => {
       ...prev,
       instructions: prev.instructions.map((inst, i) => i === index ? value : inst)
     }));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setRecipe(prev => ({ ...prev, image: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setRecipe(prev => ({ ...prev, image: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const triggerCameraCapture = () => {
+    cameraInputRef.current?.click();
   };
 
   const saveRecipe = () => {
@@ -299,6 +336,62 @@ const CreateRecipe = () => {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Photo Upload Section */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Recipe Photo</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img src={imagePreview} alt="Recipe preview" className="w-full h-48 object-cover rounded-lg" />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2"
+                          onClick={() => {
+                            setImagePreview("");
+                            setRecipe(prev => ({ ...prev, image: "" }));
+                          }}
+                        >
+                          <X size={16} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Image className="mx-auto h-12 w-12 text-gray-400" />
+                        <div>
+                          <p className="text-gray-600 mb-4">Add a photo of your recipe</p>
+                          <div className="flex justify-center gap-3">
+                            <Button type="button" onClick={triggerFileUpload} variant="outline">
+                              <Upload size={16} className="mr-2" />
+                              Upload Photo
+                            </Button>
+                            <Button type="button" onClick={triggerCameraCapture} variant="outline">
+                              <Camera size={16} className="mr-2" />
+                              Take Photo
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleCameraCapture}
+                    className="hidden"
+                  />
                 </div>
               </CardContent>
             </Card>
