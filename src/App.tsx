@@ -99,6 +99,8 @@ import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
 import AdminCommunityPage from '@/pages/admin/CommunityPage';
 import AdminNotificationsPage from '@/pages/admin/NotificationsPage';
 
+import AdminAIChef from "./pages/admin/AdminAIChef";
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -192,6 +194,8 @@ function App() {
                               <Route path="rewards" element={<AdminRewardsManager />} />
                               <Route path="languages" element={<AdminLanguageManager />} />
                               <Route path="integrations" element={<AdminIntegrationsManager />} />
+                              <Route path="ai-chef" element={<AdminAIChef />} />
+                              <Route path="advertisements" element={<AdminAdvertisementManager />} />
                               <Route path="spoonacular" element={
                                 <AdminAuthGuard requireSuperAdmin={true}>
                                   <AdminSpoonacularIntegration />
@@ -220,7 +224,6 @@ function App() {
                                 </AdminAuthGuard>
                               } />
                               <Route path="notifications" element={<AdminNotificationsPage />} />
-                              <Route path="advertisements" element={<AdminAdvertisementManager />} />
                               <Route path="recipe-approval" element={<AdminRecipeApproval />} />
                               <Route path="shared-recipes" element={<AdminSharedRecipeModeration />} />
                               <Route path="tickets" element={<AdminTicketSystem />} />

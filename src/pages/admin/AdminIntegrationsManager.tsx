@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,10 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   ExternalLink, Settings, Key, Database, 
   Globe, Zap, Shield, CheckCircle, X,
-  Cpu, Link, Code, Webhook, Plus
+  Cpu, Link, Code, Webhook, Plus, Save
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Integration {
   id: string;
@@ -26,6 +26,8 @@ interface Integration {
   category: 'api' | 'payment' | 'analytics' | 'social';
   version?: string;
   lastSync?: string;
+  apiKey?: string;
+  config?: Record<string, any>;
 }
 
 const integrations: Integration[] = [
@@ -38,7 +40,8 @@ const integrations: Integration[] = [
     status: 'connected',
     category: 'api',
     version: 'v1.2',
-    lastSync: '2024-01-20T10:30:00Z'
+    lastSync: '2024-01-20T10:30:00Z',
+    apiKey: '437914c63f4748c49a8236e93c3758eb'
   },
   {
     id: 'stripe',
@@ -61,13 +64,13 @@ const integrations: Integration[] = [
     category: 'analytics'
   },
   {
-    id: 'facebook',
-    name: 'Facebook Login',
-    description: 'Social authentication via Facebook',
-    icon: Link,
+    id: 'openai',
+    name: 'OpenAI',
+    description: 'AI-powered recipe generation and assistance',
+    icon: Zap,
     enabled: false,
     status: 'disconnected',
-    category: 'social'
+    category: 'api'
   }
 ];
 
@@ -76,6 +79,12 @@ export default function AdminIntegrationsManager() {
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [integrationList, setIntegrationList] = useState(integrations);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [configData, setConfigData] = useState({
+    apiKey: '',
+    webhookUrl: '',
+    settings: ''
+  });
   const [newIntegration, setNewIntegration] = useState({
     name: '',
     description: '',
@@ -100,6 +109,46 @@ export default function AdminIntegrationsManager() {
     });
   };
 
+  const handleConfigureIntegration = (integration: Integration) => {
+    setSelectedIntegration(integration);
+    setConfigData({
+      apiKey: integration.apiKey || '',
+      webhookUrl: integration.config?.webhookUrl || '',
+      settings: JSON.stringify(integration.config || {}, null, 2)
+    });
+    setIsConfigDialogOpen(true);
+  };
+
+  const handleSaveConfiguration = () => {
+    if (!selectedIntegration) return;
+
+    setIntegrationList(prev => 
+      prev.map(integration => 
+        integration.id === selectedIntegration.id 
+          ? { 
+              ...integration, 
+              apiKey: configData.apiKey,
+              config: {
+                ...integration.config,
+                webhookUrl: configData.webhookUrl,
+                ...(configData.settings ? JSON.parse(configData.settings) : {})
+              },
+              status: configData.apiKey ? 'connected' : 'disconnected',
+              enabled: configData.apiKey ? true : integration.enabled
+            }
+          : integration
+      )
+    );
+
+    toast({
+      title: "Configuration Saved",
+      description: `${selectedIntegration.name} integration has been updated.`,
+    });
+
+    setIsConfigDialogOpen(false);
+    setSelectedIntegration(null);
+  };
+
   const handleAddIntegration = () => {
     if (!newIntegration.name || !newIntegration.description) {
       toast({
@@ -117,7 +166,8 @@ export default function AdminIntegrationsManager() {
       icon: Code,
       enabled: false,
       status: 'disconnected',
-      category: newIntegration.category
+      category: newIntegration.category,
+      apiKey: newIntegration.apiKey
     };
 
     setIntegrationList(prev => [...prev, integration]);
@@ -134,6 +184,45 @@ export default function AdminIntegrationsManager() {
       title: "Integration Added",
       description: `${newIntegration.name} has been added successfully.`,
     });
+  };
+
+  const handleTestConnection = async (integration: Integration) => {
+    toast({
+      title: "Testing Connection",
+      description: "Testing integration connection...",
+    });
+
+    // Simulate API test
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setIntegrationList(prev => 
+        prev.map(int => 
+          int.id === integration.id 
+            ? { ...int, status: 'connected' as const }
+            : int
+        )
+      );
+
+      toast({
+        title: "Connection Successful",
+        description: `${integration.name} is working correctly!`,
+      });
+    } catch (error) {
+      setIntegrationList(prev => 
+        prev.map(int => 
+          int.id === integration.id 
+            ? { ...int, status: 'error' as const }
+            : int
+        )
+      );
+
+      toast({
+        title: "Connection Failed",
+        description: `Failed to connect to ${integration.name}`,
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -160,6 +249,7 @@ export default function AdminIntegrationsManager() {
   return (
     <AdminLayout title="Integrations">
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
@@ -212,6 +302,16 @@ export default function AdminIntegrationsManager() {
                     <option value="social">Social</option>
                   </select>
                 </div>
+                <div>
+                  <Label htmlFor="apiKey">API Key (Optional)</Label>
+                  <Input
+                    id="apiKey"
+                    type="password"
+                    value={newIntegration.apiKey}
+                    onChange={(e) => setNewIntegration({...newIntegration, apiKey: e.target.value})}
+                    placeholder="Enter API key"
+                  />
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -224,6 +324,60 @@ export default function AdminIntegrationsManager() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Configuration Dialog */}
+        <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Configure {selectedIntegration?.name}</DialogTitle>
+              <DialogDescription>
+                Update integration settings and API credentials
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="configApiKey">API Key</Label>
+                <Input
+                  id="configApiKey"
+                  type="password"
+                  placeholder="Enter API key"
+                  value={configData.apiKey}
+                  onChange={(e) => setConfigData({...configData, apiKey: e.target.value})}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="webhookUrl">Webhook URL</Label>
+                <Input
+                  id="webhookUrl"
+                  placeholder="https://your-app.com/webhooks"
+                  value={configData.webhookUrl}
+                  onChange={(e) => setConfigData({...configData, webhookUrl: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="settings">Additional Settings (JSON)</Label>
+                <Textarea
+                  id="settings"
+                  placeholder='{"timeout": 30, "retries": 3}'
+                  value={configData.settings}
+                  onChange={(e) => setConfigData({...configData, settings: e.target.value})}
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveConfiguration}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Configuration
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
@@ -275,13 +429,23 @@ export default function AdminIntegrationsManager() {
                     )}
 
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleConfigureIntegration(integration)}
+                      >
                         <Settings className="h-4 w-4 mr-1" />
                         Configure
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
+                      {integration.status === 'connected' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleTestConnection(integration)}
+                        >
+                          Test
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -314,7 +478,12 @@ export default function AdminIntegrationsManager() {
                         <p className="text-sm text-muted-foreground">{integration.description}</p>
                         {getStatusBadge(integration.status)}
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleConfigureIntegration(integration)}
+                          >
                             <Settings className="h-4 w-4 mr-1" />
                             Configure
                           </Button>
@@ -330,17 +499,17 @@ export default function AdminIntegrationsManager() {
           ))}
         </Tabs>
 
-        {/* Configuration Panel */}
+        {/* Global Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Integration Settings</CardTitle>
-            <CardDescription>Configure global integration settings and API keys</CardDescription>
+            <CardTitle>Global Integration Settings</CardTitle>
+            <CardDescription>Configure global integration settings and defaults</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="webhook-url">Webhook URL</Label>
-                <Input id="webhook-url" placeholder="https://your-app.com/webhooks" />
+                <Label htmlFor="global-webhook-url">Default Webhook URL</Label>
+                <Input id="global-webhook-url" placeholder="https://your-app.com/webhooks" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="timeout">Request Timeout (seconds)</Label>
@@ -351,7 +520,7 @@ export default function AdminIntegrationsManager() {
               <Switch id="auto-retry" />
               <Label htmlFor="auto-retry">Auto-retry failed requests</Label>
             </div>
-            <Button>Save Settings</Button>
+            <Button>Save Global Settings</Button>
           </CardContent>
         </Card>
       </div>
