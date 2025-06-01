@@ -1,15 +1,18 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { PantryItem } from '@/types/index';
 import { isAfter, parseISO, format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Trash2 } from 'lucide-react';
 
 interface PantryItemCardProps {
   item: PantryItem;
+  onDelete: () => Promise<boolean>;
 }
 
-export const PantryItemCard: React.FC<PantryItemCardProps> = ({ item }) => {
+export const PantryItemCard: React.FC<PantryItemCardProps> = ({ item, onDelete }) => {
   const getExpiryText = () => {
     if (!item.expiryDate) return 'No expiry date';
     
@@ -52,8 +55,18 @@ export const PantryItemCard: React.FC<PantryItemCardProps> = ({ item }) => {
               {expiryText}
             </p>
           </div>
-          <div className="text-right">
-            <p className="font-medium">{item.quantity} {item.unit}</p>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="font-medium">{item.quantity} {item.unit}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              className="text-wasfah-coral-red hover:text-wasfah-coral-red hover:bg-red-50"
+            >
+              <Trash2 size={16} />
+            </Button>
           </div>
         </div>
       </CardContent>
