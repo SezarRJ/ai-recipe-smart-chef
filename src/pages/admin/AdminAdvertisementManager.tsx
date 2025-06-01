@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, Plus, Eye, EyeOff, Edit, Trash2, Calendar } from 'lucide-react';
+import { Search, Filter, Plus, Eye, EyeOff, Edit, Trash2, Calendar, BarChart3, Users, MousePointer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 
 const mockAds = [
   {
@@ -76,8 +77,12 @@ const mockAds = [
 ];
 
 const AdminAdvertisementManager = () => {
+  const { toast } = useToast();
   const [ads, setAds] = useState(mockAds);
   const [createDialog, setCreateDialog] = useState(false);
+  const [previewDialog, setPreviewDialog] = useState(false);
+  const [selectedAd, setSelectedAd] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newAd, setNewAd] = useState({
     title: '',
     content: '',
@@ -91,6 +96,33 @@ const AdminAdvertisementManager = () => {
   });
 
   const handleCreateAd = () => {
+    if (!newAd.title || !newAd.content) {
+      toast({
+        title: "Validation Error",
+        description: "Title and content are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newAd.targetUrl) {
+      toast({
+        title: "Validation Error",
+        description: "Target URL is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newAd.displayDuration < 1000 || newAd.displayDuration > 30000) {
+      toast({
+        title: "Validation Error",
+        description: "Display duration must be between 1000ms and 30000ms.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const ad = {
       id: Date.now().toString(),
       ...newAd,
@@ -114,7 +146,34 @@ const AdminAdvertisementManager = () => {
     });
 
     setCreateDialog(false);
-    toast.success('Advertisement created successfully!');
+    toast({
+      title: "Advertisement Created",
+      description: "Advertisement created successfully!",
+    });
+  };
+
+  const handleBulkToggle = (selectedIds: string[], action: 'activate' | 'deactivate') => {
+    if (selectedIds.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select advertisements to modify.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAds(prev => 
+      prev.map(ad => 
+        selectedIds.includes(ad.id) 
+          ? { ...ad, isActive: action === 'activate' }
+          : ad
+      )
+    );
+
+    toast({
+      title: "Bulk Action Complete",
+      description: `${selectedIds.length} advertisements ${action}d.`,
+    });
   };
 
   const handleToggleAd = (adId: string) => {
@@ -125,12 +184,30 @@ const AdminAdvertisementManager = () => {
           : ad
       )
     );
-    toast.success('Advertisement status updated!');
+    toast({
+      title: "Advertisement Updated",
+      description: "Advertisement status updated!",
+    });
   };
 
   const handleDeleteAd = (adId: string) => {
     setAds(prev => prev.filter(ad => ad.id !== adId));
-    toast.success('Advertisement deleted successfully!');
+    toast({
+      title: "Advertisement Deleted",
+      description: "Advertisement deleted successfully!",
+    });
+  };
+
+  const handlePreviewAd = (ad: any) => {
+    setSelectedAd(ad);
+    setPreviewDialog(true);
+  };
+
+  const handleViewAnalytics = (ad: any) => {
+    toast({
+      title: "Analytics",
+      description: `Analytics for "${ad.title}": ${ad.impressions} impressions, ${ad.clicks} clicks`,
+    });
   };
 
   const getStatusBadge = (isActive: boolean, scheduledStart: string | null) => {
@@ -152,245 +229,324 @@ const AdminAdvertisementManager = () => {
     return badges[target as keyof typeof badges] || <Badge variant="outline">{target}</Badge>;
   };
 
+  const filteredAds = ads.filter(ad =>
+    ad.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    ad.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Advertisement Manager</h1>
-          <p className="text-muted-foreground">Create and manage popup advertisements and promotional content.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Dialog open={createDialog} onOpenChange={setCreateDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Advertisement
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create New Advertisement</DialogTitle>
-                <DialogDescription>
-                  Create a popup advertisement for your users.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={newAd.title}
-                    onChange={(e) => setNewAd(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Advertisement title..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    value={newAd.content}
-                    onChange={(e) => setNewAd(prev => ({ ...prev, content: e.target.value }))}
-                    placeholder="Advertisement content..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input
-                    id="imageUrl"
-                    value={newAd.imageUrl}
-                    onChange={(e) => setNewAd(prev => ({ ...prev, imageUrl: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="targetUrl">Target URL</Label>
-                  <Input
-                    id="targetUrl"
-                    value={newAd.targetUrl}
-                    onChange={(e) => setNewAd(prev => ({ ...prev, targetUrl: e.target.value }))}
-                    placeholder="/subscription or https://external-site.com"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="targetUsers">Target Users</Label>
-                    <Select 
-                      value={newAd.targetUsers} 
-                      onValueChange={(value) => setNewAd(prev => ({ ...prev, targetUsers: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Users</SelectItem>
-                        <SelectItem value="premium">Premium Users</SelectItem>
-                        <SelectItem value="free">Free Users</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="displayDuration">Display Duration (ms)</Label>
-                    <Input
-                      id="displayDuration"
-                      type="number"
-                      value={newAd.displayDuration}
-                      onChange={(e) => setNewAd(prev => ({ ...prev, displayDuration: parseInt(e.target.value) }))}
-                      placeholder="5000"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="scheduledStart">Start Date (Optional)</Label>
-                    <Input
-                      id="scheduledStart"
-                      type="date"
-                      value={newAd.scheduledStart}
-                      onChange={(e) => setNewAd(prev => ({ ...prev, scheduledStart: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="scheduledEnd">End Date (Optional)</Label>
-                    <Input
-                      id="scheduledEnd"
-                      type="date"
-                      value={newAd.scheduledEnd}
-                      onChange={(e) => setNewAd(prev => ({ ...prev, scheduledEnd: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isActive"
-                    checked={newAd.isActive}
-                    onCheckedChange={(checked) => setNewAd(prev => ({ ...prev, isActive: checked }))}
-                  />
-                  <Label htmlFor="isActive">Active</Label>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateAd}>
+    <AdminLayout title="Advertisement Manager">
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Advertisement Manager</h1>
+            <p className="text-muted-foreground">Create and manage popup advertisements and promotional content.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Dialog open={createDialog} onOpenChange={setCreateDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
                   Create Advertisement
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-green-600">{ads.filter(ad => ad.isActive).length}</div>
-          <div className="text-sm text-gray-600">Active Ads</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-blue-600">{ads.filter(ad => ad.scheduledStart && new Date(ad.scheduledStart) > new Date()).length}</div>
-          <div className="text-sm text-gray-600">Scheduled</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-purple-600">{ads.reduce((sum, ad) => sum + ad.impressions, 0)}</div>
-          <div className="text-sm text-gray-600">Total Impressions</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-orange-600">{ads.reduce((sum, ad) => sum + ad.clicks, 0)}</div>
-          <div className="text-sm text-gray-600">Total Clicks</div>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search advertisements..."
-            className="pl-8 w-full md:w-80"
-          />
-        </div>
-        <div className="flex items-center gap-2 self-end">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-        </div>
-      </div>
-
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Advertisement</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Impressions</TableHead>
-              <TableHead>Clicks</TableHead>
-              <TableHead>CTR</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="w-[120px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ads.map((ad) => (
-              <TableRow key={ad.id}>
-                <TableCell>
-                  <div className="flex items-center space-x-3">
-                    {ad.imageUrl && (
-                      <img
-                        src={ad.imageUrl}
-                        alt={ad.title}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                    )}
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Advertisement</DialogTitle>
+                  <DialogDescription>
+                    Create a popup advertisement for your users.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      value={newAd.title}
+                      onChange={(e) => setNewAd(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Advertisement title..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="content">Content</Label>
+                    <Textarea
+                      id="content"
+                      value={newAd.content}
+                      onChange={(e) => setNewAd(prev => ({ ...prev, content: e.target.value }))}
+                      placeholder="Advertisement content..."
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="imageUrl">Image URL</Label>
+                    <Input
+                      id="imageUrl"
+                      value={newAd.imageUrl}
+                      onChange={(e) => setNewAd(prev => ({ ...prev, imageUrl: e.target.value }))}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="targetUrl">Target URL</Label>
+                    <Input
+                      id="targetUrl"
+                      value={newAd.targetUrl}
+                      onChange={(e) => setNewAd(prev => ({ ...prev, targetUrl: e.target.value }))}
+                      placeholder="/subscription or https://external-site.com"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <div className="font-medium">{ad.title}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {ad.content}
-                      </div>
+                      <Label htmlFor="targetUsers">Target Users</Label>
+                      <Select 
+                        value={newAd.targetUsers} 
+                        onValueChange={(value) => setNewAd(prev => ({ ...prev, targetUsers: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Users</SelectItem>
+                          <SelectItem value="premium">Premium Users</SelectItem>
+                          <SelectItem value="free">Free Users</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="displayDuration">Display Duration (ms)</Label>
+                      <Input
+                        id="displayDuration"
+                        type="number"
+                        value={newAd.displayDuration}
+                        onChange={(e) => setNewAd(prev => ({ ...prev, displayDuration: parseInt(e.target.value) }))}
+                        placeholder="5000"
+                      />
                     </div>
                   </div>
-                </TableCell>
-                <TableCell>{getTargetBadge(ad.targetUsers)}</TableCell>
-                <TableCell>{getStatusBadge(ad.isActive, ad.scheduledStart)}</TableCell>
-                <TableCell>{ad.impressions.toLocaleString()}</TableCell>
-                <TableCell>{ad.clicks.toLocaleString()}</TableCell>
-                <TableCell>
-                  {ad.impressions > 0 ? `${((ad.clicks / ad.impressions) * 100).toFixed(1)}%` : '0%'}
-                </TableCell>
-                <TableCell>{ad.createdAt}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleAd(ad.id)}
-                      className={ad.isActive ? "text-red-600 hover:text-red-700" : "text-green-600 hover:text-green-700"}
-                    >
-                      {ad.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteAd(ad.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="scheduledStart">Start Date (Optional)</Label>
+                      <Input
+                        id="scheduledStart"
+                        type="date"
+                        value={newAd.scheduledStart}
+                        onChange={(e) => setNewAd(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="scheduledEnd">End Date (Optional)</Label>
+                      <Input
+                        id="scheduledEnd"
+                        type="date"
+                        value={newAd.scheduledEnd}
+                        onChange={(e) => setNewAd(prev => ({ ...prev, scheduledEnd: e.target.value }))}
+                      />
+                    </div>
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isActive"
+                      checked={newAd.isActive}
+                      onCheckedChange={(checked) => setNewAd(prev => ({ ...prev, isActive: checked }))}
+                    />
+                    <Label htmlFor="isActive">Active</Label>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setCreateDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateAd}>
+                    Create Advertisement
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing <strong>{ads.length}</strong> advertisements
-        </p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-lg border">
+            <div className="text-2xl font-bold text-green-600">{ads.filter(ad => ad.isActive).length}</div>
+            <div className="text-sm text-gray-600">Active Ads</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg border">
+            <div className="text-2xl font-bold text-blue-600">{ads.filter(ad => ad.scheduledStart && new Date(ad.scheduledStart) > new Date()).length}</div>
+            <div className="text-sm text-gray-600">Scheduled</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg border">
+            <div className="text-2xl font-bold text-purple-600">{ads.reduce((sum, ad) => sum + ad.impressions, 0)}</div>
+            <div className="text-sm text-gray-600">Total Impressions</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg border">
+            <div className="text-2xl font-bold text-orange-600">{ads.reduce((sum, ad) => sum + ad.clicks, 0)}</div>
+            <div className="text-sm text-gray-600">Total Clicks</div>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search advertisements..."
+              className="pl-8 w-full md:w-80"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2 self-end">
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+          </div>
+        </div>
+
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Advertisement</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Impressions</TableHead>
+                <TableHead>Clicks</TableHead>
+                <TableHead>CTR</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="w-[120px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAds.map((ad) => (
+                <TableRow key={ad.id}>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      {ad.imageUrl && (
+                        <img
+                          src={ad.imageUrl}
+                          alt={ad.title}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium">{ad.title}</div>
+                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                          {ad.content}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getTargetBadge(ad.targetUsers)}</TableCell>
+                  <TableCell>{getStatusBadge(ad.isActive, ad.scheduledStart)}</TableCell>
+                  <TableCell>{ad.impressions.toLocaleString()}</TableCell>
+                  <TableCell>{ad.clicks.toLocaleString()}</TableCell>
+                  <TableCell>
+                    {ad.impressions > 0 ? `${((ad.clicks / ad.impressions) * 100).toFixed(1)}%` : '0%'}
+                  </TableCell>
+                  <TableCell>{ad.createdAt}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePreviewAd(ad)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewAnalytics(ad)}
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleAd(ad.id)}
+                        className={ad.isActive ? "text-red-600 hover:text-red-700" : "text-green-600 hover:text-green-700"}
+                      >
+                        {ad.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteAd(ad.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing <strong>{filteredAds.length}</strong> of <strong>{ads.length}</strong> advertisements
+          </p>
+        </div>
+
+        {/* Preview Dialog */}
+        <Dialog open={previewDialog} onOpenChange={setPreviewDialog}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Advertisement Preview</DialogTitle>
+              <DialogDescription>
+                Preview how this advertisement will appear to users
+              </DialogDescription>
+            </DialogHeader>
+            {selectedAd && (
+              <div className="space-y-4">
+                <div className="border rounded-lg p-4 bg-white shadow-sm">
+                  {selectedAd.imageUrl && (
+                    <img 
+                      src={selectedAd.imageUrl} 
+                      alt={selectedAd.title}
+                      className="w-full h-48 object-cover rounded-lg mb-4"
+                    />
+                  )}
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedAd.title}</h3>
+                  <p className="text-gray-700 mb-4">{selectedAd.content}</p>
+                  <div className="flex justify-between items-center">
+                    <Badge variant="outline">{getTargetBadge(selectedAd.targetUsers)}</Badge>
+                    <div className="text-sm text-gray-500">
+                      Display: {selectedAd.displayDuration}ms
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-purple-600">{selectedAd.impressions}</div>
+                    <div className="text-sm text-gray-600">Impressions</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-orange-600">{selectedAd.clicks}</div>
+                    <div className="text-sm text-gray-600">Clicks</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {selectedAd.impressions > 0 ? `${((selectedAd.clicks / selectedAd.impressions) * 100).toFixed(1)}%` : '0%'}
+                    </div>
+                    <div className="text-sm text-gray-600">CTR</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPreviewDialog(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

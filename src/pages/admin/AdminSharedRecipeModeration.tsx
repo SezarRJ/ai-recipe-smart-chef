@@ -1,363 +1,376 @@
 
-import React, { useState } from 'react';
-import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  Eye, 
-  MessageSquare,
-  ChefHat
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { SharedRecipe } from '@/types/index';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, Check, X, Eye, Clock, User, ChefHat } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data for shared recipes
-const mockSharedRecipes: SharedRecipe[] = [
-  {
-    id: '1',
-    title: 'Authentic Italian Carbonara',
-    description: 'Traditional Roman pasta dish with eggs, cheese, and pancetta',
-    image: '/placeholder.svg',
-    prep_time: 15,
-    cooking_time: 20,
-    servings: 4,
-    difficulty: 'Medium',
-    calories: 580,
-    protein: 25,
-    carbs: 65,
-    fat: 22,
-    rating: 0,
-    rating_count: 0,
-    ingredients: [],
-    instructions: ['Boil pasta', 'Cook pancetta', 'Mix eggs and cheese', 'Combine all ingredients'],
-    categories: ['Italian', 'Pasta'],
-    tags: ['traditional', 'comfort-food'],
-    isFavorite: false,
-    status: 'pending',
-    submitted_by: 'user123',
-    submitted_at: '2023-09-20T10:30:00Z'
-  },
-  {
-    id: '2',
-    title: 'Vegan Buddha Bowl',
-    description: 'Nutritious bowl with quinoa, roasted vegetables, and tahini dressing',
-    image: '/placeholder.svg',
-    prep_time: 20,
-    cooking_time: 25,
-    servings: 2,
-    difficulty: 'Easy',
-    calories: 420,
-    protein: 15,
-    carbs: 58,
-    fat: 18,
-    rating: 0,
-    rating_count: 0,
-    ingredients: [],
-    instructions: ['Cook quinoa', 'Roast vegetables', 'Prepare dressing', 'Assemble bowl'],
-    categories: ['Vegan', 'Healthy'],
-    tags: ['plant-based', 'nutritious'],
-    isFavorite: false,
-    status: 'approved',
-    submitted_by: 'healthyfoodie',
-    submitted_at: '2023-09-19T14:20:00Z',
-    moderated_by: 'admin',
-    moderated_at: '2023-09-19T16:45:00Z'
-  },
-  {
-    id: '3',
-    title: 'Spicy Korean Kimchi Ramen',
-    description: 'Instant ramen elevated with kimchi, vegetables, and a soft-boiled egg',
-    image: '/placeholder.svg',
-    prep_time: 10,
-    cooking_time: 15,
-    servings: 1,
-    difficulty: 'Easy',
-    calories: 380,
-    protein: 18,
-    carbs: 45,
-    fat: 12,
-    rating: 0,
-    rating_count: 0,
-    ingredients: [],
-    instructions: ['Boil water', 'Add ramen and kimchi', 'Cook egg', 'Serve hot'],
-    categories: ['Korean', 'Quick'],
-    tags: ['spicy', 'comfort-food'],
-    isFavorite: false,
-    status: 'rejected',
-    submitted_by: 'spicylover',
-    submitted_at: '2023-09-18T09:15:00Z',
-    moderated_by: 'admin',
-    moderated_at: '2023-09-18T11:30:00Z',
-    moderation_notes: 'Recipe lacks detailed instructions and nutritional information'
-  }
-];
+interface SharedRecipe {
+  id: string;
+  title: string;
+  description: string;
+  author: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_at: string;
+  ingredients: string[];
+  instructions: string[];
+  cooking_time: number;
+  difficulty: string;
+  cuisine_type: string;
+  image_url?: string;
+}
 
-const AdminSharedRecipeModeration = () => {
-  const [recipes, setRecipes] = useState<SharedRecipe[]>(mockSharedRecipes);
+export default function AdminSharedRecipeModeration() {
+  const { toast } = useToast();
+  const [recipes, setRecipes] = useState<SharedRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('pending');
   const [selectedRecipe, setSelectedRecipe] = useState<SharedRecipe | null>(null);
-  const [moderationNotes, setModerationNotes] = useState('');
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  const pendingRecipes = recipes.filter(r => r.status === 'pending');
-  const approvedRecipes = recipes.filter(r => r.status === 'approved');
-  const rejectedRecipes = recipes.filter(r => r.status === 'rejected');
+  // Mock data for demonstration
+  const mockRecipes: SharedRecipe[] = [
+    {
+      id: '1',
+      title: 'Grandmother\'s Secret Hummus',
+      description: 'A family recipe passed down through generations',
+      author: 'Sarah Ahmed',
+      status: 'pending',
+      submitted_at: '2024-01-20T10:30:00Z',
+      ingredients: ['2 cups chickpeas', '1/4 cup tahini', '2 cloves garlic', 'Lemon juice', 'Olive oil'],
+      instructions: ['Soak chickpeas overnight', 'Cook until tender', 'Blend with tahini and garlic', 'Add lemon juice and olive oil'],
+      cooking_time: 30,
+      difficulty: 'Easy',
+      cuisine_type: 'Middle Eastern'
+    },
+    {
+      id: '2',
+      title: 'Spicy Korean Kimchi Fried Rice',
+      description: 'Perfect way to use leftover kimchi',
+      author: 'Min Jung',
+      status: 'pending',
+      submitted_at: '2024-01-19T14:15:00Z',
+      ingredients: ['2 cups cooked rice', '1 cup kimchi', '2 eggs', 'Sesame oil', 'Green onions'],
+      instructions: ['Heat oil in pan', 'Add kimchi and rice', 'Stir fry for 5 minutes', 'Top with fried egg'],
+      cooking_time: 15,
+      difficulty: 'Medium',
+      cuisine_type: 'Korean'
+    },
+    {
+      id: '3',
+      title: 'Classic Italian Carbonara',
+      description: 'Authentic Roman pasta dish',
+      author: 'Giuseppe Romano',
+      status: 'approved',
+      submitted_at: '2024-01-18T09:45:00Z',
+      ingredients: ['400g spaghetti', '200g pancetta', '3 eggs', 'Parmesan cheese', 'Black pepper'],
+      instructions: ['Cook pasta al dente', 'Fry pancetta until crispy', 'Mix eggs with cheese', 'Combine everything off heat'],
+      cooking_time: 20,
+      difficulty: 'Medium',
+      cuisine_type: 'Italian'
+    },
+    {
+      id: '4',
+      title: 'Questionable Fish Curry',
+      description: 'Fish curry with unusual ingredients',
+      author: 'Anonymous User',
+      status: 'rejected',
+      submitted_at: '2024-01-17T16:20:00Z',
+      ingredients: ['Fish', 'Curry powder', 'Strange ingredient'],
+      instructions: ['Cook fish', 'Add curry', 'Mix everything'],
+      cooking_time: 25,
+      difficulty: 'Hard',
+      cuisine_type: 'Indian'
+    }
+  ];
 
-  const handleModerate = (recipeId: string, action: 'approved' | 'rejected') => {
-    setRecipes(prev => prev.map(recipe => 
-      recipe.id === recipeId 
-        ? {
-            ...recipe,
-            status: action,
-            moderated_by: 'admin',
-            moderated_at: new Date().toISOString(),
-            moderation_notes: moderationNotes
-          }
-        : recipe
-    ));
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
 
-    toast.success(`Recipe ${action} successfully!`);
-    setSelectedRecipe(null);
-    setModerationNotes('');
-  };
-
-  const getStatusBadge = (status: SharedRecipe['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+  const fetchRecipes = async () => {
+    try {
+      setLoading(true);
+      // Simulate API call
+      setTimeout(() => {
+        setRecipes(mockRecipes);
+        setLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Error fetching recipes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load shared recipes",
+        variant: "destructive",
+      });
+      setLoading(false);
     }
   };
 
-  const RecipeCard = ({ recipe }: { recipe: SharedRecipe }) => (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedRecipe(recipe)}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-medium text-lg mb-1">{recipe.title}</h3>
-            <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
-          </div>
-          <div className="ml-4">
-            {getStatusBadge(recipe.status)}
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <ChefHat className="h-4 w-4" />
-              {recipe.submitted_by}
-            </span>
-            <span>{recipe.prep_time + recipe.cooking_time} min</span>
-            <span>{recipe.difficulty}</span>
-          </div>
-          <span>{new Date(recipe.submitted_at).toLocaleDateString()}</span>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const handleRecipeAction = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      const recipe = recipes.find(r => r.id === id);
+      if (!recipe) return;
+
+      // Update recipe status
+      setRecipes(prev => 
+        prev.map(r => 
+          r.id === id 
+            ? { ...r, status: action === 'approve' ? 'approved' : 'rejected' }
+            : r
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: `Recipe "${recipe.title}" has been ${action}d`,
+      });
+
+      // Here you would make the actual API call to update the recipe status
+      // await supabase.from('shared_recipes').update({ status: action === 'approve' ? 'approved' : 'rejected' }).eq('id', id);
+      
+    } catch (error) {
+      console.error('Error updating recipe:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update recipe status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredRecipes = recipes.filter(recipe => {
+    const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         recipe.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = selectedStatus === 'all' || recipe.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800"><Check className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-100 text-red-800"><X className="h-3 w-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+    }
+  };
+
+  const viewRecipeDetails = (recipe: SharedRecipe) => {
+    setSelectedRecipe(recipe);
+    setIsViewDialogOpen(true);
+  };
 
   return (
-    <AdminPageWrapper title="Recipe Moderation">
-      <div className="space-y-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-yellow-600">{pendingRecipes.length}</div>
-                  <div className="text-sm text-gray-600">Pending Review</div>
-                </div>
-                <Clock className="h-8 w-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-green-600">{approvedRecipes.length}</div>
-                  <div className="text-sm text-gray-600">Approved</div>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-red-600">{rejectedRecipes.length}</div>
-                  <div className="text-sm text-gray-600">Rejected</div>
-                </div>
-                <XCircle className="h-8 w-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Shared Recipe Moderation</h1>
+        <div className="flex items-center space-x-2">
+          <Badge variant="outline">{filteredRecipes.length} recipes</Badge>
         </div>
-
-        {/* Recipe Lists */}
-        <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="pending">Pending ({pendingRecipes.length})</TabsTrigger>
-            <TabsTrigger value="approved">Approved ({approvedRecipes.length})</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected ({rejectedRecipes.length})</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pending" className="space-y-4 mt-6">
-            {pendingRecipes.length > 0 ? (
-              pendingRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
-            ) : (
-              <Card>
-                <CardContent className="p-8 text-center text-gray-500">
-                  No pending recipes to review.
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="approved" className="space-y-4 mt-6">
-            {approvedRecipes.length > 0 ? (
-              approvedRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
-            ) : (
-              <Card>
-                <CardContent className="p-8 text-center text-gray-500">
-                  No approved recipes yet.
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="rejected" className="space-y-4 mt-6">
-            {rejectedRecipes.length > 0 ? (
-              rejectedRecipes.map(recipe => <RecipeCard key={recipe.id} recipe={recipe} />)
-            ) : (
-              <Card>
-                <CardContent className="p-8 text-center text-gray-500">
-                  No rejected recipes.
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* Recipe Detail Modal */}
-        {selectedRecipe && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">{selectedRecipe.title}</h2>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(selectedRecipe.status)}
-                    <Button onClick={() => setSelectedRecipe(null)} variant="outline">
-                      Close
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <img
-                      src={selectedRecipe.image}
-                      alt={selectedRecipe.title}
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <p className="text-gray-700">{selectedRecipe.description}</p>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <strong>Prep Time:</strong> {selectedRecipe.prep_time} min
-                      </div>
-                      <div>
-                        <strong>Cook Time:</strong> {selectedRecipe.cooking_time} min
-                      </div>
-                      <div>
-                        <strong>Servings:</strong> {selectedRecipe.servings}
-                      </div>
-                      <div>
-                        <strong>Difficulty:</strong> {selectedRecipe.difficulty}
-                      </div>
-                      <div>
-                        <strong>Calories:</strong> {selectedRecipe.calories}
-                      </div>
-                      <div>
-                        <strong>Submitted by:</strong> {selectedRecipe.submitted_by}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Instructions:</h3>
-                  <ol className="list-decimal list-inside space-y-1">
-                    {selectedRecipe.instructions.map((instruction, index) => (
-                      <li key={index} className="text-gray-700">{instruction}</li>
-                    ))}
-                  </ol>
-                </div>
-
-                {selectedRecipe.status === 'pending' && (
-                  <div className="space-y-4 border-t pt-6">
-                    <div>
-                      <label htmlFor="moderation-notes" className="block text-sm font-medium mb-2">
-                        Moderation Notes (optional)
-                      </label>
-                      <Textarea
-                        id="moderation-notes"
-                        value={moderationNotes}
-                        onChange={(e) => setModerationNotes(e.target.value)}
-                        placeholder="Add any notes about your decision..."
-                        rows={3}
-                      />
-                    </div>
-                    
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => handleModerate(selectedRecipe.id, 'approved')}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Approve Recipe
-                      </Button>
-                      <Button
-                        onClick={() => handleModerate(selectedRecipe.id, 'rejected')}
-                        variant="destructive"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Reject Recipe
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {selectedRecipe.moderation_notes && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-2">Moderation Notes:</h4>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded">{selectedRecipe.moderation_notes}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </AdminPageWrapper>
-  );
-};
 
-export default AdminSharedRecipeModeration;
+      <Card>
+        <CardHeader>
+          <CardTitle>Recipe Submissions</CardTitle>
+          <CardDescription>
+            Review and moderate user-submitted recipes. Approve quality recipes or reject inappropriate content.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search recipes or authors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 border rounded-md"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Recipe</TableHead>
+                  <TableHead>Author</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead>Cuisine</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      Loading recipes...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredRecipes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      No recipes found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredRecipes.map((recipe) => (
+                    <TableRow key={recipe.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{recipe.title}</div>
+                          <div className="text-sm text-gray-500 truncate max-w-xs">
+                            {recipe.description}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-2" />
+                          {recipe.author}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(recipe.status)}</TableCell>
+                      <TableCell>
+                        {new Date(recipe.submitted_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{recipe.cuisine_type}</TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => viewRecipeDetails(recipe)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {recipe.status === 'pending' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-green-600"
+                              onClick={() => handleRecipeAction(recipe.id, 'approve')}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-600"
+                              onClick={() => handleRecipeAction(recipe.id, 'reject')}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recipe Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <ChefHat className="h-5 w-5 mr-2" />
+              {selectedRecipe?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedRecipe && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Description</h4>
+                <p className="text-gray-600">{selectedRecipe.description}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Details</h4>
+                  <ul className="text-sm space-y-1">
+                    <li><strong>Author:</strong> {selectedRecipe.author}</li>
+                    <li><strong>Cooking Time:</strong> {selectedRecipe.cooking_time} mins</li>
+                    <li><strong>Difficulty:</strong> {selectedRecipe.difficulty}</li>
+                    <li><strong>Cuisine:</strong> {selectedRecipe.cuisine_type}</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Status</h4>
+                  {getStatusBadge(selectedRecipe.status)}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">Ingredients</h4>
+                <ul className="list-disc list-inside text-sm space-y-1">
+                  {selectedRecipe.ingredients.map((ingredient, index) => (
+                    <li key={index}>{ingredient}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">Instructions</h4>
+                <ol className="list-decimal list-inside text-sm space-y-1">
+                  {selectedRecipe.instructions.map((instruction, index) => (
+                    <li key={index}>{instruction}</li>
+                  ))}
+                </ol>
+              </div>
+
+              {selectedRecipe.status === 'pending' && (
+                <div className="flex space-x-2 pt-4">
+                  <Button
+                    onClick={() => {
+                      handleRecipeAction(selectedRecipe.id, 'approve');
+                      setIsViewDialogOpen(false);
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Approve Recipe
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      handleRecipeAction(selectedRecipe.id, 'reject');
+                      setIsViewDialogOpen(false);
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Reject Recipe
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

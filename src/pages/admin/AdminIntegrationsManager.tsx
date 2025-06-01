@@ -1,476 +1,260 @@
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Key, AlertTriangle, CheckCircle2, RefreshCw, ExternalLink, LogIn, Cpu, BarChart3, Shield, MessageSquare, Camera, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  ExternalLink, Settings, Key, Database, 
+  Globe, Zap, Shield, CheckCircle, X,
+  Cpu, Link, Code, Webhook
+} from 'lucide-react';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 
 interface Integration {
   id: string;
   name: string;
   description: string;
-  icon: React.ReactNode;
-  isConnected: boolean;
-  status: 'active' | 'inactive' | 'error';
+  icon: React.ElementType;
+  enabled: boolean;
+  status: 'connected' | 'disconnected' | 'error';
+  category: 'api' | 'payment' | 'analytics' | 'social';
+  version?: string;
   lastSync?: string;
-  category: 'analytics' | 'monitoring' | 'ai' | 'media' | 'notifications' | 'social' | 'payments';
 }
 
-const mockIntegrations: Integration[] = [
-  // Analytics & Monitoring
+const integrations: Integration[] = [
   {
-    id: 'google-analytics',
-    name: 'Google Analytics',
-    description: 'User behavior tracking and insights',
-    icon: <BarChart3 className="w-6 h-6 text-orange-600" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'analytics'
+    id: 'spoonacular',
+    name: 'Spoonacular API',
+    description: 'Recipe and nutrition data provider',
+    icon: Database,
+    enabled: true,
+    status: 'connected',
+    category: 'api',
+    version: 'v1.2',
+    lastSync: '2024-01-20T10:30:00Z'
   },
-  {
-    id: 'sentry',
-    name: 'Sentry',
-    description: 'Error monitoring and debugging',
-    icon: <Shield className="w-6 h-6 text-purple-600" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'monitoring'
-  },
-  
-  // AI/ML Services
-  {
-    id: 'openai',
-    name: 'OpenAI API',
-    description: 'AI Chef Assistant functionality',
-    icon: <Cpu className="w-6 h-6 text-green-600" />,
-    isConnected: true,
-    status: 'active',
-    lastSync: '2 minutes ago',
-    category: 'ai'
-  },
-  {
-    id: 'perplexity',
-    name: 'Perplexity API',
-    description: 'Alternative cooking advice and recipe suggestions',
-    icon: <MessageSquare className="w-6 h-6 text-blue-600" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'ai'
-  },
-  
-  // Image Processing
-  {
-    id: 'cloudinary',
-    name: 'Cloudinary',
-    description: 'Image optimization and CDN delivery',
-    icon: <Camera className="w-6 h-6 text-yellow-600" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'media'
-  },
-  
-  // Notifications
-  {
-    id: 'resend',
-    name: 'Resend',
-    description: 'Email delivery service',
-    icon: <MessageSquare className="w-6 h-6 text-green-600" />,
-    isConnected: true,
-    status: 'active',
-    lastSync: '1 minute ago',
-    category: 'notifications'
-  },
-  {
-    id: 'twilio',
-    name: 'Twilio',
-    description: 'SMS notifications',
-    icon: <MessageSquare className="w-6 h-6 text-red-600" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'notifications'
-  },
-  {
-    id: 'firebase-messaging',
-    name: 'Firebase Cloud Messaging',
-    description: 'Push notifications',
-    icon: <MessageSquare className="w-6 h-6 text-orange-500" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'notifications'
-  },
-  
-  // Social Media
-  {
-    id: 'facebook-api',
-    name: 'Facebook API',
-    description: 'Recipe sharing on Facebook',
-    icon: <Share2 className="w-6 h-6 text-blue-700" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'social'
-  },
-  {
-    id: 'instagram-api',
-    name: 'Instagram API',
-    description: 'Recipe sharing on Instagram',
-    icon: <Share2 className="w-6 h-6 text-pink-600" />,
-    isConnected: false,
-    status: 'inactive',
-    category: 'social'
-  },
-  
-  // Payments
   {
     id: 'stripe',
     name: 'Stripe',
-    description: 'Payment processing integration',
-    icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 8.5C14 8.5 14 4 9.5 4C5 4 5 8.5 5 8.5C5 8.5 5 13 9.5 13C14 13 14 8.5 14 8.5Z" stroke="#7A73FF" strokeWidth="2" />
-      <path d="M19 15.5C19 15.5 19 11 14.5 11C10 11 10 15.5 10 15.5C10 15.5 10 20 14.5 20C19 20 19 15.5 19 15.5Z" stroke="#7A73FF" strokeWidth="2" />
-    </svg>,
-    isConnected: false,
-    status: 'inactive',
-    category: 'payments'
-  },
-];
-
-interface ApiKey {
-  id: string;
-  name: string;
-  service: string;
-  key: string;
-  createdAt: string;
-  lastUsed?: string;
-}
-
-const mockApiKeys: ApiKey[] = [
-  {
-    id: '1',
-    name: 'OpenAI Production',
-    service: 'OpenAI',
-    key: 'sk-proj-***********************************',
-    createdAt: '2025-01-30',
-    lastUsed: '2 minutes ago'
+    description: 'Payment processing and subscriptions',
+    icon: Shield,
+    enabled: true,
+    status: 'connected',
+    category: 'payment',
+    version: 'v2023-10-16',
+    lastSync: '2024-01-20T09:15:00Z'
   },
   {
-    id: '2',
-    name: 'Resend API Key',
-    service: 'Resend',
-    key: 're_***********',
-    createdAt: '2025-01-30',
-    lastUsed: '1 minute ago'
+    id: 'google-analytics',
+    name: 'Google Analytics',
+    description: 'Website analytics and user tracking',
+    icon: Globe,
+    enabled: false,
+    status: 'disconnected',
+    category: 'analytics'
   },
+  {
+    id: 'facebook',
+    name: 'Facebook Login',
+    description: 'Social authentication via Facebook',
+    icon: Link,
+    enabled: false,
+    status: 'disconnected',
+    category: 'social'
+  }
 ];
 
-const AdminIntegrationsManager: React.FC = () => {
-  const [integrations, setIntegrations] = useState<Integration[]>(mockIntegrations);
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+export default function AdminIntegrationsManager() {
   const { toast } = useToast();
-  
-  const categories = [
-    { id: 'all', name: 'All Services', count: integrations.length },
-    { id: 'analytics', name: 'Analytics', count: integrations.filter(i => i.category === 'analytics').length },
-    { id: 'monitoring', name: 'Monitoring', count: integrations.filter(i => i.category === 'monitoring').length },
-    { id: 'ai', name: 'AI/ML', count: integrations.filter(i => i.category === 'ai').length },
-    { id: 'media', name: 'Media', count: integrations.filter(i => i.category === 'media').length },
-    { id: 'notifications', name: 'Notifications', count: integrations.filter(i => i.category === 'notifications').length },
-    { id: 'social', name: 'Social', count: integrations.filter(i => i.category === 'social').length },
-    { id: 'payments', name: 'Payments', count: integrations.filter(i => i.category === 'payments').length },
-  ];
-  
-  const filteredIntegrations = selectedCategory === 'all' 
-    ? integrations 
-    : integrations.filter(i => i.category === selectedCategory);
-  
+  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [integrationList, setIntegrationList] = useState(integrations);
+
   const handleToggleIntegration = (id: string) => {
-    setIntegrations(integrations.map(integration => 
-      integration.id === id 
-        ? { 
-            ...integration, 
-            isConnected: !integration.isConnected,
-            status: !integration.isConnected ? 'active' : 'inactive'
-          }
-        : integration
-    ));
-    
-    const integration = integrations.find(int => int.id === id);
-    if (integration) {
-      toast({
-        title: integration.isConnected ? 'Integration Disabled' : 'Integration Enabled',
-        description: `${integration.name} has been ${integration.isConnected ? 'disconnected' : 'connected'} successfully.`,
-      });
-    }
-  };
-  
-  const handleSyncIntegration = (id: string) => {
-    const integration = integrations.find(int => int.id === id);
-    if (integration) {
-      toast({
-        title: 'Syncing Integration',
-        description: `Synchronizing data with ${integration.name}...`,
-      });
-      
-      setTimeout(() => {
-        setIntegrations(integrations.map(int => 
-          int.id === id ? { ...int, lastSync: 'Just now' } : int
-        ));
-        
-        toast({
-          title: 'Sync Complete',
-          description: `${integration.name} data has been synchronized.`,
-        });
-      }, 2000);
-    }
-  };
-  
-  const handleCreateApiKey = () => {
+    setIntegrationList(prev => 
+      prev.map(integration => 
+        integration.id === id 
+          ? { ...integration, enabled: !integration.enabled }
+          : integration
+      )
+    );
+
+    const integration = integrationList.find(i => i.id === id);
     toast({
-      title: 'Feature Coming Soon',
-      description: 'API key generation will be available in the next update.',
+      title: integration?.enabled ? "Integration Disabled" : "Integration Enabled",
+      description: `${integration?.name} has been ${integration?.enabled ? 'disabled' : 'enabled'}.`,
     });
   };
-  
-  const handleDeleteApiKey = (id: string) => {
-    setApiKeys(apiKeys.filter(key => key.id !== id));
-    toast({
-      title: 'API Key Deleted',
-      description: 'The API key has been permanently revoked.',
-    });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'connected':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Connected</Badge>;
+      case 'error':
+        return <Badge className="bg-red-100 text-red-800"><X className="h-3 w-3 mr-1" />Error</Badge>;
+      default:
+        return <Badge variant="secondary">Disconnected</Badge>;
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'api': return <Database className="h-4 w-4" />;
+      case 'payment': return <Shield className="h-4 w-4" />;
+      case 'analytics': return <Globe className="h-4 w-4" />;
+      case 'social': return <Link className="h-4 w-4" />;
+      default: return <Cpu className="h-4 w-4" />;
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center">
-            <Settings className="mr-2 h-6 w-6" /> Analytics & Integrations Manager
-          </h1>
-          <p className="text-muted-foreground">Manage analytics, monitoring, AI services, and third-party integrations</p>
+    <AdminLayout title="Integrations">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
+            <p className="text-muted-foreground">Manage third-party integrations and API connections</p>
+          </div>
+          <Button>
+            <Link className="h-4 w-4 mr-2" />
+            Add Integration
+          </Button>
         </div>
-      </div>
 
-      <Tabs defaultValue="integrations">
-        <TabsList className="mb-4">
-          <TabsTrigger value="integrations">Service Integrations</TabsTrigger>
-          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-          <TabsTrigger value="analytics-setup">Analytics Setup</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="integrations">
-          <div className="space-y-6">
-            <div className="flex flex-wrap gap-2 mb-4">
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                >
-                  {category.name} ({category.count})
-                </Button>
-              ))}
-            </div>
-            
-            <div className="grid gap-6 md:grid-cols-2">
-              {filteredIntegrations.map((integration) => (
-                <Card key={integration.id} className={integration.status === 'error' ? 'border-red-300' : ''}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-slate-100 rounded-md">
-                          {integration.icon}
-                        </div>
-                        <div>
-                          <CardTitle>{integration.name}</CardTitle>
-                          <CardDescription>{integration.description}</CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Label htmlFor={`toggle-${integration.id}`} className="mr-2">
-                          {integration.isConnected ? 'Enabled' : 'Disabled'}
-                        </Label>
-                        <Switch 
-                          id={`toggle-${integration.id}`}
-                          checked={integration.isConnected}
-                          onCheckedChange={() => handleToggleIntegration(integration.id)}
-                        />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All Integrations</TabsTrigger>
+            <TabsTrigger value="api">APIs</TabsTrigger>
+            <TabsTrigger value="payment">Payments</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="social">Social</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {integrationList.map((integration) => (
+                <Card key={integration.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        {integration.status === 'active' && (
-                          <div className="flex items-center text-green-600">
-                            <CheckCircle2 className="h-4 w-4 mr-1" /> Active
-                          </div>
-                        )}
-                        {integration.status === 'inactive' && (
-                          <div className="flex items-center text-gray-600">
-                            <div className="h-2 w-2 rounded-full bg-gray-600 mr-2" /> Inactive
-                          </div>
-                        )}
-                        {integration.status === 'error' && (
-                          <div className="flex items-center text-red-600">
-                            <AlertTriangle className="h-4 w-4 mr-1" /> Error
-                          </div>
-                        )}
-                        {integration.lastSync && (
-                          <span className="text-xs text-gray-500">Last sync: {integration.lastSync}</span>
-                        )}
-                      </div>
-                      
-                      {integration.isConnected && (
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-xs"
-                            onClick={() => handleSyncIntegration(integration.id)}
-                          >
-                            <RefreshCw className="h-3 w-3 mr-1" /> Sync Now
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-xs">
-                            <Settings className="h-3 w-3 mr-1" /> Configure
-                          </Button>
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <integration.icon className="h-5 w-5 text-primary" />
                         </div>
-                      )}
+                        <div>
+                          <CardTitle className="text-lg">{integration.name}</CardTitle>
+                          {integration.version && (
+                            <p className="text-xs text-muted-foreground">v{integration.version}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Switch
+                        checked={integration.enabled}
+                        onCheckedChange={() => handleToggleIntegration(integration.id)}
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">{integration.description}</p>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {getCategoryIcon(integration.category)}
+                        <span className="text-sm capitalize">{integration.category}</span>
+                      </div>
+                      {getStatusBadge(integration.status)}
+                    </div>
+
+                    {integration.lastSync && (
+                      <p className="text-xs text-muted-foreground">
+                        Last sync: {new Date(integration.lastSync).toLocaleString()}
+                      </p>
+                    )}
+
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <Settings className="h-4 w-4 mr-1" />
+                        Configure
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
-                  {integration.status === 'error' && (
-                    <CardFooter className="bg-red-50 text-red-700 text-sm p-4">
-                      <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
-                      There was an error connecting to this service. Please check your API credentials.
-                    </CardFooter>
-                  )}
                 </Card>
               ))}
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="api-keys">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>Manage API keys for external service access</CardDescription>
-              </div>
-              <Button onClick={handleCreateApiKey}>
-                <Key className="mr-2 h-4 w-4" /> Generate New Key
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {apiKeys.map((apiKey) => (
-                  <div key={apiKey.id} className="p-4 border rounded-lg flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{apiKey.name}</div>
-                      <div className="text-sm text-gray-500 flex items-center space-x-4">
-                        <span>{apiKey.key}</span>
-                        <span>Created: {apiKey.createdAt}</span>
-                        {apiKey.lastUsed && <span>Last used: {apiKey.lastUsed}</span>}
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">Show</Button>
-                      <Button variant="outline" size="sm">Copy</Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={() => handleDeleteApiKey(apiKey.id)}
-                      >
-                        Revoke
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="bg-amber-50 text-amber-800 text-sm border-t">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Keep your API keys secure. Never share them in public repositories or client-side code.
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="webhooks">
-          <Card>
-            <CardHeader>
-              <CardTitle>Webhook Configuration</CardTitle>
-              <CardDescription>Configure endpoints for real-time event notifications</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center items-center h-64 text-muted-foreground">
-              <div className="text-center">
-                <ExternalLink className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">Webhook Configuration Coming Soon</p>
-                <p className="mt-2">Set up webhook endpoints to receive event notifications in real-time.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="analytics-setup">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics Configuration</CardTitle>
-              <CardDescription>Set up tracking and monitoring for your application</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="ga-id">Google Analytics Measurement ID</Label>
-                  <Input 
-                    id="ga-id"
-                    placeholder="G-XXXXXXXXXX"
-                    defaultValue="G-XXXXXXXXXX"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Get this from your Google Analytics dashboard
-                  </p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="sentry-dsn">Sentry DSN</Label>
-                  <Input 
-                    id="sentry-dsn"
-                    placeholder="https://xxxx@sentry.io/xxxx"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Your Sentry Data Source Name for error monitoring
-                  </p>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="track-user-interactions" defaultChecked />
-                  <Label htmlFor="track-user-interactions">Track user interactions</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="track-recipe-views" defaultChecked />
-                  <Label htmlFor="track-recipe-views">Track recipe views</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch id="track-ai-interactions" defaultChecked />
-                  <Label htmlFor="track-ai-interactions">Track AI Chef interactions</Label>
-                </div>
-              </div>
-              
-              <Button className="w-full">
-                Save Analytics Configuration
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-};
+          </TabsContent>
 
-export default AdminIntegrationsManager;
+          {['api', 'payment', 'analytics', 'social'].map((category) => (
+            <TabsContent key={category} value={category} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {integrationList
+                  .filter(integration => integration.category === category)
+                  .map((integration) => (
+                    <Card key={integration.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <integration.icon className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-lg">{integration.name}</CardTitle>
+                          </div>
+                          <Switch
+                            checked={integration.enabled}
+                            onCheckedChange={() => handleToggleIntegration(integration.id)}
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">{integration.description}</p>
+                        {getStatusBadge(integration.status)}
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Settings className="h-4 w-4 mr-1" />
+                            Configure
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        {/* Configuration Panel */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Integration Settings</CardTitle>
+            <CardDescription>Configure global integration settings and API keys</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="webhook-url">Webhook URL</Label>
+                <Input id="webhook-url" placeholder="https://your-app.com/webhooks" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="timeout">Request Timeout (seconds)</Label>
+                <Input id="timeout" type="number" placeholder="30" />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch id="auto-retry" />
+              <Label htmlFor="auto-retry">Auto-retry failed requests</Label>
+            </div>
+            <Button>Save Settings</Button>
+          </CardContent>
+        </Card>
+      </div>
+    </AdminLayout>
+  );
+}

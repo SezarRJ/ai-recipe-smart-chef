@@ -1,11 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
-import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, Plus, Eye, Edit, Trash2, RefreshCw } from 'lucide-react';
+import { Search, Filter, Plus, Eye, Edit, Trash2, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
@@ -17,9 +15,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 
-// Define the ContentItem type
 interface ContentItem {
   id: string;
   title: string;
@@ -30,7 +28,6 @@ interface ContentItem {
   views: number;
 }
 
-// Mock content data
 const initialContentItems: ContentItem[] = [
   {
     id: 'c1',
@@ -76,10 +73,16 @@ const initialContentItems: ContentItem[] = [
     author: 'Safety Team',
     date: '2023-09-22',
     views: 421
-  }
+  },
+  { id: 'c6', title: 'Advanced Baking Techniques', type: 'Video', status: 'Published', author: 'Chef System', date: '2023-10-01', views: 1500 },
+  { id: 'c7', title: 'Understanding Spices', type: 'Article', status: 'Published', author: 'Admin', date: '2023-10-05', views: 980 },
+  { id: 'c8', title: 'Meal Prep for Beginners', type: 'Article', status: 'Draft', author: 'Nutritionist Sara', date: '2023-10-10', views: 50 },
+  { id: 'c9', title: 'Quick & Easy Weeknight Meals', type: 'Video', status: 'Review', author: 'Chef Ali', date: '2023-10-12', views: 120 },
+  { id: 'c10', title: 'Guide to Fermentation', type: 'PDF', status: 'Published', author: 'Admin', date: '2023-10-15', views: 650 },
 ];
 
 export default function AdminContentLibrary() {
+  const { toast } = useToast();
   const [allContent, setAllContent] = useState<ContentItem[]>([]);
   const [filteredContent, setFilteredContent] = useState<ContentItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,13 +144,66 @@ export default function AdminContentLibrary() {
     const timer = setTimeout(() => {
       setAllContent(initialContentItems);
       setIsLoading(false);
-      toast.success('Content list updated.');
+      toast({
+        title: "Refreshed",
+        description: "Content list updated.",
+      });
     }, 800);
 
     return () => clearTimeout(timer);
   };
 
-  const handleNewContentInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBulkAction = (action: string, selectedItems: string[]) => {
+    if (selectedItems.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select items to perform bulk actions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    switch (action) {
+      case 'publish':
+        setAllContent(prev => 
+          prev.map(item => 
+            selectedItems.includes(item.id) 
+              ? { ...item, status: 'Published' }
+              : item
+          )
+        );
+        toast({
+          title: "Bulk Action Complete",
+          description: `${selectedItems.length} items published.`,
+        });
+        break;
+      case 'draft':
+        setAllContent(prev => 
+          prev.map(item => 
+            selectedItems.includes(item.id) 
+              ? { ...item, status: 'Draft' }
+              : item
+          )
+        );
+        toast({
+          title: "Bulk Action Complete",
+          description: `${selectedItems.length} items moved to draft.`,
+        });
+        break;
+      case 'delete':
+        if (window.confirm(`Are you sure you want to delete ${selectedItems.length} items?`)) {
+          setAllContent(prev => prev.filter(item => !selectedItems.includes(item.id)));
+          toast({
+            title: "Bulk Action Complete",
+            description: `${selectedItems.length} items deleted.`,
+            variant: "destructive",
+          });
+        }
+        break;
+    }
+  };
+
+  const handleNewContentInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = event.target;
     setNewContentForm(prev => ({ ...prev, [id]: value }));
   };
@@ -160,7 +216,11 @@ export default function AdminContentLibrary() {
     event.preventDefault();
 
     if (!newContentForm.title || !newContentForm.type || !newContentForm.status) {
-      toast.error('Title, Type, and Status are required.');
+      toast({
+        title: "Validation Error",
+        description: "Title, Type, and Status are required.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -182,23 +242,56 @@ export default function AdminContentLibrary() {
     });
     setIsAddContentDialogOpen(false);
 
-    toast.success(`"${newContent.title}" has been added to the library.`);
+    toast({
+      title: "Content Added",
+      description: `"${newContent.title}" has been added to the library.`,
+    });
   };
 
   const handleContentAction = (action: string, item: ContentItem) => {
-    console.log(`${action} action triggered for content:`, item);
     switch (action) {
       case 'View':
-        toast.success(`Viewing "${item.title}" (Placeholder)`);
+        window.open(`/content/${item.id}`, '_blank');
         break;
       case 'Edit':
-        toast.success(`Editing "${item.title}" (Placeholder)`);
+        // Navigate to edit page
+        window.location.href = `/admin/content/edit/${item.id}`;
         break;
       case 'Delete':
         if (window.confirm(`Are you sure you want to delete "${item.title}"? This action cannot be undone.`)) {
           setAllContent(prevContent => prevContent.filter(content => content.id !== item.id));
-          toast.success(`"${item.title}" has been deleted.`);
+          toast({
+            title: "Content Deleted",
+            description: `"${item.title}" has been deleted.`,
+            variant: "destructive",
+          });
         }
+        break;
+      case 'Publish':
+        setAllContent(prevContent => 
+          prevContent.map(content => 
+            content.id === item.id 
+              ? { ...content, status: 'Published' }
+              : content
+          )
+        );
+        toast({
+          title: "Content Published",
+          description: `"${item.title}" has been published.`,
+        });
+        break;
+      case 'Archive':
+        setAllContent(prevContent => 
+          prevContent.map(content => 
+            content.id === item.id 
+              ? { ...content, status: 'Draft' }
+              : content
+          )
+        );
+        toast({
+          title: "Content Archived",
+          description: `"${item.title}" has been moved to draft.`,
+        });
         break;
       default:
         break;
@@ -219,10 +312,11 @@ export default function AdminContentLibrary() {
   };
 
   return (
-    <AdminPageWrapper title="Content Library">
+    <AdminLayout title="Content Library">
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Content Library</h1>
             <p className="text-muted-foreground">Manage articles, videos, and other content available in the app.</p>
           </div>
           <div className="flex items-center gap-2">
@@ -399,6 +493,18 @@ export default function AdminContentLibrary() {
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
+                          {item.status !== 'Published' && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500" onClick={() => handleContentAction('Publish', item)}>
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="sr-only">Publish</span>
+                            </Button>
+                          )}
+                          {item.status === 'Published' && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-orange-500" onClick={() => handleContentAction('Archive', item)}>
+                              <RefreshCw className="h-4 w-4" />
+                              <span className="sr-only">Archive</span>
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => handleContentAction('Delete', item)}>
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
@@ -413,6 +519,6 @@ export default function AdminContentLibrary() {
           </CardContent>
         </Card>
       </div>
-    </AdminPageWrapper>
+    </AdminLayout>
   );
 }
