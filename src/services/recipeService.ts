@@ -2,6 +2,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Recipe } from '@/types/index';
 
+// Export Recipe type for other files to use
+export type { Recipe } from '@/types/index';
+
 // Mock function to simulate fetching recipes from database
 const fetchRecipesFromDB = async (filters?: any): Promise<Recipe[]> => {
   // This would normally fetch from Supabase

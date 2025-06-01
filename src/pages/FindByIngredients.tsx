@@ -323,6 +323,9 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
           servings: 4,
           cuisine_type: cuisineType,
           calories: Math.floor(Math.random() * 200) + 250,
+          protein: 20, // Add missing protein
+          carbs: 30, // Add missing carbs
+          fat: 10, // Add missing fat
           ingredients: selectedIngredients.map(ing => ({
             name: ing,
             amount: getSmartAmount(ing),
@@ -384,36 +387,37 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
         image_url: '', // AI doesn't generate images
         image: '', // Required by Recipe interface
         prep_time: recipe.prep_time || 15,
-        prepTime: recipe.prep_time || 15, // Required by Recipe interface
         cook_time: recipe.cook_time || recipe.cooking_time || 30,
-        cookTime: recipe.cook_time || recipe.cooking_time || 30, // Required by Recipe interface
+        cooking_time: recipe.cook_time || recipe.cooking_time || 30, // Required by Recipe interface
         servings: recipe.servings || 4,
         difficulty: recipe.difficulty || 'Medium',
         calories: recipe.calories || 300,
+        protein: recipe.protein || 20, // Add missing protein
+        carbs: recipe.carbs || 30, // Add missing carbs
+        fat: recipe.fat || 10, // Add missing fat
         cuisine_type: recipe.cuisine_type || 'International',
         instructions: Array.isArray(recipe.instructions) ? recipe.instructions : 
                      (recipe.instructions ? [recipe.instructions] : ['Follow recipe steps']),
         categories: [],
         tags: ['AI Generated'],
-        status: 'published' as const,
         author_id: 'ai-chef',
         is_verified: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         rating: 0,
-        ratingCount: 0,
+        rating_count: 0, // Add missing rating_count
         isFavorite: false, // Required by Recipe interface
         ingredients: Array.isArray(recipe.ingredients) ? 
           recipe.ingredients.map((ing: any) => ({
             id: `ing-${Math.random()}`,
             name: typeof ing === 'string' ? ing : (ing.name || ing.ingredient || 'Unknown'),
-            amount: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
+            quantity: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
             unit: typeof ing === 'object' ? (ing.unit || 'cup') : 'cup'
           })) : 
           selectedIngredients.map(ing => ({
             id: `ing-${Math.random()}`,
             name: ing,
-            amount: 1,
+            quantity: 1,
             unit: 'cup'
           }))
       }));
@@ -442,12 +446,14 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
         image_url: '',
         image: '', // Required by Recipe interface
         prep_time: 15,
-        prepTime: 15, // Required by Recipe interface
         cook_time: 25,
-        cookTime: 25, // Required by Recipe interface
+        cooking_time: 25, // Required by Recipe interface
         servings: 4,
         difficulty: 'Medium' as const,
         calories: 320,
+        protein: 15, // Add missing protein
+        carbs: 40, // Add missing carbs
+        fat: 12, // Add missing fat
         cuisine_type: 'Fusion',
         instructions: [
           'Prepare and wash all ingredients',
@@ -459,18 +465,17 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
         ],
         categories: [],
         tags: ['AI Generated', 'Creative'],
-        status: 'published' as const,
         author_id: 'ai-chef',
         is_verified: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         rating: 0,
-        ratingCount: 0,
+        rating_count: 0, // Add missing rating_count
         isFavorite: false, // Required by Recipe interface
         ingredients: selectedIngredients.map(ing => ({
           id: `ing-${Math.random()}`,
           name: ing,
-          amount: 1,
+          quantity: 1,
           unit: 'cup'
         }))
       };

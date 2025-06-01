@@ -167,28 +167,29 @@ const GlobalCuisinePage = () => {
     image_url: recipe.image,
     image: recipe.image, // Required by Recipe interface
     prep_time: Math.floor(recipe.readyInMinutes / 2),
-    prepTime: Math.floor(recipe.readyInMinutes / 2), // Required by Recipe interface
     cook_time: Math.ceil(recipe.readyInMinutes / 2),
-    cookTime: Math.ceil(recipe.readyInMinutes / 2), // Required by Recipe interface
+    cooking_time: Math.ceil(recipe.readyInMinutes / 2), // Required by Recipe interface
     servings: recipe.servings,
     difficulty: 'Medium' as const,
     calories: recipe.nutrition?.calories || 300,
+    protein: recipe.nutrition?.protein || 20, // Add missing protein
+    carbs: recipe.nutrition?.carbohydrates || 30, // Add missing carbs
+    fat: recipe.nutrition?.fat || 10, // Add missing fat
     cuisine_type: recipe.cuisines?.[0] || '',
     instructions: recipe.instructions?.replace(/<[^>]*>/g, '').split('.').filter(s => s.trim()).map(s => s.trim()) || [],
     categories: recipe.cuisines || [],
     tags: recipe.dishTypes || [],
-    status: 'published' as const,
     author_id: 'api',
     is_verified: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     rating: 4.5,
-    ratingCount: 89,
+    rating_count: 89, // Add missing rating_count
     isFavorite: false, // Required by Recipe interface
     ingredients: recipe.ingredients?.map(ing => ({
       id: `ing-${Math.random()}`,
       name: ing.name,
-      amount: ing.amount,
+      quantity: ing.amount,
       unit: ing.unit
     })) || [],
     nutritionalInfo: recipe.nutrition ? {

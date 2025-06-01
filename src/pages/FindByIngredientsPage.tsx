@@ -49,7 +49,7 @@ interface PantryItem {
 
 export default function FindByIngredients() {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // --- Categories, Filters, Pantry ---
   const mainCategories: MainCategory[] = [
@@ -416,7 +416,7 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
         header={{
           title: t('search.results') || 'Search Results',
           showBackButton: true,
-          onBack: () => setShowResults(false)
+          showSearch: true
         }}
         className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
       >
@@ -429,7 +429,7 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
               {t('search.withIngredients') || 'Recipes using your selected ingredients'}
             </p>
           </div>
-          <RecipeGrid recipes={searchResults} missingIngredients={false} />
+          <RecipeGrid recipes={searchResults} />
           {searchResults.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
@@ -454,6 +454,7 @@ Return array of 3-5 recipes that can realistically be made with the provided ing
       header={{
         title: t('findRecipe.title') || 'Find Recipe',
         showBackButton: true,
+        showSearch: true
       }}
       className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
     >

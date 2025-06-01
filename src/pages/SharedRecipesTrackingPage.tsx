@@ -25,7 +25,6 @@ const SharedRecipesTrackingPage = () => {
       instructions: ['Boil water', 'Cook pasta', 'Add sauce'],
       categories: ['Italian', 'Main Course'],
       tags: ['family', 'traditional'],
-      status: 'published',
       author_id: 'user1',
       is_verified: true,
       created_at: new Date().toISOString(),
@@ -33,6 +32,10 @@ const SharedRecipesTrackingPage = () => {
       rating: 4.8,
       rating_count: 52,
       isFavorite: false,
+      ingredients: [
+        { id: '1', name: 'Pasta', quantity: 1, unit: 'lb' },
+        { id: '2', name: 'Tomato Sauce', quantity: 2, unit: 'cups' }
+      ]
     },
     {
       id: '2',
@@ -53,7 +56,6 @@ const SharedRecipesTrackingPage = () => {
       instructions: ['Blend ingredients'],
       categories: ['Healthy', 'Smoothie'],
       tags: ['healthy', 'quick'],
-      status: 'published',
       author_id: 'user1',
       is_verified: true,
       created_at: new Date().toISOString(),
@@ -61,6 +63,10 @@ const SharedRecipesTrackingPage = () => {
       rating: 4.5,
       rating_count: 28,
       isFavorite: false,
+      ingredients: [
+        { id: '3', name: 'Spinach', quantity: 1, unit: 'cup' },
+        { id: '4', name: 'Banana', quantity: 1, unit: 'piece' }
+      ]
     },
     {
       id: '3',
@@ -81,7 +87,6 @@ const SharedRecipesTrackingPage = () => {
       instructions: ['Prepare filling', 'Heat tortillas', 'Assemble tacos'],
       categories: ['Mexican', 'Street Food'],
       tags: ['spicy', 'authentic'],
-      status: 'published',
       author_id: 'user1',
       is_verified: true,
       created_at: new Date().toISOString(),
@@ -89,6 +94,10 @@ const SharedRecipesTrackingPage = () => {
       rating: 4.6,
       rating_count: 35,
       isFavorite: false,
+      ingredients: [
+        { id: '5', name: 'Ground Beef', quantity: 1, unit: 'lb' },
+        { id: '6', name: 'Tortillas', quantity: 6, unit: 'pieces' }
+      ]
     }
   ];
 
