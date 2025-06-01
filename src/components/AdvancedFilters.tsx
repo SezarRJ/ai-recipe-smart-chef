@@ -15,14 +15,14 @@ interface AdvancedFiltersProps {
 
 export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFiltersProps) => {
   const [selectedFilters, setSelectedFilters] = useState<any>({
-    dietary: "",
-    cookingTime: "",
-    difficulty: "",
-    cuisineType: "",
+    dietary: "all",
+    cookingTime: "all",
+    difficulty: "all",
+    cuisineType: "all",
     allergenFree: [],
-    mealType: "",
-    religiousDiet: "",
-    healthGoal: ""
+    mealType: "all",
+    religiousDiet: "all",
+    healthGoal: "all"
   });
 
   const filterOptions = {
@@ -35,7 +35,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
       "Greek", "Korean", "Brazilian", "Spanish"
     ],
     allergenFree: ["Dairy", "Gluten", "Tree Nuts", "Shellfish", "Soy", "Eggs"],
-    mealType: ["Any Meal", "Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],
+    mealType: ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack"],
     religiousDiet: ["Halal", "Kosher"],
     healthGoal: ["Low Calorie", "Low Carb", "High Protein", "Low Fat", "Heart Healthy", "Weight Loss"]
   };
@@ -50,7 +50,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
         newFilters[category] = [...newFilters[category], value];
       }
     } else {
-      newFilters[category] = newFilters[category] === value ? "" : value;
+      newFilters[category] = newFilters[category] === value ? "all" : value;
     }
     
     setSelectedFilters(newFilters);
@@ -59,14 +59,14 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
 
   const clearAllFilters = () => {
     const clearedFilters = {
-      dietary: "",
-      cookingTime: "",
-      difficulty: "",
-      cuisineType: "",
+      dietary: "all",
+      cookingTime: "all",
+      difficulty: "all",
+      cuisineType: "all",
       allergenFree: [],
-      mealType: "",
-      religiousDiet: "",
-      healthGoal: ""
+      mealType: "all",
+      religiousDiet: "all",
+      healthGoal: "all"
     };
     setSelectedFilters(clearedFilters);
     onFiltersChange(clearedFilters);
@@ -77,7 +77,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
     Object.values(selectedFilters).forEach(filter => {
       if (Array.isArray(filter)) {
         count += filter.length;
-      } else if (filter) {
+      } else if (filter && filter !== "all") {
         count += 1;
       }
     });
@@ -116,6 +116,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select dietary type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All dietary types</SelectItem>
                   {filterOptions.dietary.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -133,6 +134,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select cooking time" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Any cooking time</SelectItem>
                   {filterOptions.cookingTime.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -150,6 +152,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Any difficulty</SelectItem>
                   {filterOptions.difficulty.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -167,6 +170,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select cuisine" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All cuisines</SelectItem>
                   {filterOptions.cuisineType.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -184,6 +188,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select meal type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Any meal type</SelectItem>
                   {filterOptions.mealType.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -201,6 +206,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select religious diet" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Any religious diet</SelectItem>
                   {filterOptions.religiousDiet.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
@@ -218,6 +224,7 @@ export const AdvancedFilters = ({ isOpen, onClose, onFiltersChange }: AdvancedFi
                   <SelectValue placeholder="Select health goal" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Any health goal</SelectItem>
                   {filterOptions.healthGoal.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
