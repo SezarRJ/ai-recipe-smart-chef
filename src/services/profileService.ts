@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface UserProfile {
@@ -26,15 +25,14 @@ export const profileService = {
       return null;
     }
 
-    // Transform the data to match our interface
     return {
       id: data.id,
       full_name: data.full_name,
       avatar_url: data.avatar_url,
-      bio: null, // Not in current schema
-      dietary_preferences: null, // Not in current schema
-      cuisine_preferences: null, // Not in current schema
-      allergies: null, // Not in current schema
+      bio: data.bio,
+      dietary_preferences: data.dietary_preferences,
+      cuisine_preferences: data.cuisine_preferences,
+      allergies: data.allergies,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
@@ -45,7 +43,11 @@ export const profileService = {
       .from('profiles')
       .update({
         full_name: updates.full_name,
-        avatar_url: updates.avatar_url
+        avatar_url: updates.avatar_url,
+        bio: updates.bio,
+        dietary_preferences: updates.dietary_preferences,
+        cuisine_preferences: updates.cuisine_preferences,
+        allergies: updates.allergies
       })
       .eq('user_id', userId)
       .select()
@@ -60,10 +62,10 @@ export const profileService = {
       id: data.id,
       full_name: data.full_name,
       avatar_url: data.avatar_url,
-      bio: null,
-      dietary_preferences: null,
-      cuisine_preferences: null,
-      allergies: null,
+      bio: data.bio,
+      dietary_preferences: data.dietary_preferences,
+      cuisine_preferences: data.cuisine_preferences,
+      allergies: data.allergies,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
@@ -89,10 +91,10 @@ export const profileService = {
       id: data.id,
       full_name: data.full_name,
       avatar_url: data.avatar_url,
-      bio: null,
-      dietary_preferences: null,
-      cuisine_preferences: null,
-      allergies: null,
+      bio: data.bio,
+      dietary_preferences: data.dietary_preferences,
+      cuisine_preferences: data.cuisine_preferences,
+      allergies: data.allergies,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
