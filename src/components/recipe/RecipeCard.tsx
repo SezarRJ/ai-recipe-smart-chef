@@ -47,7 +47,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, size = 'medium' 
               )}
               <div className="flex items-center space-x-2 text-xs pt-1">
                 <div className="flex items-center">
-                  <span>{recipe.prepTime + recipe.cookTime}m</span>
+                  <span>{recipe.prep_time + recipe.cooking_time}m</span>
                 </div>
                 <div className="h-1 w-1 bg-white rounded-full"></div>
                 <div className="flex items-center">

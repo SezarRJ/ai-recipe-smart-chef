@@ -30,7 +30,7 @@ export interface Recipe {
   fat: number;
   rating: number;
   rating_count: number;
-  ingredients: Array<{ name: string; quantity: number; unit: string; }>;
+  ingredients: Array<{ id?: string; name: string; quantity: number; unit: string; }>;
   instructions: string[];
   categories: string[];
   tags: string[];
@@ -66,6 +66,36 @@ export interface VoiceLanguage {
   name: string;
   voice: string;
   rtl: boolean;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url?: string;
+  bio?: string;
+  dietary_preferences?: string[];
+  cuisine_preferences?: string[];
+  allergies?: string[];
+  nutritional_goals?: any;
+}
+
+export interface Meal {
+  id: string;
+  type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+  recipe: Recipe;
+  scheduled_for: string;
+}
+
+export interface MealPlan {
+  id: string;
+  user_id: string;
+  date: string;
+  meals: Meal[];
+  total_calories: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fat: number;
 }
 
 export type ToastVariant = "link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "success";

@@ -1,14 +1,8 @@
 
 import { useState, useEffect } from 'react';
+import { Recipe } from '@/types/index';
+import { recipeService } from '@/services/recipeService';
 import { useToast } from '@/hooks/use-toast';
-import { Recipe, RecipeFilters } from '@/types/recipe';
-import {
-  fetchRecipesFromDB,
-  createRecipeInDB,
-  updateRecipeInDB,
-  deleteRecipeFromDB,
-  toggleFavoriteInDB
-} from '@/services/recipeService';
 
 export const useRecipes = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -16,21 +10,20 @@ export const useRecipes = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchRecipes = async (filters?: RecipeFilters) => {
+  const fetchRecipes = async (filters?: any) => {
     setLoading(true);
     setError(null);
-
     try {
       console.log('Fetching recipes with filters:', filters);
-      const formattedRecipes = await fetchRecipesFromDB(filters);
-      console.log('Fetched recipes:', formattedRecipes);
-      setRecipes(formattedRecipes);
-    } catch (err: any) {
+      const fetchedRecipes = await recipeService.getRecipes(filters);
+      console.log('Fetched recipes:', fetchedRecipes);
+      setRecipes(fetchedRecipes);
+    } catch (err) {
       console.error('Error fetching recipes:', err);
-      setError(err.message);
+      setError('Failed to fetch recipes');
       toast({
-        title: 'Error fetching recipes',
-        description: err.message,
+        title: 'Error',
+        description: 'Failed to fetch recipes',
         variant: 'destructive'
       });
     } finally {
@@ -41,92 +34,87 @@ export const useRecipes = () => {
   const createRecipe = async (recipeData: Partial<Recipe>) => {
     try {
       console.log('Creating recipe:', recipeData);
-      const data = await createRecipeInDB(recipeData);
-      console.log('Recipe created:', data);
-      
-      toast({
-        title: 'Recipe created successfully',
-        description: 'Your recipe has been saved as a draft.'
-      });
-
-      // Refresh recipes
-      await fetchRecipes();
-      return data;
-    } catch (err: any) {
+      const newRecipe = await recipeService.createRecipe(recipeData);
+      if (newRecipe) {
+        setRecipes(prev => [newRecipe, ...prev]);
+        toast({
+          title: 'Success',
+          description: 'Recipe created successfully'
+        });
+        return newRecipe;
+      }
+    } catch (err) {
       console.error('Error creating recipe:', err);
       toast({
-        title: 'Error creating recipe',
-        description: err.message,
+        title: 'Error',
+        description: 'Failed to create recipe',
         variant: 'destructive'
       });
-      throw err;
     }
+    return null;
   };
 
   const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
     try {
       console.log('Updating recipe:', id, updates);
-      const data = await updateRecipeInDB(id, updates);
-      console.log('Recipe updated:', data);
-
-      toast({
-        title: 'Recipe updated successfully'
-      });
-
-      // Refresh recipes
-      await fetchRecipes();
-      return data;
-    } catch (err: any) {
+      const updatedRecipe = await recipeService.updateRecipe(id, updates);
+      if (updatedRecipe) {
+        setRecipes(prev => prev.map(recipe => 
+          recipe.id === id ? updatedRecipe : recipe
+        ));
+        toast({
+          title: 'Success',
+          description: 'Recipe updated successfully'
+        });
+        return updatedRecipe;
+      }
+    } catch (err) {
       console.error('Error updating recipe:', err);
       toast({
-        title: 'Error updating recipe',
-        description: err.message,
+        title: 'Error',
+        description: 'Failed to update recipe',
         variant: 'destructive'
       });
-      throw err;
     }
+    return null;
   };
 
   const deleteRecipe = async (id: string) => {
     try {
       console.log('Deleting recipe:', id);
-      await deleteRecipeFromDB(id);
-
-      toast({
-        title: 'Recipe deleted successfully'
-      });
-
-      setRecipes(prev => prev.filter(recipe => recipe.id !== id));
-    } catch (err: any) {
+      const success = await recipeService.deleteRecipe(id);
+      if (success) {
+        setRecipes(prev => prev.filter(recipe => recipe.id !== id));
+        toast({
+          title: 'Success',
+          description: 'Recipe deleted successfully'
+        });
+        return true;
+      }
+    } catch (err) {
       console.error('Error deleting recipe:', err);
       toast({
-        title: 'Error deleting recipe',
-        description: err.message,
+        title: 'Error',
+        description: 'Failed to delete recipe',
         variant: 'destructive'
       });
-      throw err;
     }
+    return false;
   };
 
-  const toggleFavorite = async (recipeId: string) => {
+  const getRecipeById = async (id: string) => {
     try {
-      console.log('Toggling favorite for recipe:', recipeId);
-      const isFavorited = await toggleFavoriteInDB(recipeId);
-      
+      console.log('Fetching recipe by ID:', id);
+      return await recipeService.getRecipeById(id);
+    } catch (err) {
+      console.error('Error fetching recipe by ID:', err);
       toast({
-        title: isFavorited ? 'Added to favorites' : 'Removed from favorites'
-      });
-
-      // Refresh recipes to update favorite status
-      fetchRecipes();
-    } catch (err: any) {
-      console.error('Error updating favorites:', err);
-      toast({
-        title: 'Error updating favorites',
-        description: err.message,
+        title: 'Error',
+        description: 'Failed to fetch recipe',
         variant: 'destructive'
       });
     }
+    return null;
   };
 
   useEffect(() => {
@@ -141,6 +129,6 @@ export const useRecipes = () => {
     createRecipe,
     updateRecipe,
     deleteRecipe,
-    toggleFavorite
+    getRecipeById
   };
 };

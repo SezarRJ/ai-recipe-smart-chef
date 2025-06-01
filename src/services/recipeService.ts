@@ -61,6 +61,7 @@ export const recipeService = {
         rating: Number(recipe.rating) || 0,
         rating_count: recipe.rating_count || 0,
         ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
+          id: ri.id,
           name: ri.ingredients?.name || '',
           quantity: ri.quantity || 0,
           unit: ri.unit || ''
@@ -68,7 +69,7 @@ export const recipeService = {
         instructions: Array.isArray(recipe.instructions) ? recipe.instructions : [],
         categories: recipe.recipe_categories ? [recipe.recipe_categories.name] : [],
         tags: [],
-        isFavorite: false, // Will be set by favorites service
+        isFavorite: false,
         is_published: recipe.is_published,
         is_public: recipe.is_public,
         user_id: recipe.user_id,
@@ -116,6 +117,7 @@ export const recipeService = {
         rating: Number(data.rating) || 0,
         rating_count: data.rating_count || 0,
         ingredients: data.recipe_ingredients?.map((ri: any) => ({
+          id: ri.id,
           name: ri.ingredients?.name || '',
           quantity: ri.quantity || 0,
           unit: ri.unit || ''
@@ -212,5 +214,50 @@ export const recipeService = {
       console.error('Error deleting recipe:', error);
       return false;
     }
+  },
+
+  // Legacy method names for compatibility
+  fetchRecipesFromDB: async () => {
+    return recipeService.getRecipes();
+  },
+
+  createRecipeInDB: async (recipe: Partial<Recipe>) => {
+    return recipeService.createRecipe(recipe);
+  },
+
+  updateRecipeInDB: async (id: string, updates: Partial<Recipe>) => {
+    return recipeService.updateRecipe(id, updates);
+  },
+
+  deleteRecipeFromDB: async (id: string) => {
+    return recipeService.deleteRecipe(id);
+  },
+
+  toggleFavoriteInDB: async (userId: string, recipeId: string) => {
+    // This should be handled by the favorites service
+    console.log('Use favoritesService for favorites management');
+    return false;
+  },
+
+  searchRecipes: async (query: string) => {
+    return recipeService.getRecipes({ search: query });
+  },
+
+  searchRecipesByIngredients: async (ingredients: string[]) => {
+    // For now, return all recipes - can be enhanced later
+    return recipeService.getRecipes();
+  },
+
+  getUserPantryItems: async (userId: string) => {
+    // Mock pantry items for now
+    return [];
+  },
+
+  getIngredientsForRecipe: async (recipeId: string) => {
+    const recipe = await recipeService.getRecipeById(recipeId);
+    return recipe?.ingredients || [];
   }
 };
+
+// Export the Recipe type for compatibility
+export { Recipe };
