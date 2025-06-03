@@ -12,6 +12,7 @@ const RecipeDetailPage = () => {
     id: id || '1',
     title: 'Chicken Biryani',
     description: 'Aromatic rice dish with tender chicken and authentic spices',
+    image: 'https://images.unsplash.com/photo-1563379091339-03246962d633?auto=format&fit=crop&w=800&q=80',
     image_url: 'https://images.unsplash.com/photo-1563379091339-03246962d633?auto=format&fit=crop&w=800&q=80',
     prep_time: 30,
     cooking_time: 45,
@@ -24,6 +25,8 @@ const RecipeDetailPage = () => {
     protein: 25,
     carbs: 55,
     fat: 12,
+    categories: ['Main Course', 'Indian', 'Rice Dishes'],
+    tags: ['spicy', 'aromatic', 'traditional', 'family-meal'],
     ingredients: [
       { name: 'Basmati Rice', quantity: 2, unit: 'cups' },
       { name: 'Chicken', quantity: 500, unit: 'g' },
