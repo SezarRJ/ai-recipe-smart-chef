@@ -16,7 +16,7 @@ const RecipeDetailPage = () => {
     prep_time: 30,
     cooking_time: 45,
     servings: 4,
-    difficulty: 'Intermediate',
+    difficulty: 'Medium',
     cuisine_type: 'Indian',
     rating: 4.8,
     rating_count: 127,
