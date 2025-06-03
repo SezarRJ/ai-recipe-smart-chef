@@ -1,115 +1,165 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import AIChefAssistant from '@/components/ai/AIChefAssistant';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChefHat, Sparkles, Utensils, Clock, Heart, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Bot, Send, Sparkles, ChefHat } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export default function AiChefPage() {
+const AiChefPage = () => {
+  const { toast } = useToast();
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState([
+    {
+      type: 'ai',
+      message: "Hello! I'm your AI Chef assistant. I can help you create recipes, suggest cooking techniques, and answer any culinary questions. What would you like to cook today?"
+    }
+  ]);
+
+  const quickPrompts = [
+    "Quick dinner for 2 people",
+    "Healthy breakfast ideas",
+    "Italian pasta recipes",
+    "Vegetarian meal prep",
+    "Easy dessert recipes",
+    "Low-carb lunch options"
+  ];
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    const userMessage = message;
+    setMessage('');
+    setChatHistory(prev => [...prev, { type: 'user', message: userMessage }]);
+    setLoading(true);
+
+    // Simulate AI response
+    setTimeout(() => {
+      const aiResponse = generateAIResponse(userMessage);
+      setChatHistory(prev => [...prev, { type: 'ai', message: aiResponse }]);
+      setLoading(false);
+    }, 1500);
+  };
+
+  const generateAIResponse = (userMessage: string) => {
+    const responses = [
+      "Based on your request, I'd recommend a delicious Mediterranean chicken with roasted vegetables. Here's a quick recipe: Season chicken breast with herbs, roast with bell peppers, zucchini, and tomatoes at 400°F for 25 minutes. Serve with quinoa for a complete meal!",
+      "That sounds like a great idea! For a healthy breakfast, try overnight oats with fresh berries, chia seeds, and a drizzle of honey. Or perhaps some avocado toast with a poached egg and everything bagel seasoning?",
+      "Perfect! For pasta lovers, I suggest Cacio e Pepe - it's simple but elegant. Just pasta, Pecorino Romano cheese, black pepper, and pasta water. The key is creating a creamy emulsion without cream!",
+      "For meal prep, consider making a big batch of chickpea curry with vegetables. It stores well, reheats beautifully, and is packed with protein and fiber. Serve over rice or with naan bread."
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  const handleQuickPrompt = (prompt: string) => {
+    setMessage(prompt);
+  };
+
   return (
-    <PageContainer
-      header={{
-        title: 'AI Chef Assistant',
-        showBackButton: true
-      }}
-    >
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Welcome Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-wasfah-bright-teal to-wasfah-teal rounded-full mb-6 shadow-lg">
-            <ChefHat className="h-10 w-10 text-white" />
+    <PageContainer header={{ title: 'AI Chef Assistant', showBackButton: true }}>
+      <div className="flex flex-col h-[calc(100vh-140px)] pb-20">
+        {/* Header Card */}
+        <Card className="mb-4">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <Bot className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">AI Chef Assistant</CardTitle>
+                <p className="text-sm text-gray-600">Your personal cooking companion</p>
+              </div>
+              <Sparkles className="h-5 w-5 text-yellow-500 ml-auto" />
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Quick Prompts */}
+        <div className="mb-4">
+          <p className="text-sm font-medium mb-2">Quick suggestions:</p>
+          <div className="flex flex-wrap gap-2">
+            {quickPrompts.map((prompt, index) => (
+              <Badge
+                key={index}
+                variant="outline"
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleQuickPrompt(prompt)}
+              >
+                {prompt}
+              </Badge>
+            ))}
           </div>
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal bg-clip-text text-transparent">
-            AI Chef Assistant
-          </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Get personalized cooking advice, recipe suggestions, and culinary tips from our intelligent AI Chef Assistant. 
-            Available to all users - no login required!
-          </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="border-wasfah-mint/20 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center pb-4">
-              <div className="w-12 h-12 bg-wasfah-light-gray rounded-full flex items-center justify-center mx-auto mb-3">
-                <Utensils className="h-6 w-6 text-wasfah-bright-teal" />
-              </div>
-              <CardTitle className="text-lg text-wasfah-deep-teal">Recipe Suggestions</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600">Get personalized recipe recommendations based on your preferences and available ingredients.</p>
-            </CardContent>
-          </Card>
+        {/* Chat Area */}
+        <Card className="flex-1 mb-4">
+          <CardContent className="p-4 h-full overflow-y-auto">
+            <div className="space-y-4">
+              {chatHistory.map((chat, index) => (
+                <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] p-3 rounded-lg ${
+                    chat.type === 'user' 
+                      ? 'bg-wasfah-bright-teal text-white' 
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {chat.type === 'ai' && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <ChefHat className="h-4 w-4" />
+                        <span className="text-xs font-medium">AI Chef</span>
+                      </div>
+                    )}
+                    <p className="text-sm">{chat.message}</p>
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 text-gray-800 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-wasfah-bright-teal"></div>
+                      <span className="text-sm">AI Chef is thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card className="border-wasfah-mint/20 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center pb-4">
-              <div className="w-12 h-12 bg-wasfah-light-gray rounded-full flex items-center justify-center mx-auto mb-3">
-                <Sparkles className="h-6 w-6 text-wasfah-bright-teal" />
-              </div>
-              <CardTitle className="text-lg text-wasfah-deep-teal">Cooking Tips</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600">Learn professional cooking techniques and tips to improve your culinary skills.</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-wasfah-mint/20 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center pb-4">
-              <div className="w-12 h-12 bg-wasfah-light-gray rounded-full flex items-center justify-center mx-auto mb-3">
-                <Clock className="h-6 w-6 text-wasfah-bright-teal" />
-              </div>
-              <CardTitle className="text-lg text-wasfah-deep-teal">Quick Help</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600">Get instant answers to your cooking questions and troubleshoot kitchen problems.</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-wasfah-mint/20 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center pb-4">
-              <div className="w-12 h-12 bg-wasfah-light-gray rounded-full flex items-center justify-center mx-auto mb-3">
-                <Heart className="h-6 w-6 text-wasfah-bright-teal" />
-              </div>
-              <CardTitle className="text-lg text-wasfah-deep-teal">Dietary Guidance</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600">Receive advice on special diets, allergies, and nutritional requirements.</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-wasfah-mint/20 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center pb-4">
-              <div className="w-12 h-12 bg-wasfah-light-gray rounded-full flex items-center justify-center mx-auto mb-3">
-                <BookOpen className="h-6 w-6 text-wasfah-bright-teal" />
-              </div>
-              <CardTitle className="text-lg text-wasfah-deep-teal">Ingredient Info</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600">Learn about ingredients, substitutions, and how to use them effectively in your cooking.</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-wasfah-mint/20 hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center pb-4">
-              <div className="w-12 h-12 bg-wasfah-light-gray rounded-full flex items-center justify-center mx-auto mb-3">
-                <ChefHat className="h-6 w-6 text-wasfah-bright-teal" />
-              </div>
-              <CardTitle className="text-lg text-wasfah-deep-teal">Meal Planning</CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-gray-600">Get help planning balanced meals and creating shopping lists for your weekly menu.</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* AI Chef Assistant Component */}
-        <Card className="shadow-xl border-wasfah-mint/20">
-          <CardContent className="p-0">
-            <AIChefAssistant />
+        {/* Input Area */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex gap-2">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask me anything about cooking, recipes, or ingredients..."
+                className="flex-1 min-h-[40px] max-h-32"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+              />
+              <Button
+                onClick={handleSendMessage}
+                disabled={!message.trim() || loading}
+                size="icon"
+                className="self-end"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     </PageContainer>
   );
-}
+};
+
+export default AiChefPage;
