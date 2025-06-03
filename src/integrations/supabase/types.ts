@@ -45,6 +45,35 @@ export type Database = {
         }
         Relationships: []
       }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          recipe_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipe_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipe_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredient_images: {
         Row: {
           alt_text: string | null
@@ -89,6 +118,51 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      meal_plan_meals: {
+        Row: {
+          created_at: string
+          id: string
+          meal_plan_id: string | null
+          meal_type: string
+          recipe_id: string | null
+          scheduled_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_plan_id?: string | null
+          meal_type: string
+          recipe_id?: string | null
+          scheduled_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_plan_id?: string | null
+          meal_type?: string
+          recipe_id?: string | null
+          scheduled_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plan_meals_meal_plan_id_fkey"
+            columns: ["meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "meal_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plan_meals_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meal_plans: {
         Row: {
@@ -217,27 +291,80 @@ export type Database = {
         }
         Relationships: []
       }
-      recipe_categories: {
+      recipe_approvals: {
         Row: {
           created_at: string
           id: string
-          name: string
-          parent_id: string | null
-          slug: string
+          recipe_id: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
-          name: string
-          parent_id?: string | null
-          slug: string
+          recipe_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          recipe_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_approvals_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_categories: {
+        Row: {
+          category: string | null
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          slug: string
+          subcategory: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          slug: string
+          subcategory?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
           name?: string
           parent_id?: string | null
           slug?: string
+          subcategory?: string | null
         }
         Relationships: [
           {

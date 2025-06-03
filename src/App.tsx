@@ -51,7 +51,9 @@ import NewHomePage from './pages/NewHomePage';
 import HealthTrackingPage from './pages/HealthTrackingPage';
 import HealthTrackingHomePage from './pages/HealthTrackingHomePage';
 import SmartPantryPageWrapper from './pages/SmartPantryPageWrapper';
+import SmartPantryPage from './pages/SmartPantryPage';
 import CookingHistoryPage from './pages/CookingHistoryPage';
+import DeleteAccountPage from './pages/DeleteAccountPage';
 
 // Admin Pages
 import AdminLoginPage from './pages/admin/AdminLoginPage';
@@ -82,7 +84,7 @@ function App() {
               <Route path="/home" element={<NewHomePage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/recipes" element={<RecipesPage />} />
-              <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+              <Route path="/recipe/:id" element={<RecipeDetailPage />} />
               <Route path="/create-recipe" element={<CreateRecipePage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
@@ -123,6 +125,7 @@ function App() {
               <Route path="/ingredient-swap" element={<IngredientSwapPage />} />
               <Route path="/health-tracking" element={<HealthTrackingPage />} />
               <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
+              <Route path="/delete-account" element={<DeleteAccountPage />} />
               
               {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLoginPage />} />

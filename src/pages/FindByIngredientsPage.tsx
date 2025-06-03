@@ -296,37 +296,35 @@ export default function FindByIngredientsPage() {
           <CategorySelector
             categories={mainCategories}
             selectedCategory={selectedCategory}
-            selectedSubcategory={selectedSubcategory} // This will be null at step 1
+            selectedSubcategory={selectedSubcategory}
             currentStep={currentStep}
             onCategorySelect={handleCategorySelect}
-            onSubcategorySelect={handleSubcategorySelect} // This won't be called in step 1
+            onSubcategorySelect={handleSubcategorySelect}
             onBack={() => { /* No back from step 1 */ }}
           />
         )}
 
-        {/* Step 2: Subcategory Selection (Always shown after category selection) */}
+        {/* Step 2: Subcategory Selection */}
         {currentStep === 2 && selectedCategory && (
            <CategorySelector
-              categories={mainCategories} // Pass all categories to allow CategorySelector to find subcategories
+              categories={mainCategories}
               selectedCategory={selectedCategory}
-              selectedSubcategory={selectedSubcategory} // This will be null initially in step 2
+              selectedSubcategory={selectedSubcategory}
               currentStep={currentStep}
-              onCategorySelect={handleCategorySelect} // This won't be used here but kept for prop structure
-              onSubcategorySelect={handleSubcategorySelect} // This is where subcategory is selected
-              onBack={() => setCurrentStep(1)} // Back to main categories
+              onCategorySelect={handleCategorySelect}
+              onSubcategorySelect={handleSubcategorySelect}
+              onBack={() => setCurrentStep(1)}
             />
         )}
 
         {/* Step 3: Conditional Rendering - Ingredient Manager OR Drink Customization Form */}
         {currentStep === 3 && (
             showDrinkCustomizationForm ? (
-                // If 'Drinks' category and 'Alcoholic' subcategory are selected, show the custom form
                 <DrinkCustomizationForm
                   onGenerateDrink={handleGenerateCustomDrink}
-                  onBack={() => setCurrentStep(2)} // Back to subcategory selection
+                  onBack={() => setCurrentStep(2)}
                 />
             ) : (
-                // Otherwise (Food, Desserts, or non-Alcoholic Drinks), show Ingredient Manager
                 <>
                     <IngredientManager
                       addedIngredients={addedIngredients}
@@ -356,10 +354,9 @@ export default function FindByIngredientsPage() {
           <SearchSummary
             selectedCategory={selectedCategory}
             selectedSubcategory={selectedSubcategory}
-            // Pass 0 ingredient count if it's an alcoholic drink search, otherwise pass the actual count
             ingredientCount={showDrinkCustomizationForm ? 0 : addedIngredients.length}
             filterCount={Object.values(filters).filter(v => v).length}
-            customDrinkOptions={customDrinkOptions} // Pass the new drink options structure
+            customDrinkOptions={customDrinkOptions}
             onSearch={handleSearchRecipes}
           />
         )}
