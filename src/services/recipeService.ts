@@ -1,80 +1,170 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Recipe } from '@/types/index';
+import { Recipe, RecipeFilters } from '@/types/recipe';
 
-// Export Recipe type for other files to use
-export type { Recipe } from '@/types/index';
+export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
+  let query = supabase
+    .from('recipes')
+    .select(`
+      *,
+      recipe_ingredients (
+        id,
+        amount,
+        unit,
+        ingredients (
+          name
+        )
+      )
+    `)
+    .eq('status', 'published');
 
-// Mock function to simulate fetching recipes from database
-const fetchRecipesFromDB = async (filters?: any): Promise<Recipe[]> => {
-  // This would normally fetch from Supabase
-  console.log('Fetching recipes with filters:', filters);
-  return [];
+  if (filters?.category) {
+    query = query.contains('categories', [filters.category]);
+  }
+
+  if (filters?.difficulty && ['Easy', 'Medium', 'Hard'].includes(filters.difficulty)) {
+    query = query.eq('difficulty', filters.difficulty as 'Easy' | 'Medium' | 'Hard');
+  }
+
+  if (filters?.search) {
+    query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  const formattedRecipes: Recipe[] = data?.map(recipe => ({
+    id: recipe.id,
+    title: recipe.title,
+    description: recipe.description || '',
+    image_url: recipe.image_url || '',
+    prep_time: recipe.prep_time || 0,
+    cook_time: recipe.cook_time || 0,
+    servings: recipe.servings || 1,
+    difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard',
+    calories: recipe.calories || 0,
+    cuisine_type: recipe.cuisine_type || '',
+    instructions: Array.isArray(recipe.instructions) ? recipe.instructions as string[] : 
+                 (recipe.instructions ? [recipe.instructions as string] : []),
+    categories: recipe.categories || [],
+    tags: recipe.tags || [],
+    status: recipe.status as 'draft' | 'published' | 'pending_review',
+    author_id: recipe.author_id || '',
+    is_verified: recipe.is_verified || false,
+    created_at: recipe.created_at || '',
+    updated_at: recipe.updated_at || '',
+    ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
+      id: ri.id,
+      name: ri.ingredients.name,
+      amount: ri.amount,
+      unit: ri.unit
+    })) || []
+  })) || [];
+
+  return formattedRecipes;
 };
 
-// AI-powered search function
-export const searchRecipesByIngredientsAI = async (
-  ingredients: string[],
-  dietary_preferences?: string[],
-  cuisine_type?: string
-) => {
-  const response = await fetch('https://tnjttgmjjikmdrypvknp.functions.supabase.co/find-recipes-by-ingredients', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ingredients, dietary_preferences, cuisine_type }),
-  });
-  if (!response.ok) throw new Error('AI search failed');
-  const { recipes } = await response.json();
-  return recipes;
+export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  if (!recipeData.title) {
+    throw new Error('Recipe title is required');
+  }
+
+  const { data, error } = await supabase
+    .from('recipes')
+    .insert([{
+      title: recipeData.title,
+      description: recipeData.description,
+      image_url: recipeData.image_url,
+      prep_time: recipeData.prep_time,
+      cook_time: recipeData.cook_time,
+      servings: recipeData.servings,
+      difficulty: recipeData.difficulty,
+      calories: recipeData.calories,
+      cuisine_type: recipeData.cuisine_type,
+      instructions: recipeData.instructions,
+      categories: recipeData.categories,
+      tags: recipeData.tags,
+      author_id: user.id,
+      status: 'draft'
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 };
 
-export const recipeService = {
-  searchRecipes: async (query: string) => {
-    return fetchRecipesFromDB({ search: query });
-  },
+export const updateRecipeInDB = async (id: string, updates: Partial<Recipe>) => {
+  const { data, error } = await supabase
+    .from('recipes')
+    .update({
+      title: updates.title,
+      description: updates.description,
+      image_url: updates.image_url,
+      prep_time: updates.prep_time,
+      cook_time: updates.cook_time,
+      servings: updates.servings,
+      difficulty: updates.difficulty,
+      calories: updates.calories,
+      cuisine_type: updates.cuisine_type,
+      instructions: updates.instructions,
+      categories: updates.categories,
+      tags: updates.tags,
+      status: updates.status
+    })
+    .eq('id', id)
+    .select()
+    .single();
 
-  getRecipes: async (filters?: any) => {
-    return fetchRecipesFromDB(filters);
-  },
+  if (error) throw error;
+  return data;
+};
 
-  createRecipe: async (recipeData: Partial<Recipe>) => {
-    console.log('Creating recipe:', recipeData);
-    // Mock implementation - would normally use Supabase
-    return null;
-  },
+export const deleteRecipeFromDB = async (id: string) => {
+  const { error } = await supabase
+    .from('recipes')
+    .delete()
+    .eq('id', id);
 
-  updateRecipe: async (id: string, updates: Partial<Recipe>) => {
-    console.log('Updating recipe:', id, updates);
-    // Mock implementation - would normally use Supabase
-    return null;
-  },
+  if (error) throw error;
+};
 
-  deleteRecipe: async (id: string) => {
-    console.log('Deleting recipe:', id);
-    // Mock implementation - would normally use Supabase
-    return false;
-  },
+export const toggleFavoriteInDB = async (recipeId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  getRecipeById: async (id: string) => {
-    console.log('Fetching recipe by ID:', id);
-    // Mock implementation - would normally use Supabase
-    return null;
-  },
+  // Check if already favorited
+  const { data: existing } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('recipe_id', recipeId)
+    .single();
 
-  searchRecipesByIngredients: async (ingredients: string[]) => {
-    console.log('Searching recipes by ingredients:', ingredients);
-    return [];
-  },
+  if (existing) {
+    // Remove from favorites
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('recipe_id', recipeId);
 
-  searchRecipesByIngredientsAI,
+    if (error) throw error;
+    return false; // Not favorited anymore
+  } else {
+    // Add to favorites
+    const { error } = await supabase
+      .from('favorites')
+      .insert([{
+        user_id: user.id,
+        recipe_id: recipeId
+      }]);
 
-  getUserPantryItems: async () => {
-    console.log('Fetching pantry items');
-    return [];
-  },
-
-  getIngredientsForRecipe: async (recipeId: string) => {
-    console.log('Fetching ingredients for recipe:', recipeId);
-    return [];
+    if (error) throw error;
+    return true; // Now favorited
   }
 };
