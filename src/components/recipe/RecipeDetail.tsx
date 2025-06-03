@@ -15,10 +15,13 @@ import {
   ChefHat, 
   Flame,
   Mic,
-  MicOff
+  MicOff,
+  PlayCircle,
+  Timer
 } from 'lucide-react';
 import { Recipe } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface RecipeDetailProps {
   recipe: Recipe;
@@ -26,6 +29,7 @@ interface RecipeDetailProps {
 
 export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(recipe.isFavorite);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -56,6 +60,10 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
 
   const handleStepChange = (step: number) => {
     setCurrentStep(step);
+  };
+
+  const startCookingMode = () => {
+    navigate(`/cooking/${recipe.id}`);
   };
 
   return (
@@ -93,6 +101,16 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
                 onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
               >
                 {showVoiceAssistant ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
+            {/* Cooking Mode Button */}
+            <div className="absolute bottom-4 right-4">
+              <Button
+                onClick={startCookingMode}
+                className="bg-wasfah-bright-teal hover:bg-wasfah-teal text-white gap-2"
+              >
+                <PlayCircle className="h-4 w-4" />
+                Start Cooking
               </Button>
             </div>
           </div>
@@ -148,6 +166,25 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
             onStepChange={handleStepChange}
           />
         )}
+
+        {/* Quick Action Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button
+            onClick={startCookingMode}
+            className="w-full bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal text-white gap-2"
+          >
+            <PlayCircle className="h-4 w-4" />
+            Cooking Mode
+          </Button>
+          <Button variant="outline" className="w-full gap-2">
+            <Timer className="h-4 w-4" />
+            Set Timer
+          </Button>
+          <Button variant="outline" className="w-full gap-2">
+            <Heart className="h-4 w-4" />
+            Save Recipe
+          </Button>
+        </div>
 
         {/* Recipe Content Tabs */}
         <Tabs defaultValue="ingredients" className="w-full">

@@ -1,119 +1,179 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, Award, Calculator, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useRTL } from '@/contexts/RTLContext';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Calculator, Scale, Ruler } from 'lucide-react';
 
-interface BMICalculatorProps {
-  userWeight: number;
-  userHeight: number;
-  userTargetWeight: number;
-  initialWeight: number;
-  initialHeight?: number;
-  isHealthGoalsOpen: boolean;
-  setIsHealthGoalsOpen: (isOpen: boolean) => void;
-  onUpdateGoals?: ({ weight, height, targetWeight }: { weight: any; height: any; targetWeight: any; }) => void;
-}
+export const BMICalculator = () => {
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [unit, setUnit] = useState<'metric' | 'imperial'>('metric');
+  const [bmi, setBMI] = useState<number | null>(null);
 
-export const BMICalculator: React.FC<BMICalculatorProps> = ({
-  userWeight,
-  userHeight,
-  userTargetWeight,
-  initialWeight,
-  isHealthGoalsOpen,
-  setIsHealthGoalsOpen,
-  onUpdateGoals,
-  initialHeight
-}) => {
-  const { t, direction } = useRTL();
-  
-  // Calculate BMI
-  const bmi = userWeight / ((userHeight / 100) * (userHeight / 100));
-  const bmiCategory = 
-    bmi < 18.5 ? t("Underweight", "نقص الوزن") :
-    bmi < 25 ? t("Healthy", "صحي") :
-    bmi < 30 ? t("Overweight", "زيادة الوزن") : t("Obese", "سمنة");
-  
-  // Calculate weight loss progress
-  const weightLossGoal = initialWeight - userTargetWeight;
-  const currentProgress = initialWeight - userWeight;
-  const progressPercentage = (currentProgress / weightLossGoal) * 100;
-  
+  const calculateBMI = () => {
+    const heightNum = parseFloat(height);
+    const weightNum = parseFloat(weight);
+
+    if (!heightNum || !weightNum) return;
+
+    let bmiValue: number;
+    if (unit === 'metric') {
+      // Height in cm, weight in kg
+      const heightM = heightNum / 100;
+      bmiValue = weightNum / (heightM * heightM);
+    } else {
+      // Height in inches, weight in lbs
+      bmiValue = (weightNum * 703) / (heightNum * heightNum);
+    }
+
+    setBMI(parseFloat(bmiValue.toFixed(1)));
+  };
+
+  const getBMICategory = (bmiValue: number) => {
+    if (bmiValue < 18.5) return { category: 'Underweight', color: 'bg-blue-500' };
+    if (bmiValue < 25) return { category: 'Normal', color: 'bg-green-500' };
+    if (bmiValue < 30) return { category: 'Overweight', color: 'bg-yellow-500' };
+    return { category: 'Obese', color: 'bg-red-500' };
+  };
+
+  const getBMIRecommendations = (bmiValue: number) => {
+    if (bmiValue < 18.5) {
+      return [
+        'Increase caloric intake with nutrient-dense foods',
+        'Focus on protein-rich meals',
+        'Consider strength training exercises',
+        'Consult with a healthcare provider'
+      ];
+    }
+    if (bmiValue < 25) {
+      return [
+        'Maintain current healthy lifestyle',
+        'Continue balanced nutrition',
+        'Regular physical activity',
+        'Monitor weight periodically'
+      ];
+    }
+    if (bmiValue < 30) {
+      return [
+        'Create a moderate calorie deficit',
+        'Increase physical activity',
+        'Focus on whole foods',
+        'Consider portion control'
+      ];
+    }
+    return [
+      'Consult with healthcare provider',
+      'Create structured weight loss plan',
+      'Incorporate regular exercise',
+      'Consider professional nutrition guidance'
+    ];
+  };
+
   return (
-    <Card className="border-2 border-wasfah-bright-teal/20 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-wasfah-light-gray to-wasfah-light-mint/10 dark:from-gray-800 dark:to-gray-800/80 pb-2">
-        <CardTitle className="flex items-center text-wasfah-deep-teal dark:text-wasfah-bright-teal">
-          <Brain className="h-5 w-5 mr-2" />
-          {t('AI Health Analysis', 'تحليل الصحة بالذكاء الاصطناعي')}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="h-5 w-5 text-wasfah-bright-teal" />
+          BMI Calculator
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
-        <div className="flex flex-col space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-500">{t('Current BMI', 'مؤشر كتلة الجسم الحالي')}</p>
-              <p className="text-xl font-bold">{bmi.toFixed(1)}</p>
-              <p className={`text-sm ${
-                bmiCategory === t("Healthy", "صحي") ? "text-green-500" : 
-                bmiCategory === t("Underweight", "نقص الوزن") ? "text-blue-500" : "text-orange-500"
-              }`}>{bmiCategory}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">{t('Weight Goal Progress', 'تقدم هدف الوزن')}</p>
-              <div className="flex items-center">
-                <p className="text-xl font-bold">{progressPercentage.toFixed(0)}%</p>
-                <Award className={`ml-2 h-5 w-5 ${
-                  progressPercentage > 75 ? "text-green-500" :
-                  progressPercentage > 50 ? "text-blue-500" :
-                  progressPercentage > 25 ? "text-yellow-500" : "text-gray-400"
-                }`} />
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>{t('Starting', 'البداية')} ({initialWeight}kg)</span>
-              <span>{t('Current', 'الحالي')} ({userWeight}kg)</span>
-              <span>{t('Target', 'الهدف')} ({userTargetWeight}kg)</span>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
-          </div>
-          
-          <Collapsible open={isHealthGoalsOpen} onOpenChange={setIsHealthGoalsOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="flex w-full justify-between">
-                <span className="flex items-center">
-                  <Calculator className="h-4 w-4 mr-1" /> {t('Health Metrics Details', 'تفاصيل مقاييس الصحة')}
-                </span>
-                {isHealthGoalsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-2">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1">
-                  <p className="text-gray-500">{t('Height', 'الطول')}</p>
-                  <p className="font-medium">{userHeight} cm</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-gray-500">{t('Current Weight', 'الوزن الحالي')}</p>
-                  <p className="font-medium">{userWeight} kg</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-gray-500">{t('Target Weight', 'الوزن المستهدف')}</p>
-                  <p className="font-medium">{userTargetWeight} kg</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-gray-500">{t('Recommended Daily Calories', 'السعرات الحرارية اليومية الموصى بها')}</p>
-                  <p className="font-medium">2,100 kcal</p>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+      <CardContent className="space-y-6">
+        {/* Unit Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={unit === 'metric' ? 'default' : 'outline'}
+            onClick={() => setUnit('metric')}
+            size="sm"
+          >
+            Metric
+          </Button>
+          <Button
+            variant={unit === 'imperial' ? 'default' : 'outline'}
+            onClick={() => setUnit('imperial')}
+            size="sm"
+          >
+            Imperial
+          </Button>
         </div>
+
+        {/* Input Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="height" className="flex items-center gap-2">
+              <Ruler className="h-4 w-4" />
+              Height ({unit === 'metric' ? 'cm' : 'inches'})
+            </Label>
+            <Input
+              id="height"
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              placeholder={unit === 'metric' ? '170' : '68'}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="weight" className="flex items-center gap-2">
+              <Scale className="h-4 w-4" />
+              Weight ({unit === 'metric' ? 'kg' : 'lbs'})
+            </Label>
+            <Input
+              id="weight"
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder={unit === 'metric' ? '70' : '154'}
+            />
+          </div>
+        </div>
+
+        <Button onClick={calculateBMI} className="w-full">
+          Calculate BMI
+        </Button>
+
+        {/* Results */}
+        {bmi && (
+          <div className="space-y-4">
+            <div className="text-center p-6 bg-gray-50 rounded-lg">
+              <p className="text-3xl font-bold text-wasfah-bright-teal mb-2">{bmi}</p>
+              <Badge className={`${getBMICategory(bmi).color} text-white`}>
+                {getBMICategory(bmi).category}
+              </Badge>
+            </div>
+
+            {/* BMI Scale */}
+            <div className="space-y-2">
+              <p className="font-medium">BMI Scale:</p>
+              <div className="flex rounded-lg overflow-hidden h-4">
+                <div className="bg-blue-500 flex-1"></div>
+                <div className="bg-green-500 flex-1"></div>
+                <div className="bg-yellow-500 flex-1"></div>
+                <div className="bg-red-500 flex-1"></div>
+              </div>
+              <div className="grid grid-cols-4 text-xs text-center">
+                <span>Underweight</span>
+                <span>Normal</span>
+                <span>Overweight</span>
+                <span>Obese</span>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="space-y-2">
+              <p className="font-medium">Recommendations:</p>
+              <ul className="space-y-1 text-sm text-gray-600">
+                {getBMIRecommendations(bmi).map((rec, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-wasfah-bright-teal">•</span>
+                    {rec}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

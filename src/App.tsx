@@ -1,152 +1,93 @@
 
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { RTLProvider } from '@/contexts/RTLContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import Index from './pages/Index';
-import AuthPage from './pages/AuthPage';
-import RecipesPage from './pages/RecipesPage';
-import RecipeDetailPage from './pages/RecipeDetailPage';
-import CreateRecipePage from './pages/CreateRecipePage';
-import ProfilePage from './pages/ProfilePage';
-import EditProfilePage from './pages/EditProfilePage';
-import DietaryPreferencesPage from './pages/DietaryPreferencesPage';
-import FavoritesPage from './pages/FavoritesPage';
-import MealPlanPage from './pages/MealPlanPage';
-import SearchPage from './pages/SearchPage';
-import ScanDishPage from './pages/ScanDishPage';
-import ScanIngredientsPage from './pages/ScanIngredientsPage';
-import FindByIngredientsPage from './pages/FindByIngredientsPage';
-import AIFindByIngredientsPage from './pages/AIFindByIngredientsPage';
-import PantryPage from './pages/PantryPage';
-import ShoppingListPage from './pages/ShoppingListPage';
-import AiChefPage from './pages/AiChefPage';
-import ServicesPage from './pages/ServicesPage';
-import HelpPage from './pages/HelpPage';
-import MainSettingsPage from './pages/MainSettingsPage';
-import LanguageSettingsPage from './pages/LanguageSettingsPage';
-import AppearancePage from './pages/AppearancePage';
-import NotificationsPage from './pages/NotificationsPage';
-import PaymentMethodsPage from './pages/PaymentMethodsPage';
-import PrivacyPage from './pages/PrivacyPage';
-import NotFound from './pages/NotFound';
-import BodyInformationPage from './pages/BodyInformationPage';
-import HealthInformationPage from './pages/HealthInformationPage';
-import NutritionGoalsPage from './pages/NutritionGoalsPage';
-import MenuPage from './pages/MenuPage';
-import GlobalCuisinePage from './pages/GlobalCuisinePage';
-import CommunityPage from './pages/CommunityPage';
-import ConnectedDevicesPage from './pages/ConnectedDevicesPage';
-import LoyaltyProgramPage from './pages/LoyaltyProgramPage';
-import SubscriptionPage from './pages/SubscriptionPage';
-import PaymentSuccessPage from './pages/PaymentSuccessPage';
-import AIFeaturesPage from './pages/AIFeaturesPage';
-import SplashScreen from './pages/SplashScreen';
-import SharedRecipesPage from './pages/SharedRecipesPage';
-import SharedRecipesTrackingPage from './pages/SharedRecipesTrackingPage';
-import IngredientSwapPage from './pages/IngredientSwapPage';
-import NewHomePage from './pages/NewHomePage';
-import HealthTrackingPage from './pages/HealthTrackingPage';
-import HealthTrackingHomePage from './pages/HealthTrackingHomePage';
-import SmartPantryPageWrapper from './pages/SmartPantryPageWrapper';
-import CookingHistoryPage from './pages/CookingHistoryPage';
-import DeleteAccountPage from './pages/DeleteAccountPage';
-// Admin Pages
-import AdminLoginPage from './pages/admin/AdminLoginPage';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminRecipes from './pages/admin/AdminRecipes';
-import AdminPage from './pages/AdminPage';
-import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
-import AdminSettingsPage from './pages/admin/AdminSettingsPage';
-import AdminSecurityPage from './pages/admin/AdminSecurityPage';
-import AdminCommunicationsPage from './pages/admin/AdminCommunicationsPage';
-import AdminRecipeApproval from './pages/admin/AdminRecipeApproval';
-import AdminIngredients from './pages/admin/AdminIngredients';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { RTLProvider } from "@/contexts/RTLContext";
+import BottomToolbar from "@/components/layout/BottomToolbar";
 
-const queryClient = new QueryClient();
+// Auth & Landing
+import SplashScreen from "@/pages/SplashScreen";
+import AuthPage from "@/pages/AuthPage";
+import LandingPage from "@/pages/LandingPage";
+
+// Main App Pages
+import HomePage from "@/pages/HomePage";
+import RecipesPage from "@/pages/RecipesPage";
+import RecipeDetailPage from "@/pages/RecipeDetailPage";
+import CookingModePage from "@/pages/CookingMode";
+import ProfilePage from "@/pages/ProfilePage";
+import MenuPage from "@/pages/MenuPage";
+
+// New Feature Pages
+import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
+import AIFeaturesPage from "@/pages/AIFeaturesPage";
+import HealthTrackingPage from "@/pages/HealthTrackingPage";
+import CreateRecipePage from "@/pages/CreateRecipePage";
+
+// Admin Pages
+import AdminPage from "@/pages/AdminPage";
+import AdminDashboard from "@/pages/AdminDashboard";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+    },
+  },
+});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+      <BrowserRouter>
         <AuthProvider>
-          <RTLProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/splash" element={<SplashScreen />} />
-                <Route path="/home" element={<NewHomePage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/recipes" element={<RecipesPage />} />
-                <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-                <Route path="/create-recipe" element={<CreateRecipePage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/edit-profile" element={<EditProfilePage />} />
-                <Route path="/dietary-preferences" element={<DietaryPreferencesPage />} />
-                <Route path="/favorites" element={<FavoritesPage />} />
-                <Route path="/meal-plan" element={<MealPlanPage />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/scan-dish" element={<ScanDishPage />} />
-                <Route path="/scan-ingredients" element={<ScanIngredientsPage />} />
-                <Route path="/find-by-ingredients" element={<FindByIngredientsPage />} />
-                <Route path="/ai-find-by-ingredients" element={<AIFindByIngredientsPage />} />
-                <Route path="/pantry" element={<PantryPage />} />
-                <Route path="/shopping-list" element={<ShoppingListPage />} />
-                <Route path="/ai-chef" element={<AiChefPage />} />
-                <Route path="/services" element={<ServicesPage />} />
-                <Route path="/help" element={<HelpPage />} />
-                <Route path="/settings" element={<MainSettingsPage />} />
-                <Route path="/language-settings" element={<LanguageSettingsPage />} />
-                <Route path="/appearance" element={<AppearancePage />} />
-                <Route path="/notifications" element={<NotificationsPage />} />
-                <Route path="/payment-methods" element={<PaymentMethodsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/body-information" element={<BodyInformationPage />} />
-                <Route path="/health-information" element={<HealthInformationPage />} />
-                <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
-                <Route path="/menu" element={<MenuPage />} />
-                <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
-                <Route path="/community" element={<CommunityPage />} />
-                <Route path="/connected-devices" element={<ConnectedDevicesPage />} />
-                <Route path="/loyalty-program" element={<LoyaltyProgramPage />} />
-                <Route path="/subscription" element={<SubscriptionPage />} />
-                <Route path="/payment-success" element={<PaymentSuccessPage />} />
-                <Route path="/ai-features" element={<AIFeaturesPage />} />
-                <Route path="/shared-recipes" element={<SharedRecipesPage />} />
-                <Route path="/shared-recipes-tracking" element={<SharedRecipesTrackingPage />} />
-                <Route path="/ingredient-swap" element={<IngredientSwapPage />} />
-                <Route path="/health-tracking" element={<HealthTrackingPage />} />
-                <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
-                <Route path="/smart-pantry" element={<SmartPantryPageWrapper />} />
-                <Route path="/cooking-history" element={<CookingHistoryPage />} />
-                <Route path="/delete-account" element={<DeleteAccountPage />} />
-                
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/recipes" element={<AdminRecipes />} />
-                <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-                <Route path="/admin/settings" element={<AdminSettingsPage />} />
-                <Route path="/admin/security" element={<AdminSecurityPage />} />
-                <Route path="/admin/communications" element={<AdminCommunicationsPage />} />
-                <Route path="/admin/recipe-approval" element={<AdminRecipeApproval />} />
-                <Route path="/admin/ingredients" element={<AdminIngredients />} />
-                
-                {/* Catch all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </RTLProvider>
+          <LanguageProvider>
+            <RTLProvider>
+              <TooltipProvider>
+                <div className="min-h-screen bg-background font-sans antialiased">
+                  <Routes>
+                    {/* Auth & Landing Routes */}
+                    <Route path="/" element={<SplashScreen />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/landing" element={<LandingPage />} />
+                    
+                    {/* Main App Routes */}
+                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/recipes" element={<RecipesPage />} />
+                    <Route path="/recipe/:id" element={<RecipeDetailPage />} />
+                    <Route path="/cooking/:id" element={<CookingModePage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/menu" element={<MenuPage />} />
+                    
+                    {/* New Feature Routes */}
+                    <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
+                    <Route path="/ai-features" element={<AIFeaturesPage />} />
+                    <Route path="/health-tracking-home" element={<HealthTrackingPage />} />
+                    <Route path="/create-recipe" element={<CreateRecipePage />} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<AdminPage />}>
+                      <Route index element={<AdminDashboard />} />
+                    </Route>
+                    
+                    {/* Catch all route */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                  
+                  <BottomToolbar />
+                  <Toaster />
+                  <Sonner />
+                </div>
+              </TooltipProvider>
+            </RTLProvider>
+          </LanguageProvider>
         </AuthProvider>
-      </TooltipProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
