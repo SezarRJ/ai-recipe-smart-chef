@@ -1,250 +1,147 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { LanguageProvider } from "./contexts/LanguageContext";
-import { RTLProvider } from "./contexts/RTLContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { AuthProvider } from "./contexts/AuthContext";
-import { DatabaseLanguageProvider } from "./contexts/DatabaseLanguageContext";
-import ErrorBoundary from "./components/monitoring/ErrorBoundary";
 
-// Import your global UI components
-import Navigation from "./components/layout/Navigation";
-import BottomToolbar from "./components/layout/BottomToolbar";
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { RTLProvider } from '@/contexts/RTLContext';
+import Index from './pages/Index';
+import AuthPage from './pages/AuthPage';
+import RecipesPage from './pages/RecipesPage';
+import RecipeDetailPage from './pages/RecipeDetailPage';
+import CreateRecipePage from './pages/CreateRecipePage';
+import ProfilePage from './pages/ProfilePage';
+import EditProfilePage from './pages/EditProfilePage';
+import DietaryPreferencesPage from './pages/DietaryPreferencesPage';
+import FavoritesPage from './pages/FavoritesPage';
+import MealPlanPage from './pages/MealPlanPage';
+import SearchPage from './pages/SearchPage';
+import ScanDishPage from './pages/ScanDishPage';
+import ScanIngredientsPage from './pages/ScanIngredientsPage';
+import FindByIngredientsPage from './pages/FindByIngredientsPage';
+import AIFindByIngredientsPage from './pages/AIFindByIngredientsPage';
+import PantryPage from './pages/PantryPage';
+import ShoppingListPage from './pages/ShoppingListPage';
+import AiChefPage from './pages/AiChefPage';
+import ServicesPage from './pages/ServicesPage';
+import HelpPage from './pages/HelpPage';
+import MainSettingsPage from './pages/MainSettingsPage';
+import LanguageSettingsPage from './pages/LanguageSettingsPage';
+import AppearancePage from './pages/AppearancePage';
+import NotificationsPage from './pages/NotificationsPage';
+import PaymentMethodsPage from './pages/PaymentMethodsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import NotFound from './pages/NotFound';
+import BodyInformationPage from './pages/BodyInformationPage';
+import HealthInformationPage from './pages/HealthInformationPage';
+import NutritionGoalsPage from './pages/NutritionGoalsPage';
+import MenuPage from './pages/MenuPage';
+import GlobalCuisinePage from './pages/GlobalCuisinePage';
+import CommunityPage from './pages/CommunityPage';
+import ConnectedDevicesPage from './pages/ConnectedDevicesPage';
+import LoyaltyProgramPage from './pages/LoyaltyProgramPage';
+import SubscriptionPage from './pages/SubscriptionPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import AIFeaturesPage from './pages/AIFeaturesPage';
+import SplashScreen from './pages/SplashScreen';
+import SharedRecipesPage from './pages/SharedRecipesPage';
+import SharedRecipesTrackingPage from './pages/SharedRecipesTrackingPage';
+import IngredientSwapPage from './pages/IngredientSwapPage';
+import NewHomePage from './pages/NewHomePage';
+import HealthTrackingPage from './pages/HealthTrackingPage';
+import HealthTrackingHomePage from './pages/HealthTrackingHomePage';
+import SmartPantryPageWrapper from './pages/SmartPantryPageWrapper';
+import CookingHistoryPage from './pages/CookingHistoryPage';
 
-// Import main app pages
-import NewHomePage from "./pages/NewHomePage";
-import MenuPage from "./pages/MenuPage";
-import ServicesPage from "./pages/ServicesPage";
-import RecipesPage from "./pages/RecipesPage";
-import RecipeDetailPage from "./pages/RecipeDetailPage";
-import CreateRecipePage from "./pages/CreateRecipePage";
-import FavoritesPage from "./pages/FavoritesPage";
-import FindByIngredientsPage from "./pages/FindByIngredientsPage";
-import PantryPage from "./pages/PantryPage";
-import MealPlanPage from "./pages/MealPlanPage";
-import SearchPage from "./pages/SearchPage";
-import CommunityPage from "./pages/CommunityPage";
-import MainSettingsPage from "./pages/MainSettingsPage";
-import ProfilePage from "./pages/ProfilePage";
-import DietaryPreferencesPage from "./pages/DietaryPreferencesPage";
-import LanguageSettingsPage from "./pages/LanguageSettingsPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import AppearancePage from "./pages/AppearancePage";
-import ConnectedDevicesPage from "./pages/ConnectedDevicesPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import HelpPage from "./pages/HelpPage";
-import AuthPage from "./pages/AuthPage";
-import SubscriptionPage from "./pages/SubscriptionPage";
-import PaymentMethodsPage from "./pages/PaymentMethodsPage";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
-import NutritionGoalsPage from "./pages/NutritionGoalsPage";
-import BodyInformationPage from "./pages/BodyInformationPage";
-import HealthInformationPage from "./pages/HealthInformationPage";
-import HealthTrackingPage from "./pages/HealthTrackingPage";
-import HealthTrackingHomePage from "./pages/HealthTrackingHomePage";
-import ScanDishPage from "./pages/ScanDishPage";
-import ScanIngredientsPage from "./pages/ScanIngredientsPage";
-import LoyaltyProgramPage from "./pages/LoyaltyProgramPage";
-import GlobalCuisinePage from "./pages/GlobalCuisinePage";
-import IngredientSwapPage from "./pages/IngredientSwapPage";
-import SharedRecipesPage from "./pages/SharedRecipesPage";
-import SharedRecipesTrackingPage from "./pages/SharedRecipesTrackingPage";
-import SplashScreen from "./pages/SplashScreen";
-import ShoppingListPage from "./pages/ShoppingListPage";
-import NotFound from "./pages/NotFound";
-import EditProfilePage from "./pages/EditProfilePage";
-import CookingMode from './pages/CookingMode';
-import CookingHistory from './pages/CookingHistory';
-import TermsOfService from './pages/TermsOfService';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import AiChefPage from "./pages/AiChefPage";
-
-// Admin pages
-import AdminPage from "./pages/AdminPage";
-import AdminLoginPage from "./pages/admin/AdminLoginPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminRecipes from "./pages/admin/AdminRecipes";
-import AdminSubscriptionManager from "./pages/admin/AdminSubscriptionManager";
-import AdminRewardsManager from "./pages/admin/AdminRewardsManager";
-import AdminLanguageManager from "./pages/admin/AdminLanguageManager";
-import AdminIntegrationsManager from "./pages/admin/AdminIntegrationsManager";
-import AdminSpoonacularIntegration from './pages/admin/AdminSpoonacularIntegration';
-import AdminSystemMonitoring from './pages/admin/AdminSystemMonitoring';
-import AdminUserTypesManager from "./pages/admin/AdminUserTypesManager";
-import AdminAccountingManager from "./pages/admin/AdminAccountingManager";
-import AdminIngredientImagesManager from "./pages/admin/AdminIngredientImagesManager";
-import AdminTranslationsManager from "./pages/admin/AdminTranslationsManager";
-import AdminContentLibrary from "./pages/admin/AdminContentLibrary";
-import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
-import AdminSecurityPage from "./pages/admin/AdminSecurityPage";
-import AdminCommunicationsPage from "./pages/admin/AdminCommunicationsPage";
-import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
-import AdminCommunityModeration from "./pages/admin/AdminCommunityModeration";
-import AdminStringManager from "./pages/admin/AdminStringManager";
-import AdminNotificationSystem from "./pages/admin/AdminNotificationSystem";
-import AdminAdvertisementManager from "./pages/admin/AdminAdvertisementManager";
-import AdminRecipeApproval from "./pages/admin/AdminRecipeApproval";
-import AdminSharedRecipeModeration from "./pages/admin/AdminSharedRecipeModeration";
-import { AdminAuthGuard } from "./components/admin/AdminAuthGuard";
-import AdminTicketSystem from './pages/admin/AdminTicketSystem';
-
-// Admin pages with aliases to avoid conflicts
-import IngredientsManagement from '@/pages/admin/IngredientsManagement';
-import MaintenancePage from '@/pages/admin/MaintenancePage';
-import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
-import AdminCommunityPage from '@/pages/admin/CommunityPage';
-import AdminNotificationsPage from '@/pages/admin/NotificationsPage';
-
-import AdminAIChef from "./pages/admin/AdminAIChef";
+// Admin Pages
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminRecipes from './pages/admin/AdminRecipes';
+import AdminPage from './pages/AdminPage';
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminSecurityPage from './pages/admin/AdminSecurityPage';
+import AdminCommunicationsPage from './pages/admin/AdminCommunicationsPage';
+import AdminRecipeApproval from './pages/admin/AdminRecipeApproval';
+import AdminIngredients from './pages/admin/AdminIngredients';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <LanguageProvider>
-          <AuthProvider>
-            <RTLProvider>
-              <ThemeProvider>
-                <DatabaseLanguageProvider>
-                  <TooltipProvider>
-                    <ErrorBoundary>
-                      <div className="relative min-h-screen bg-background">
-                        <Navigation />
-                        <main className="pt-16 pb-20">
-                          <Routes>
-                            <Route path="/" element={<Navigate to="/splash" replace />} />
-                            <Route path="/splash" element={<SplashScreen />} />
-                            <Route path="/home" element={<NewHomePage />} />
-                            <Route path="/menu" element={<MenuPage />} />
-                            <Route path="/services" element={<ServicesPage />} />
-                            <Route path="/recipes" element={<RecipesPage />} />
-                            <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-                            <Route path="/cooking/:id" element={<CookingMode />} />
-                            <Route path="/cooking-history" element={<CookingHistory />} />
-                            <Route path="/create-recipe" element={<CreateRecipePage />} />
-                            <Route path="/favorites" element={<FavoritesPage />} />
-                            <Route path="/find-by-ingredients" element={<FindByIngredientsPage />} />
-                            <Route path="/pantry" element={<PantryPage />} />
-                            <Route path="/meal-plan" element={<MealPlanPage />} />
-                            <Route path="/search" element={<SearchPage />} />
-                            <Route path="/community" element={<CommunityPage />} />
-                            <Route path="/settings" element={<MainSettingsPage />} />
-                            <Route path="/profile" element={<ProfilePage />} />
-                            <Route path="/edit-profile" element={<EditProfilePage />} />
-                            <Route path="/dietary-preferences" element={<DietaryPreferencesPage />} />
-                            <Route path="/language-settings" element={<LanguageSettingsPage />} />
-                            <Route path="/notifications" element={<NotificationsPage />} />
-                            <Route path="/appearance" element={<AppearancePage />} />
-                            <Route path="/connected-devices" element={<ConnectedDevicesPage />} />
-                            <Route path="/privacy" element={<PrivacyPage />} />
-                            <Route path="/help" element={<HelpPage />} />
-                            <Route path="/auth" element={<AuthPage />} />
-                            <Route path="/subscription" element={<SubscriptionPage />} />
-                            <Route path="/payment-methods" element={<PaymentMethodsPage />} />
-                            <Route path="/payment-success" element={<PaymentSuccessPage />} />
-                            <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
-                            <Route path="/body-information" element={<BodyInformationPage />} />
-                            <Route path="/health-information" element={<HealthInformationPage />} />
-                            <Route path="/health-tracking" element={<HealthTrackingPage />} />
-                            <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
-                            <Route path="/scan-dish" element={<ScanDishPage />} />
-                            <Route path="/scan-ingredients" element={<ScanIngredientsPage />} />
-                            <Route path="/loyalty" element={<Navigate to="/loyalty-program" replace />} />
-                            <Route path="/loyalty-program" element={<LoyaltyProgramPage />} />
-                            <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
-                            <Route path="/ingredient-swap" element={<IngredientSwapPage />} />
-                            <Route path="/shared-recipes" element={<SharedRecipesPage />} />
-                            <Route path="/shared-recipes-tracking" element={<SharedRecipesTrackingPage />} />
-                            <Route path="/shopping-list" element={<ShoppingListPage />} />
-                            <Route path="/terms-of-service" element={<TermsOfService />} />
-                            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                            <Route path="/ai-chef" element={<AiChefPage />} />
-                            <Route path="/admin/login" element={<AdminLoginPage />} />
-                            <Route path="/admin" element={
-                              <AdminAuthGuard>
-                                <AdminPage />
-                              </AdminAuthGuard>
-                            }>
-                              <Route index element={<AdminDashboard />} />
-                              <Route path="users" element={<AdminUsers />} />
-                              <Route path="user-types" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <AdminUserTypesManager />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="recipes" element={<AdminRecipes />} />
-                              <Route path="ingredients" element={<IngredientsManagement />} />
-                              <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
-                              <Route path="translations" element={<AdminTranslationsManager />} />
-                              <Route path="content-library" element={<AdminContentLibrary />} />
-                              <Route path="string-manager" element={<AdminStringManager />} />
-                              <Route path="community-moderation" element={<AdminCommunityModeration />} />
-                              <Route path="subscriptions" element={<AdminSubscriptionManager />} />
-                              <Route path="accounting" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <AdminAccountingManager />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="rewards" element={<AdminRewardsManager />} />
-                              <Route path="languages" element={<AdminLanguageManager />} />
-                              <Route path="integrations" element={<AdminIntegrationsManager />} />
-                              <Route path="ai-chef" element={<AdminAIChef />} />
-                              <Route path="advertisements" element={<AdminAdvertisementManager />} />
-                              <Route path="spoonacular" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <AdminSpoonacularIntegration />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="system" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <AdminSystemMonitoring />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="analytics" element={<AdminAnalyticsPage />} />
-                              <Route path="communications" element={<AdminCommunicationsPage />} />
-                              <Route path="security" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <AdminSecurityPage />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="maintenance" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <MaintenancePage />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="settings" element={
-                                <AdminAuthGuard requireSuperAdmin={true}>
-                                  <AdminSettingsPage />
-                                </AdminAuthGuard>
-                              } />
-                              <Route path="notifications" element={<AdminNotificationsPage />} />
-                              <Route path="recipe-approval" element={<AdminRecipeApproval />} />
-                              <Route path="shared-recipes" element={<AdminSharedRecipeModeration />} />
-                              <Route path="tickets" element={<AdminTicketSystem />} />
-                              <Route path="support" element={<SupportTicketsPage />} />
-                              <Route path="community" element={<AdminCommunityPage />} />
-                            </Route>
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </main>
-                        <BottomToolbar />
-                        <Toaster />
-                        <Sonner />
-                      </div>
-                    </ErrorBoundary>
-                  </TooltipProvider>
-                </DatabaseLanguageProvider>
-              </ThemeProvider>
-            </RTLProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </Router>
+      <TooltipProvider>
+        <RTLProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/splash" element={<SplashScreen />} />
+              <Route path="/home" element={<NewHomePage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/recipes" element={<RecipesPage />} />
+              <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+              <Route path="/create-recipe" element={<CreateRecipePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/edit" element={<EditProfilePage />} />
+              <Route path="/profile/dietary-preferences" element={<DietaryPreferencesPage />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
+              <Route path="/meal-plan" element={<MealPlanPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/scan-dish" element={<ScanDishPage />} />
+              <Route path="/scan-ingredients" element={<ScanIngredientsPage />} />
+              <Route path="/find-by-ingredients" element={<FindByIngredientsPage />} />
+              <Route path="/ai-find-by-ingredients" element={<AIFindByIngredientsPage />} />
+              <Route path="/pantry" element={<PantryPage />} />
+              <Route path="/smart-pantry" element={<SmartPantryPageWrapper />} />
+              <Route path="/shopping-list" element={<ShoppingListPage />} />
+              <Route path="/ai-chef" element={<AiChefPage />} />
+              <Route path="/cooking-history" element={<CookingHistoryPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/settings" element={<MainSettingsPage />} />
+              <Route path="/settings/language" element={<LanguageSettingsPage />} />
+              <Route path="/settings/appearance" element={<AppearancePage />} />
+              <Route path="/settings/notifications" element={<NotificationsPage />} />
+              <Route path="/settings/payment-methods" element={<PaymentMethodsPage />} />
+              <Route path="/settings/privacy" element={<PrivacyPage />} />
+              <Route path="/body-information" element={<BodyInformationPage />} />
+              <Route path="/health-information" element={<HealthInformationPage />} />
+              <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
+              <Route path="/menu" element={<MenuPage />} />
+              <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
+              <Route path="/community" element={<CommunityPage />} />
+              <Route path="/connected-devices" element={<ConnectedDevicesPage />} />
+              <Route path="/loyalty-program" element={<LoyaltyProgramPage />} />
+              <Route path="/subscription" element={<SubscriptionPage />} />
+              <Route path="/payment-success" element={<PaymentSuccessPage />} />
+              <Route path="/ai-features" element={<AIFeaturesPage />} />
+              <Route path="/shared-recipes" element={<SharedRecipesPage />} />
+              <Route path="/shared-recipes-tracking" element={<SharedRecipesTrackingPage />} />
+              <Route path="/ingredient-swap" element={<IngredientSwapPage />} />
+              <Route path="/health-tracking" element={<HealthTrackingPage />} />
+              <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/recipes" element={<AdminRecipes />} />
+              <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+              <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              <Route path="/admin/security" element={<AdminSecurityPage />} />
+              <Route path="/admin/communications" element={<AdminCommunicationsPage />} />
+              <Route path="/admin/recipe-approval" element={<AdminRecipeApproval />} />
+              <Route path="/admin/ingredients" element={<AdminIngredients />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </RTLProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
