@@ -15,7 +15,7 @@ import { BMICalculator } from '@/components/health/BMICalculator';
 import { useRTL } from '@/contexts/RTLContext';
 import { useUserHealth } from '@/hooks/useUserHealth';
 
-const IngredientSwapCard = ({ swap, t }) => (
+const IngredientSwapCard = ({ swap, t }: { swap: any; t: any }) => (
     <Card className="border border-gray-200 dark:border-gray-700">
         <CardContent className="p-4">
             <h4 className="font-bold text-wasfah-deep-teal dark:text-wasfah-bright-teal flex items-center mb-3">
@@ -23,7 +23,7 @@ const IngredientSwapCard = ({ swap, t }) => (
                 {t('Instead of', 'بدلاً من')} <span className="text-wasfah-bright-teal ml-1">{swap.original}</span>, {t('try', 'جرب')}:
             </h4>
             <div className="space-y-3">
-                {swap.alternatives.map((alt, altIdx) => (
+                {swap.alternatives.map((alt: any, altIdx: number) => (
                     <div key={altIdx} className="bg-wasfah-light-gray dark:bg-gray-800 p-3 rounded-md">
                         <div className="flex justify-between">
                             <h5 className="font-medium">{alt.name}</h5>
@@ -37,7 +37,7 @@ const IngredientSwapCard = ({ swap, t }) => (
     </Card>
 );
 
-const ActionButton = ({ to, children, variant = "default", icon }) => (
+const ActionButton = ({ to, children, variant = "default", icon }: { to: string; children: React.ReactNode; variant?: "default" | "outline"; icon?: React.ReactNode }) => (
     <Link to={to}>
         <Button className={`w-full ${variant === "outline" ? "border-wasfah-bright-teal text-wasfah-bright-teal" : "bg-wasfah-bright-teal hover:bg-wasfah-teal"}`}>
             {icon && <span className="mr-2">{icon}</span>}
@@ -48,14 +48,7 @@ const ActionButton = ({ to, children, variant = "default", icon }) => (
 
 export default function HealthTrackingHomePage() {
     const { t } = useRTL();
-    const {
-        isHealthGoalsOpen,
-        setIsHealthGoalsOpen,
-        userWeight,
-        userHeight,
-        userTargetWeight,
-        updateHealthGoals,
-    } = useUserHealth();
+    const userHealthHook = useUserHealth();
 
     const [dailyNutritionData, setDailyNutritionData] = useState([]);
     const [currentNutritionSummary, setCurrentNutritionSummary] = useState({
@@ -96,12 +89,12 @@ export default function HealthTrackingHomePage() {
         ]);
     }, [mockWeeklyNutritionChartData, t]);
 
-    const handleApplyTip = useCallback((tip) => {
+    const handleApplyTip = useCallback((tip: any) => {
         console.log('Applied tip:', tip);
         alert(t('Tip applied! (In a real app, this would update your goals/plan)', 'تم تطبيق النصيحة! (في تطبيق حقيقي، سيتم تحديث أهدافك/خطتك)'));
     }, [t]);
 
-    const handleNutritionSubmit = useCallback((data) => {
+    const handleNutritionSubmit = useCallback((data: any) => {
         console.log('Nutrition data submitted:', data);
 
         setCurrentNutritionSummary(prev => ({
@@ -113,7 +106,7 @@ export default function HealthTrackingHomePage() {
 
         setDailyNutritionData(prev => {
             const today = new Date().toDateString();
-            const existingEntryIndex = prev.findIndex(entry => entry.date === today);
+            const existingEntryIndex = prev.findIndex((entry: any) => entry.date === today);
 
             if (existingEntryIndex > -1) {
                 const updatedEntries = [...prev];
@@ -179,7 +172,7 @@ export default function HealthTrackingHomePage() {
 
     const combinedChartData = useMemo(() => {
         const today = new Date().toDateString();
-        const todayData = dailyNutritionData.find(d => d.date === today);
+        const todayData = dailyNutritionData.find((d: any) => d.date === today);
 
         const mappedMockData = mockWeeklyNutritionChartData.map(d => {
             const dayOfWeekIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(d.date);
@@ -321,7 +314,7 @@ export default function HealthTrackingHomePage() {
                                 {t('Recent Meals', 'الوجبات الأخيرة')}
                             </h3>
                             {recentMeals.length > 0 ? (
-                                recentMeals.map((meal) => (
+                                recentMeals.map((meal: any) => (
                                     <Card key={meal.id} className="border border-gray-200 dark:border-gray-700">
                                         <CardContent className="p-3 flex justify-between items-center">
                                             <div>
