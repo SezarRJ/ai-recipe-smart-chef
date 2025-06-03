@@ -237,16 +237,7 @@ export default function HealthTrackingHomePage() {
                     type="ai"
                 />
 
-                <BMICalculator
-                    userWeight={userWeight}
-                    userHeight={userHeight}
-                    userTargetWeight={userTargetWeight}
-                    initialWeight={userWeight}
-                    initialHeight={userHeight}
-                    isHealthGoalsOpen={isHealthGoalsOpen}
-                    setIsHealthGoalsOpen={setIsHealthGoalsOpen}
-                    onUpdateGoals={updateHealthGoals}
-                />
+                <BMICalculator />
 
                 <DailyChallengesManager />
 

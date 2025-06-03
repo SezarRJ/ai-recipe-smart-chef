@@ -12,10 +12,10 @@ import BottomToolbar from "@/components/layout/BottomToolbar";
 // Auth & Landing
 import SplashScreen from "@/pages/SplashScreen";
 import AuthPage from "@/pages/AuthPage";
-import LandingPage from "@/pages/LandingPage";
+import Index from "@/pages/Index";
 
 // Main App Pages
-import HomePage from "@/pages/HomePage";
+import NewHomePage from "@/pages/NewHomePage";
 import RecipesPage from "@/pages/RecipesPage";
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
 import CookingModePage from "@/pages/CookingMode";
@@ -26,6 +26,7 @@ import MenuPage from "@/pages/MenuPage";
 import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
 import AIFeaturesPage from "@/pages/AIFeaturesPage";
 import HealthTrackingPage from "@/pages/HealthTrackingPage";
+import HealthTrackingHomePage from "@/pages/HealthTrackingHomePage";
 import CreateRecipePage from "@/pages/CreateRecipePage";
 
 // Admin Pages
@@ -54,10 +55,10 @@ function App() {
                     {/* Auth & Landing Routes */}
                     <Route path="/" element={<SplashScreen />} />
                     <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/landing" element={<LandingPage />} />
+                    <Route path="/landing" element={<Index />} />
                     
                     {/* Main App Routes */}
-                    <Route path="/home" element={<HomePage />} />
+                    <Route path="/home" element={<NewHomePage />} />
                     <Route path="/recipes" element={<RecipesPage />} />
                     <Route path="/recipe/:id" element={<RecipeDetailPage />} />
                     <Route path="/cooking/:id" element={<CookingModePage />} />
@@ -67,7 +68,8 @@ function App() {
                     {/* New Feature Routes */}
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
                     <Route path="/ai-features" element={<AIFeaturesPage />} />
-                    <Route path="/health-tracking-home" element={<HealthTrackingPage />} />
+                    <Route path="/health-tracking" element={<HealthTrackingPage />} />
+                    <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
                     <Route path="/create-recipe" element={<CreateRecipePage />} />
                     
                     {/* Admin Routes */}
