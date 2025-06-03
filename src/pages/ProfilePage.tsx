@@ -13,22 +13,19 @@ import {
   Calendar, 
   Award,
   Edit,
-  Trash2,
-  AlertTriangle
+  Trash2
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useProfile } from '@/hooks/useProfile';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAuthenticated } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     recipesCreated: 0,
     favoriteRecipes: 0,
@@ -37,14 +34,17 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
     fetchProfile();
     fetchStats();
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   const fetchProfile = async () => {
     try {
       if (!user) {
-        setError('Please sign in to view your profile');
         setLoading(false);
         return;
       }
@@ -65,7 +65,7 @@ const ProfilePage = () => {
           .from('profiles')
           .insert([{
             user_id: user.id,
-            full_name: user.email?.split('@')[0] || 'User',
+            full_name: user.email?.split('@')[0] || user.phone || 'User',
             avatar_url: null
           }])
           .select()
@@ -78,7 +78,11 @@ const ProfilePage = () => {
       }
     } catch (err: any) {
       console.error('Error fetching profile:', err);
-      setError('Failed to load profile. Please try refreshing the page.');
+      toast({
+        title: 'Error',
+        description: 'Failed to load profile. Please try refreshing the page.',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -138,7 +142,7 @@ const ProfilePage = () => {
     );
   }
 
-  if (error || !user) {
+  if (!isAuthenticated || !user) {
     return (
       <PageContainer
         header={{
@@ -148,17 +152,12 @@ const ProfilePage = () => {
       >
         <Card>
           <CardContent className="py-12 text-center">
-            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Error</h3>
-            <p className="text-gray-500 mb-4">{error || 'Please sign in to view your profile'}</p>
-            <div className="space-x-2">
-              <Button onClick={() => navigate('/auth')} className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
-                Sign In
-              </Button>
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Retry
-              </Button>
-            </div>
+            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Unavailable</h3>
+            <p className="text-gray-500 mb-4">You need to be signed in to view your profile</p>
+            <Button onClick={() => navigate('/auth')} className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
+              Go to Authentication
+            </Button>
           </CardContent>
         </Card>
       </PageContainer>
@@ -172,7 +171,7 @@ const ProfilePage = () => {
         showBackButton: true,
       }}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 pb-20">
         {/* Profile Header */}
         <Card>
           <CardContent className="pt-6">
@@ -180,14 +179,14 @@ const ProfilePage = () => {
               <Avatar className="h-20 w-20">
                 <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
                 <AvatarFallback className="bg-wasfah-bright-teal text-white text-xl">
-                  {(profile?.full_name || user.email)?.charAt(0).toUpperCase()}
+                  {(profile?.full_name || user.email || user.phone)?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">
                   {profile?.full_name || 'User'}
                 </h1>
-                <p className="text-gray-500">{user.email}</p>
+                <p className="text-gray-500">{user.email || user.phone}</p>
                 <div className="flex items-center space-x-2 mt-2">
                   <Badge variant="secondary">
                     <User className="h-3 w-3 mr-1" />
@@ -195,7 +194,7 @@ const ProfilePage = () => {
                   </Badge>
                 </div>
               </div>
-              <Link to="/profile/edit">
+              <Link to="/edit-profile">
                 <Button variant="outline" size="sm">
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
@@ -251,13 +250,13 @@ const ProfilePage = () => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/profile/edit" className="block">
+            <Link to="/edit-profile" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
             </Link>
-            <Link to="/profile/dietary-preferences" className="block">
+            <Link to="/dietary-preferences" className="block">
               <Button variant="outline" className="w-full justify-start">
                 <Heart className="h-4 w-4 mr-2" />
                 Dietary Preferences
