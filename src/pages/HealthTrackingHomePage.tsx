@@ -13,30 +13,7 @@ import { Link } from 'react-router-dom';
 import { DailyChallengesManager } from '@/components/challenges/DailyChallengesManager';
 import { BMICalculator } from '@/components/health/BMICalculator';
 import { useRTL } from '@/contexts/RTLContext';
-
-// Mock for useUserHealth hook
-const useUserHealthMock = () => {
-    const [isHealthGoalsOpen, setIsHealthGoalsOpen] = useState(false);
-    const [userWeight, setUserWeight] = useState(75); // Initial weight
-    const [userHeight, setUserHeight] = useState(170); // Initial height in cm
-    const [userTargetWeight, setUserTargetWeight] = useState(65); // Initial target weight
-
-    // Simulate updating health goals
-    const updateHealthGoals = useCallback(({ weight, height, targetWeight }) => {
-        if (weight !== undefined) setUserWeight(weight);
-        if (height !== undefined) setUserHeight(height);
-        if (targetWeight !== undefined) setUserTargetWeight(targetWeight);
-    }, []);
-
-    return {
-        isHealthGoalsOpen,
-        setIsHealthGoalsOpen,
-        userWeight,
-        userHeight,
-        userTargetWeight,
-        updateHealthGoals, // Expose update function
-    };
-};
+import { useUserHealth } from '@/hooks/useUserHealth';
 
 const IngredientSwapCard = ({ swap, t }) => (
     <Card className="border border-gray-200 dark:border-gray-700">
@@ -78,9 +55,8 @@ export default function HealthTrackingHomePage() {
         userHeight,
         userTargetWeight,
         updateHealthGoals,
-    } = useUserHealthMock();
+    } = useUserHealth();
 
-    // --- State for Nutrition Tracking ---
     const [dailyNutritionData, setDailyNutritionData] = useState([]);
     const [currentNutritionSummary, setCurrentNutritionSummary] = useState({
         calories: { consumed: 0, target: 2000 },
