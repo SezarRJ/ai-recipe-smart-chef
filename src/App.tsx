@@ -53,7 +53,7 @@ function App() {
                 <div className="min-h-screen bg-background font-sans antialiased">
                   <Routes>
                     {/* Auth & Landing Routes */}
-                    <Route path="/" element={<SplashScreen />} />
+                    <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/landing" element={<Index />} />
                     
