@@ -31,10 +31,10 @@ const DeleteAccountPage = () => {
     setIsDeleting(true);
     try {
       // Delete user account
-      const { error } = await supabase.auth.admin.deleteUser(
-        (await supabase.auth.getUser()).data.user?.id || ''
-      );
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
 
+      const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
       toast({
@@ -97,7 +97,7 @@ const DeleteAccountPage = () => {
               <Checkbox
                 id="confirm-checkbox"
                 checked={confirmCheckbox}
-                onCheckedChange={setConfirmCheckbox}
+                onCheckedChange={(checked) => setConfirmCheckbox(checked === true)}
               />
               <Label htmlFor="confirm-checkbox" className="text-sm">
                 I understand that this action cannot be undone

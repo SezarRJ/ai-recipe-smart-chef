@@ -9,14 +9,14 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
       *,
       recipe_ingredients (
         id,
-        amount,
+        quantity,
         unit,
         ingredients (
           name
         )
       )
     `)
-    .eq('status', 'published');
+    .eq('is_published', true);
 
   if (filters?.category) {
     query = query.contains('categories', [filters.category]);
@@ -49,20 +49,43 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
                  (recipe.instructions ? [recipe.instructions as string] : []),
     categories: recipe.categories || [],
     tags: recipe.tags || [],
-    status: recipe.status as 'draft' | 'published' | 'pending_review',
-    author_id: recipe.author_id || '',
+    status: 'published' as const,
+    author_id: recipe.user_id || '',
     is_verified: recipe.is_verified || false,
     created_at: recipe.created_at || '',
     updated_at: recipe.updated_at || '',
     ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
       id: ri.id,
       name: ri.ingredients.name,
-      amount: ri.amount,
+      amount: ri.quantity,
       unit: ri.unit
     })) || []
   })) || [];
 
   return formattedRecipes;
+};
+
+export const getIngredientsForRecipe = async (recipeId: string) => {
+  const { data, error } = await supabase
+    .from('recipe_ingredients')
+    .select(`
+      id,
+      quantity,
+      unit,
+      ingredients (
+        name
+      )
+    `)
+    .eq('recipe_id', recipeId);
+
+  if (error) throw error;
+
+  return data?.map(item => ({
+    id: item.id,
+    name: item.ingredients?.name || '',
+    amount: item.quantity,
+    unit: item.unit
+  })) || [];
 };
 
 export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
@@ -88,8 +111,8 @@ export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
       instructions: recipeData.instructions,
       categories: recipeData.categories,
       tags: recipeData.tags,
-      author_id: user.id,
-      status: 'draft'
+      user_id: user.id,
+      is_published: false
     }])
     .select()
     .single();
@@ -114,7 +137,7 @@ export const updateRecipeInDB = async (id: string, updates: Partial<Recipe>) => 
       instructions: updates.instructions,
       categories: updates.categories,
       tags: updates.tags,
-      status: updates.status
+      is_published: updates.status === 'published'
     })
     .eq('id', id)
     .select()
@@ -137,7 +160,6 @@ export const toggleFavoriteInDB = async (recipeId: string) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  // Check if already favorited
   const { data: existing } = await supabase
     .from('favorites')
     .select('id')
@@ -146,7 +168,6 @@ export const toggleFavoriteInDB = async (recipeId: string) => {
     .single();
 
   if (existing) {
-    // Remove from favorites
     const { error } = await supabase
       .from('favorites')
       .delete()
@@ -154,9 +175,8 @@ export const toggleFavoriteInDB = async (recipeId: string) => {
       .eq('recipe_id', recipeId);
 
     if (error) throw error;
-    return false; // Not favorited anymore
+    return false;
   } else {
-    // Add to favorites
     const { error } = await supabase
       .from('favorites')
       .insert([{
@@ -165,6 +185,18 @@ export const toggleFavoriteInDB = async (recipeId: string) => {
       }]);
 
     if (error) throw error;
-    return true; // Now favorited
+    return true;
   }
 };
+
+// Export as default object
+export const recipeService = {
+  fetchRecipesFromDB,
+  getIngredientsForRecipe,
+  createRecipeInDB,
+  updateRecipeInDB,
+  deleteRecipeFromDB,
+  toggleFavoriteInDB
+};
+
+export default recipeService;

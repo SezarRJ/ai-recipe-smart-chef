@@ -1,19 +1,9 @@
 
 import React from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
-import SmartPantry from '@/SmartPantry';
+import SmartPantryPage from './SmartPantryPage';
 
-const SmartPantryPageWrapper: React.FC = () => {
-  return (
-    <PageContainer
-      header={{
-        title: 'Smart Pantry',
-        showBackButton: true
-      }}
-    >
-      <SmartPantry />
-    </PageContainer>
-  );
+const SmartPantryPageWrapper = () => {
+  return <SmartPantryPage />;
 };
 
 export default SmartPantryPageWrapper;

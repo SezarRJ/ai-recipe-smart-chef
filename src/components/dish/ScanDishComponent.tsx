@@ -1,184 +1,165 @@
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Camera, Upload, Loader2, Zap, Clock, Utensils } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useAIChef } from '@/hooks/useAIChef';
-import { ScanHistoryItem } from '@/types/index';
+import { Camera, Upload, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-interface ScanDishComponentProps {
-  onScanResult?: (result: ScanHistoryItem) => void;
+export interface ScanDishResult {
+  id: string;
+  name: string;
+  confidence: number;
+  calories: number;
+  ingredients: string[];
+  nutritionInfo: {
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+  };
 }
 
-export const ScanDishComponent: React.FC<ScanDishComponentProps> = ({ onScanResult }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<ScanHistoryItem | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { askAIChef } = useAIChef();
+interface ScanDishComponentProps {
+  onScanComplete: (result: ScanDishResult) => void;
+}
 
-  const handleImageSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+export const ScanDishComponent: React.FC<ScanDishComponentProps> = ({ onScanComplete }) => {
+  const { toast } = useToast();
+  const [isScanning, setIsScanning] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
-        setAnalysisResult(null);
-      };
-      reader.readAsDataURL(file);
+      setSelectedImage(file);
     }
-  }, []);
+  };
 
-  const handleAnalyze = useCallback(async () => {
-    if (!selectedImage) return;
+  const handleScan = async () => {
+    if (!selectedImage) {
+      toast({
+        title: 'No image selected',
+        description: 'Please select an image to scan',
+        variant: 'destructive'
+      });
+      return;
+    }
 
-    setIsAnalyzing(true);
+    setIsScanning(true);
+
     try {
-      const response = await askAIChef(
-        'Analyze this food image and provide nutritional information, ingredients, and cooking tips. Return the analysis in a structured format.',
-        { requestType: 'dish_analysis', image: selectedImage }
-      );
+      // Simulate AI scanning
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
-      // Create a mock result for now - in real implementation, parse AI response
-      const result: ScanHistoryItem = {
-        id: `scan_${Date.now()}`,
-        name: 'Analyzed Dish',
-        calories: 450,
-        protein: 25,
-        carbs: 35,
-        fat: 18,
-        timestamp: new Date().toISOString(),
-        image: selectedImage,
-        ingredients: ['Ingredient 1', 'Ingredient 2', 'Ingredient 3']
+      // Mock result
+      const result: ScanDishResult = {
+        id: Date.now().toString(),
+        name: 'Chicken Caesar Salad',
+        confidence: 85,
+        calories: 320,
+        ingredients: ['Chicken breast', 'Romaine lettuce', 'Caesar dressing', 'Parmesan cheese', 'Croutons'],
+        nutritionInfo: {
+          protein: 28,
+          carbs: 12,
+          fat: 18,
+          fiber: 4
+        }
       };
 
-      setAnalysisResult(result);
-      onScanResult?.(result);
+      onScanComplete(result);
+      
+      toast({
+        title: 'Scan complete',
+        description: `Identified: ${result.name} with ${result.confidence}% confidence`
+      });
     } catch (error) {
-      console.error('Analysis failed:', error);
+      toast({
+        title: 'Scan failed',
+        description: 'Unable to analyze the image. Please try again.',
+        variant: 'destructive'
+      });
     } finally {
-      setIsAnalyzing(false);
+      setIsScanning(false);
     }
-  }, [selectedImage, askAIChef, onScanResult]);
+  };
 
-  const handleCameraCapture = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleUpload = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
+  const handleCameraCapture = () => {
+    toast({
+      title: 'Camera feature',
+      description: 'Camera capture will be available in the next update',
+    });
+  };
 
   return (
-    <div className="space-y-6">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleImageSelect}
-        className="hidden"
-      />
-
-      {!selectedImage ? (
-        <div className="space-y-4">
-          <div className="text-center py-8">
-            <Utensils className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Scan Your Dish</h3>
-            <p className="text-gray-600 mb-6">
-              Take a photo or upload an image of your dish to get instant nutritional analysis
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleCameraCapture} className="gap-2">
-                <Camera className="h-4 w-4" />
-                Take Photo
-              </Button>
-              <Button onClick={handleUpload} variant="outline" className="gap-2">
-                <Upload className="h-4 w-4" />
-                Upload Image
-              </Button>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Camera className="h-5 w-5" />
+          Scan Your Dish
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          {selectedImage ? (
+            <div className="space-y-4">
+              <img
+                src={URL.createObjectURL(selectedImage)}
+                alt="Selected dish"
+                className="mx-auto max-h-48 rounded-lg"
+              />
+              <p className="text-sm text-gray-600">{selectedImage.name}</p>
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <img
-                  src={selectedImage}
-                  alt="Selected dish"
-                  className="mx-auto max-w-full h-64 object-cover rounded-lg mb-4"
-                />
-                
-                <div className="flex gap-2 justify-center">
-                  <Button 
-                    onClick={handleAnalyze}
-                    disabled={isAnalyzing}
-                    className="gap-2"
-                  >
-                    {isAnalyzing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Zap className="h-4 w-4" />
-                    )}
-                    {isAnalyzing ? 'Analyzing...' : 'Analyze Dish'}
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => setSelectedImage(null)}
-                    variant="outline"
-                  >
-                    Choose Another
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {analysisResult && (
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Analysis Results</h3>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{analysisResult.calories}</div>
-                    <div className="text-sm text-gray-600">Calories</div>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{analysisResult.protein}g</div>
-                    <div className="text-sm text-gray-600">Protein</div>
-                  </div>
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">{analysisResult.carbs}g</div>
-                    <div className="text-sm text-gray-600">Carbs</div>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{analysisResult.fat}g</div>
-                    <div className="text-sm text-gray-600">Fat</div>
-                  </div>
-                </div>
-
-                {analysisResult.ingredients && analysisResult.ingredients.length > 0 && (
-                  <div>
-                    <h4 className="font-medium mb-2">Detected Ingredients:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {analysisResult.ingredients.map((ingredient, index) => (
-                        <Badge key={index} variant="secondary">
-                          {ingredient}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          ) : (
+            <div className="space-y-4">
+              <Camera className="h-12 w-12 text-gray-400 mx-auto" />
+              <p className="text-gray-500">Upload an image of your dish to analyze</p>
+            </div>
           )}
         </div>
-      )}
-    </div>
+
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={handleCameraCapture}
+            className="flex-1"
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Camera
+          </Button>
+          
+          <label className="flex-1">
+            <Button variant="outline" className="w-full" asChild>
+              <span>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
+              </span>
+            </Button>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        <Button
+          onClick={handleScan}
+          disabled={!selectedImage || isScanning}
+          className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
+        >
+          {isScanning ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Analyzing...
+            </>
+          ) : (
+            'Scan Dish'
+          )}
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
+
+export default ScanDishComponent;

@@ -22,8 +22,10 @@ export interface Recipe {
   image: string;
   image_url?: string; // For compatibility
   prep_time: number;
+  prepTime?: number; // For compatibility
   cooking_time: number;
   cook_time?: number; // For compatibility
+  cookTime?: number; // For compatibility
   total_time?: number;
   servings: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
@@ -33,6 +35,7 @@ export interface Recipe {
   fat: number;
   rating: number;
   rating_count: number;
+  ratingCount?: number; // For compatibility
   ingredients: Array<{ 
     id?: string; 
     name: string; 
@@ -53,9 +56,16 @@ export interface Recipe {
   created_at?: string;
   updated_at?: string;
   cuisine_type?: string;
+  cuisineType?: string; // For compatibility
   tips?: string[];
   category_id?: string;
   is_verified?: boolean;
+  nutritionalInfo?: {
+    protein: number;
+    carbs: number;
+    fat: number;
+    calories: number;
+  };
 }
 
 export interface CookingModeProps {
