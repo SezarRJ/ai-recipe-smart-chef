@@ -1,6 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Recipe, RecipeFilters } from '@/types/recipe';
+import { Recipe } from '@/types/index';
+
+interface RecipeFilters {
+  category?: string;
+  difficulty?: string;
+  search?: string;
+}
 
 export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
   let query = supabase
@@ -19,7 +25,7 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
     .eq('is_published', true);
 
   if (filters?.category) {
-    query = query.contains('categories', [filters.category]);
+    query = query.ilike('cuisine_type', `%${filters.category}%`);
   }
 
   if (filters?.difficulty && ['Easy', 'Medium', 'Hard'].includes(filters.difficulty)) {
@@ -38,27 +44,42 @@ export const fetchRecipesFromDB = async (filters?: RecipeFilters) => {
     id: recipe.id,
     title: recipe.title,
     description: recipe.description || '',
+    image: recipe.image_url || '',
     image_url: recipe.image_url || '',
     prep_time: recipe.prep_time || 0,
-    cook_time: recipe.cook_time || 0,
+    prepTime: recipe.prep_time || 0,
+    cook_time: recipe.cooking_time || 0,
+    cookTime: recipe.cooking_time || 0,
+    cooking_time: recipe.cooking_time || 0,
+    total_time: (recipe.prep_time || 0) + (recipe.cooking_time || 0),
     servings: recipe.servings || 1,
     difficulty: recipe.difficulty as 'Easy' | 'Medium' | 'Hard',
     calories: recipe.calories || 0,
+    protein: recipe.protein || 0,
+    carbs: recipe.carbs || 0,
+    fat: recipe.fat || 0,
+    rating: recipe.rating || 0,
+    rating_count: recipe.rating_count || 0,
+    ratingCount: recipe.rating_count || 0,
     cuisine_type: recipe.cuisine_type || '',
+    cuisineType: recipe.cuisine_type || '',
     instructions: Array.isArray(recipe.instructions) ? recipe.instructions as string[] : 
                  (recipe.instructions ? [recipe.instructions as string] : []),
-    categories: recipe.categories || [],
-    tags: recipe.tags || [],
-    status: 'published' as const,
+    categories: recipe.category_id ? [recipe.category_id] : [],
+    tags: [],
+    isFavorite: false,
+    user_id: recipe.user_id || '',
     author_id: recipe.user_id || '',
     is_verified: recipe.is_verified || false,
     created_at: recipe.created_at || '',
     updated_at: recipe.updated_at || '',
     ingredients: recipe.recipe_ingredients?.map((ri: any) => ({
       id: ri.id,
-      name: ri.ingredients.name,
-      amount: ri.quantity,
-      unit: ri.unit
+      name: ri.ingredients?.name || '',
+      quantity: ri.quantity || 0,
+      amount: ri.quantity || 0,
+      unit: ri.unit || '',
+      inPantry: false
     })) || []
   })) || [];
 
@@ -101,16 +122,17 @@ export const createRecipeInDB = async (recipeData: Partial<Recipe>) => {
     .insert([{
       title: recipeData.title,
       description: recipeData.description,
-      image_url: recipeData.image_url,
-      prep_time: recipeData.prep_time,
-      cook_time: recipeData.cook_time,
+      image_url: recipeData.image_url || recipeData.image,
+      prep_time: recipeData.prep_time || recipeData.prepTime,
+      cooking_time: recipeData.cooking_time || recipeData.cook_time || recipeData.cookTime,
       servings: recipeData.servings,
       difficulty: recipeData.difficulty,
       calories: recipeData.calories,
-      cuisine_type: recipeData.cuisine_type,
+      protein: recipeData.protein,
+      carbs: recipeData.carbs,
+      fat: recipeData.fat,
+      cuisine_type: recipeData.cuisine_type || recipeData.cuisineType,
       instructions: recipeData.instructions,
-      categories: recipeData.categories,
-      tags: recipeData.tags,
       user_id: user.id,
       is_published: false
     }])
@@ -127,17 +149,18 @@ export const updateRecipeInDB = async (id: string, updates: Partial<Recipe>) => 
     .update({
       title: updates.title,
       description: updates.description,
-      image_url: updates.image_url,
-      prep_time: updates.prep_time,
-      cook_time: updates.cook_time,
+      image_url: updates.image_url || updates.image,
+      prep_time: updates.prep_time || updates.prepTime,
+      cooking_time: updates.cooking_time || updates.cook_time || updates.cookTime,
       servings: updates.servings,
       difficulty: updates.difficulty,
       calories: updates.calories,
-      cuisine_type: updates.cuisine_type,
+      protein: updates.protein,
+      carbs: updates.carbs,
+      fat: updates.fat,
+      cuisine_type: updates.cuisine_type || updates.cuisineType,
       instructions: updates.instructions,
-      categories: updates.categories,
-      tags: updates.tags,
-      is_published: updates.status === 'published'
+      is_published: true
     })
     .eq('id', id)
     .select()

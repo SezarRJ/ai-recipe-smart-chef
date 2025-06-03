@@ -42,6 +42,15 @@ interface Filters {
   cookTime: string;
   difficulty: string;
   cuisine: string;
+  cookingTime: string; // Added missing property
+}
+
+interface FilterOptions {
+  dietary: string[];
+  cookTime: string[];
+  difficulty: string[];
+  cuisine: string[];
+  cookingTime: string[]; // Added missing property
 }
 
 // Define a type for the category structure including the new flag
@@ -100,9 +109,10 @@ export default function FindByIngredientsPage() {
     },
   ];
 
-  const FILTER_OPTIONS = {
+  const FILTER_OPTIONS: FilterOptions = {
     dietary: ['Normal', 'Healthy', 'Vegetarian', 'Vegan', 'Gluten-Free'],
     cookTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'],
+    cookingTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'], // Added missing property
     difficulty: ['Beginner', 'Intermediate', 'Expert'],
     cuisine: ['Levant', 'Italian', 'Mexican', 'Chinese', 'Indian', 'American'],
   };
@@ -131,6 +141,7 @@ export default function FindByIngredientsPage() {
   const [filters, setFilters] = useState<Filters>({
     dietary: '',
     cookTime: '',
+    cookingTime: '', // Added missing property
     difficulty: '',
     cuisine: '',
   });

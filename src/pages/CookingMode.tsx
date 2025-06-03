@@ -1,86 +1,90 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { EnhancedCookingMode } from "@/components/recipe/EnhancedCookingMode";
-import { Recipe } from "@/types/index";
 
-const CookingMode = () => {
-  const { id } = useParams();
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Recipe } from '@/types/index';
+import { CookingMode } from '@/components/recipe/CookingMode';
+import { EnhancedCookingMode } from '@/components/recipe/EnhancedCookingMode';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+
+export default function CookingModePage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [useEnhanced, setUseEnhanced] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching recipe data
-    setTimeout(() => {
-      setRecipe({
-        id: id || '1',
-        title: "Mediterranean Chickpea Salad",
-        description: "A fresh and healthy Mediterranean-style chickpea salad",
-        image_url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
-        prep_time: 15,
-        cook_time: 0,
-        cooking_time: 15,
-        servings: 4,
-        difficulty: "Easy",
-        cuisine_type: "Mediterranean",
-        calories: 320,
-        protein: 12,
-        carbs: 45,
-        fat: 8,
-        rating: 4.5,
-        rating_count: 128,
-        instructions: [
-          "Drain and rinse the chickpeas thoroughly in cold water",
-          "Dice the cucumber, tomatoes, and red onion into small pieces",
-          "Combine all vegetables in a large mixing bowl",
-          "Whisk together olive oil, lemon juice, salt, and pepper",
-          "Pour dressing over salad and toss gently to combine",
-          "Crumble feta cheese on top and add fresh herbs",
-          "Let salad rest for 10 minutes to allow flavors to meld",
-          "Serve immediately or chill for up to 2 hours before serving"
-        ],
-        ingredients: [
-          { name: "Chickpeas", quantity: 2, unit: "cans" },
-          { name: "Cucumber", quantity: 1, unit: "large" },
-          { name: "Tomatoes", quantity: 2, unit: "medium" },
-          { name: "Red onion", quantity: 0.5, unit: "small" },
-          { name: "Olive oil", quantity: 3, unit: "tablespoons" },
-          { name: "Lemon juice", quantity: 2, unit: "tablespoons" },
-          { name: "Feta cheese", quantity: 100, unit: "grams" },
-          { name: "Fresh parsley", quantity: 0.25, unit: "cup" }
-        ],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: "user-1",
-        is_public: true
-      });
-      setLoading(false);
-    }, 1000);
-  }, [id]);
+    // Mock recipe data - replace with actual API call
+    const mockRecipe: Recipe = {
+      id: id || '1',
+      title: 'Delicious Chicken Curry',
+      description: 'A flavorful and aromatic chicken curry with spices',
+      image: '/api/placeholder/400/300',
+      image_url: '/api/placeholder/400/300',
+      prep_time: 20,
+      prepTime: 20,
+      cook_time: 40,
+      cookTime: 40,
+      cooking_time: 40,
+      total_time: 60,
+      servings: 4,
+      difficulty: 'Easy' as const,
+      cuisine_type: 'Indian',
+      cuisineType: 'Indian',
+      calories: 350,
+      protein: 25,
+      carbs: 15,
+      fat: 20,
+      rating: 4.5,
+      rating_count: 128,
+      ratingCount: 128,
+      instructions: [
+        'Heat oil in a large pan over medium heat',
+        'Add onions and cook until golden brown',
+        'Add garlic and ginger, cook for 1 minute',
+        'Add chicken pieces and brown on all sides',
+        'Add curry powder, turmeric, and other spices',
+        'Pour in coconut milk and simmer for 20 minutes',
+        'Season with salt and pepper to taste',
+        'Garnish with fresh cilantro and serve'
+      ],
+      categories: ['Main Course'],
+      tags: ['Spicy', 'Comfort Food'],
+      isFavorite: false,
+      user_id: 'user123',
+      author_id: 'user123',
+      is_verified: true,
+      is_public: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ingredients: [
+        { id: '1', name: 'Chicken breast', quantity: 500, unit: 'g', amount: 500 },
+        { id: '2', name: 'Onion', quantity: 1, unit: 'large', amount: 1 },
+        { id: '3', name: 'Garlic', quantity: 3, unit: 'cloves', amount: 3 },
+        { id: '4', name: 'Ginger', quantity: 1, unit: 'tbsp', amount: 1 },
+        { id: '5', name: 'Curry powder', quantity: 2, unit: 'tbsp', amount: 2 }
+      ]
+    };
 
-  const handleCloseCooking = () => {
-    navigate(`/recipe/${id}`);
-  };
+    setRecipe(mockRecipe);
+    setLoading(false);
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wasfah-orange mx-auto"></div>
-          <p className="text-gray-600">Loading cooking mode...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   if (!recipe) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900">Recipe Not Found</h1>
-          <p className="text-gray-600">The recipe you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate("/recipes")}>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Recipe not found</h2>
+          <Button onClick={() => navigate('/recipes')}>
             Back to Recipes
           </Button>
         </div>
@@ -88,7 +92,26 @@ const CookingMode = () => {
     );
   }
 
-  return <EnhancedCookingMode recipe={recipe} onClose={handleCloseCooking} />;
-};
+  const handleClose = () => {
+    navigate(`/recipe/${recipe.id}`);
+  };
 
-export default CookingMode;
+  return (
+    <div className="min-h-screen">
+      {useEnhanced ? (
+        <EnhancedCookingMode recipe={recipe} onClose={handleClose} />
+      ) : (
+        <CookingMode recipe={recipe} onClose={handleClose} />
+      )}
+      
+      {/* Toggle button for switching modes */}
+      <Button
+        onClick={() => setUseEnhanced(!useEnhanced)}
+        className="fixed bottom-4 right-4 z-50"
+        variant="outline"
+      >
+        {useEnhanced ? 'Classic Mode' : 'Enhanced Mode'}
+      </Button>
+    </div>
+  );
+}
