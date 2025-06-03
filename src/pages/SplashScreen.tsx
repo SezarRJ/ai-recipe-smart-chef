@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star } from 'lucide-react';
-import { WasfahLogo } from '@/components/icons/WasfahLogo';
 
 const images = [
   {
@@ -32,10 +31,6 @@ const SplashScreen = () => {
     navigate('/home');
   };
 
-  const handleSignIn = () => {
-    navigate('/auth');
-  };
-
   const handleSkip = () => {
     navigate('/home');
   };
@@ -56,22 +51,14 @@ const SplashScreen = () => {
       </div>
 
       {/* All content at the bottom */}
-      <div className="w-full max-w-md relative z-10 flex flex-col items-center space-y-4 pb-8">
-        {/* Logo & Title */}
-        <div className="flex flex-col items-center mb-2">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2">
-            <WasfahLogo className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">WasfahAI</h1>
-          <div className="flex items-center justify-center space-x-1 mt-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 text-yellow-300 fill-current" />
-            ))}
-          </div>
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center space-y-3 pb-8">
+        {/* Title */}
+        <div className="flex flex-col items-center mb-1">
+          <h1 className="text-xl font-bold text-white tracking-tight">WasfahAI</h1>
         </div>
 
         {/* Discover, Create, Connect Bar */}
-        <div className="px-4 py-1 rounded-full bg-white/20 text-xs text-white font-semibold shadow-sm mb-2">
+        <div className="px-3 py-0.5 rounded-full bg-white/20 text-xs text-white font-semibold shadow-sm mb-1">
           Discover, Create, Connect
         </div>
 
@@ -94,12 +81,6 @@ const SplashScreen = () => {
           >
             Get Started
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          <Button
-            onClick={handleSignIn}
-            className="w-full border-2 border-white text-white hover:bg-white/10 font-semibold py-3 text-lg rounded-lg transition-all duration-200"
-          >
-            Sign In
           </Button>
         </div>
         <div className="text-center mt-2">
