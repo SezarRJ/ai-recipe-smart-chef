@@ -1,50 +1,17 @@
+
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { NutritionGoals } from '@/components/nutrition/NutritionGoals';
-import { NutritionProgressChart } from '@/components/nutrition/NutritionProgressChart';
-import { NutritionSummary } from '@/components/nutrition/NutritionSummary';
-import { NutritionEntryForm } from '@/components/nutrition/NutritionEntryForm';
 import { NutritionTip } from '@/components/nutrition/NutritionTip';
-import { Activity, Scale, CalendarDays, ArrowLeftRight, Tag, Target, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Activity, Scale, CalendarDays, ArrowLeftRight } from 'lucide-react';
 import { DailyChallengesManager } from '@/components/challenges/DailyChallengesManager';
 import { BMICalculator } from '@/components/health/BMICalculator';
+import { TrackingTabContent } from '@/components/health/TrackingTabContent';
+import { GoalsTabContent } from '@/components/health/GoalsTabContent';
+import { SwapsTabContent } from '@/components/health/SwapsTabContent';
+import { HistoryTabContent } from '@/components/health/HistoryTabContent';
 import { useRTL } from '@/contexts/RTLContext';
 import { useUserHealth } from '@/hooks/useUserHealth';
-
-const IngredientSwapCard = ({ swap, t }: { swap: any; t: any }) => (
-    <Card className="border border-gray-200 dark:border-gray-700">
-        <CardContent className="p-4">
-            <h4 className="font-bold text-wasfah-deep-teal dark:text-wasfah-bright-teal flex items-center mb-3">
-                <Tag className="h-4 w-4 mr-2" />
-                {t('Instead of', 'بدلاً من')} <span className="text-wasfah-bright-teal ml-1">{swap.original}</span>, {t('try', 'جرب')}:
-            </h4>
-            <div className="space-y-3">
-                {swap.alternatives.map((alt: any, altIdx: number) => (
-                    <div key={altIdx} className="bg-wasfah-light-gray dark:bg-gray-800 p-3 rounded-md">
-                        <div className="flex justify-between">
-                            <h5 className="font-medium">{alt.name}</h5>
-                            <span className="text-xs bg-wasfah-bright-teal text-white px-2 py-0.5 rounded-full">{alt.ratio}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alt.benefits}</p>
-                    </div>
-                ))}
-            </div>
-        </CardContent>
-    </Card>
-);
-
-const ActionButton = ({ to, children, variant = "default", icon }: { to: string; children: React.ReactNode; variant?: "default" | "outline"; icon?: React.ReactNode }) => (
-    <Link to={to}>
-        <Button className={`w-full ${variant === "outline" ? "border-wasfah-bright-teal text-wasfah-bright-teal" : "bg-wasfah-bright-teal hover:bg-wasfah-teal"}`}>
-            {icon && <span className="mr-2">{icon}</span>}
-            {children}
-        </Button>
-    </Link>
-);
 
 export default function HealthTrackingHomePage() {
     const { t } = useRTL();
@@ -230,111 +197,28 @@ export default function HealthTrackingHomePage() {
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="track" className="space-y-4 mt-4">
-                        <Card className="border border-gray-200 dark:border-gray-700">
-                            <CardContent className="pt-6">
-                                <NutritionSummary
-                                    calories={currentNutritionSummary.calories}
-                                    protein={currentNutritionSummary.protein}
-                                    carbs={currentNutritionSummary.carbs}
-                                    fat={currentNutritionSummary.fat}
-                                />
-                            </CardContent>
-                        </Card>
-
-                        <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-wasfah-deep-teal dark:text-wasfah-bright-teal">
-                                {t("Add Today's Nutrition", "أضف التغذية اليوم")}
-                            </h3>
-                            <NutritionEntryForm onSubmit={handleNutritionSubmit} />
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <ActionButton to="/health-tracking" icon={<Activity className="h-4 w-4" />}>
-                                {t('Detailed Tracking', 'التتبع التفصيلي')}
-                            </ActionButton>
-                            <ActionButton to="/body-information" variant="outline" icon={<Target className="h-4 w-4" />}>
-                                {t('Body Information', 'معلومات الجسم')}
-                            </ActionButton>
-                        </div>
+                    <TabsContent value="track">
+                        <TrackingTabContent
+                            currentNutritionSummary={currentNutritionSummary}
+                            onNutritionSubmit={handleNutritionSubmit}
+                            t={t}
+                        />
                     </TabsContent>
 
-                    <TabsContent value="goals" className="space-y-4 mt-4">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <NutritionGoals
-                                    initialGoals={{
-                                        calories: 2000,
-                                        protein: 100,
-                                        carbs: 250,
-                                        fat: 65,
-                                        activityLevel: 'moderate',
-                                        dietaryType: 'balanced'
-                                    }}
-                                />
-                            </CardContent>
-                        </Card>
-                        <ActionButton to="/nutrition-goals" icon={<Target className="h-4 w-4" />}>
-                            {t('Update Nutrition Goals', 'تحديث أهداف التغذية')}
-                        </ActionButton>
-                        <ActionButton to="/dietary-preferences" variant="outline" icon={<Settings className="h-4 w-4" />}>
-                            {t('Manage Dietary Preferences', 'إدارة التفضيلات الغذائية')}
-                        </ActionButton>
+                    <TabsContent value="goals">
+                        <GoalsTabContent t={t} />
                     </TabsContent>
 
-                    <TabsContent value="swaps" className="space-y-4 mt-4">
-                        <h3 className="text-lg font-semibold text-wasfah-deep-teal dark:text-wasfah-bright-teal">
-                            {t('Healthier Ingredient Alternatives', 'بدائل المكونات الصحية')}
-                        </h3>
-                        <div className="space-y-4">
-                            {ingredientSwaps.map((swap, index) => (
-                                <IngredientSwapCard key={index} swap={swap} t={t} />
-                            ))}
-                        </div>
-                        <ActionButton to="/ingredient-swap" icon={<ArrowLeftRight className="h-4 w-4" />}>
-                            {t('View All Ingredient Swaps', 'عرض جميع بدائل المكونات')}
-                        </ActionButton>
+                    <TabsContent value="swaps">
+                        <SwapsTabContent ingredientSwaps={ingredientSwaps} t={t} />
                     </TabsContent>
 
-                    <TabsContent value="history" className="space-y-4 mt-4">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <h3 className="text-lg font-semibold text-wasfah-deep-teal dark:text-wasfah-bright-teal mb-2">
-                                    {t('Weekly Progress', 'التقدم الأسبوعي')}
-                                </h3>
-                                {combinedChartData.length > 0 ? (
-                                    <NutritionProgressChart data={combinedChartData} type="weekly" />
-                                ) : (
-                                    <p className="text-sm text-gray-500">{t('No data available', 'لا توجد بيانات متاحة')}</p>
-                                )}
-                            </CardContent>
-                        </Card>
-                        <div className="space-y-3">
-                            <h3 className="text-lg font-semibold text-wasfah-deep-teal dark:text-wasfah-bright-teal">
-                                {t('Recent Meals', 'الوجبات الأخيرة')}
-                            </h3>
-                            {recentMeals.length > 0 ? (
-                                recentMeals.map((meal: any) => (
-                                    <Card key={meal.id} className="border border-gray-200 dark:border-gray-700">
-                                        <CardContent className="p-3 flex justify-between items-center">
-                                            <div>
-                                                <p className="font-medium">{meal.type}</p>
-                                                <p className="text-xs text-gray-500">{meal.time}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-medium text-wasfah-bright-teal">{meal.calories} kcal</p>
-                                                <p className="text-xs text-gray-500">P: {meal.macros.protein}g | C: {meal.macros.carbs}g | F: {meal.macros.fat}g</p>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))
-                            ) : (
-                                <p className="text-sm text-gray-500">{t('No recent meals added yet.', 'لم يتم إضافة وجبات حديثة بعد.')}</p>
-                            )}
-                        </div>
-                        <ActionButton to="/health-tracking" icon={<CalendarDays className="h-4 w-4" />}>
-                            {t('View Complete History', 'عرض السجل الكامل')}
-                        </ActionButton>
+                    <TabsContent value="history">
+                        <HistoryTabContent
+                            combinedChartData={combinedChartData}
+                            recentMeals={recentMeals}
+                            t={t}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
