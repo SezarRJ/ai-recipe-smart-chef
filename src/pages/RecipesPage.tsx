@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { CategoryFilters } from '@/components/recipe/CategoryFilters';
@@ -36,16 +35,53 @@ import { Recipe } from '@/types/index';
 
 export default function RecipesPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCuisine, setSelectedCuisine] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('');
-  const [allRecipes, setAllRecipes] = useState(mockRecipes);
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>(mockRecipes);
   const [filters, setFilters] = useState({
     cuisines: [] as string[],
     difficulties: [] as string[],
     dietary: [] as string[],
     time: 0, // in minutes, 0 means no limit
   });
+  
+  // Apply filters to recipes
+  useEffect(() => {
+    let result = [...mockRecipes];
+    
+    // Apply category filter
+    if (selectedCategory !== 'All') {
+      result = result.filter(recipe => recipe.tags.includes(selectedCategory));
+    }
+    
+    // Apply cuisine filter
+    if (filters.cuisines.length > 0) {
+      result = result.filter(recipe => 
+        filters.cuisines.includes(recipe.cuisineType)
+      );
+    }
+    
+    // Apply difficulty filter
+    if (filters.difficulties.length > 0) {
+      result = result.filter(recipe => 
+        filters.difficulties.includes(recipe.difficulty)
+      );
+    }
+    
+    // Apply time filter
+    if (filters.time > 0) {
+      result = result.filter(recipe => 
+        recipe.prepTime + recipe.cookTime <= filters.time
+      );
+    }
+    
+    // Apply dietary filter (this would need proper recipe tags in real implementation)
+    if (filters.dietary.length > 0) {
+      result = result.filter(recipe => 
+        filters.dietary.some(diet => recipe.tags.includes(diet))
+      );
+    }
+    
+    setFilteredRecipes(result);
+  }, [selectedCategory, filters]);
 
   const toggleCuisine = (cuisine: string) => {
     setFilters(prev => {
@@ -92,25 +128,6 @@ export default function RecipesPage() {
     filters.difficulties.length + 
     filters.dietary.length + 
     (filters.time > 0 ? 1 : 0);
-
-  const filteredRecipes = useMemo(() => {
-    return allRecipes.filter(recipe => {
-      const matchesSearch = !searchQuery || 
-        recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesCategory = selectedCategory === 'All' || 
-        recipe.categories.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase());
-      
-      const matchesCuisine = !selectedCuisine || 
-        recipe.cuisine_type?.toLowerCase() === selectedCuisine.toLowerCase();
-      
-      const matchesDifficulty = !selectedDifficulty || 
-        recipe.difficulty?.toLowerCase() === selectedDifficulty.toLowerCase();
-      
-      return matchesSearch && matchesCategory && matchesCuisine && matchesDifficulty;
-    });
-  }, [allRecipes, searchQuery, selectedCategory, selectedCuisine, selectedDifficulty]);
 
   return (
     <PageContainer

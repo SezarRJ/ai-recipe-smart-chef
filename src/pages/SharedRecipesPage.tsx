@@ -70,7 +70,7 @@ export default function SharedRecipesPage() {
                     commentCount={recipe.commentCount}
                     shares={recipe.shares}
                     rating={recipe.rating}
-                    ratingCount={recipe.rating_count}
+                    ratingCount={recipe.ratingCount}
                     usedCount={recipe.usedCount}
                     isLiked={recipe.isFavorite}
                     comments={recipe.comments}

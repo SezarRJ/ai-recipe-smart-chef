@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { usePantry } from '@/hooks/usePantry';
+import { mockPantryItems } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { PantryItemCard } from '@/components/pantry/PantryItemCard';
 import { Plus } from 'lucide-react';
@@ -18,9 +18,9 @@ import { PantryItem } from '@/types/index';
 
 export default function PantryPage() {
   const [activeTab, setActiveTab] = useState('all');
-  const { pantryItems, loading, addPantryItem, deletePantryItem } = usePantry();
+  const [pantryItems, setPantryItems] = useState(mockPantryItems);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<Partial<PantryItem>>({
     name: '',
     quantity: 0,
     unit: '',
@@ -37,17 +37,17 @@ export default function PantryPage() {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<string, typeof pantryItems>);
+  }, {} as Record<string, PantryItem[]>);
 
   const today = new Date();
-  const expiringItems = pantryItems.filter((item) => {
+  const expiringItems = pantryItems.filter(item => {
     if (!item.expiryDate) return false;
     const expiry = new Date(item.expiryDate);
     const daysLeft = Math.round((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return daysLeft >= 0 && daysLeft <= 7;
   });
 
-  const handleAddItem = async () => {
+  const handleAddItem = () => {
     if (!newItem.name || !newItem.quantity || !newItem.unit || !newItem.category) return;
 
     const newPantryItem: PantryItem = {
@@ -60,7 +60,7 @@ export default function PantryPage() {
       expiryDate: newItem.expiryDate
     };
 
-    await addPantryItem(newPantryItem);
+    setPantryItems([newPantryItem, ...pantryItems]);
     setIsAddDialogOpen(false);
     setNewItem({
       name: '',
@@ -75,9 +75,11 @@ export default function PantryPage() {
   // Function to filter and sort items
   const getFilteredAndSortedItems = () => {
     let filteredItems = [...pantryItems];
+
     if (filterCategory !== 'All') {
-      filteredItems = filteredItems.filter((item) => item.category === filterCategory);
+      filteredItems = filteredItems.filter(item => item.category === filterCategory);
     }
+
     filteredItems.sort((a, b) => {
       if (sortBy === 'name') {
         return a.name.localeCompare(b.name);
@@ -86,29 +88,23 @@ export default function PantryPage() {
       }
       return 0;
     });
+
     return filteredItems;
   };
 
   const filteredAndSortedItems = getFilteredAndSortedItems();
 
   return (
-    <PageContainer
-      header={{
-        title: 'My Pantry',
-        showSearch: true,
-        showBackButton: true,
-        actions: (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-wasfah-deep-teal"
-            onClick={() => setIsAddDialogOpen(true)}
-          >
-            <Plus size={20} />
-          </Button>
-        )
-      }}
-    >
+    <PageContainer header={{ 
+      title: 'My Pantry', 
+      showSearch: true, 
+      showBackButton: true,
+      actions: (
+        <Button variant="ghost" size="icon" className="text-wasfah-deep-teal" onClick={() => setIsAddDialogOpen(true)}>
+          <Plus size={20} />
+        </Button>
+      )
+    }}>
       <div className="container px-4 py-4">
         <div className="flex justify-between items-center mb-4">
           <div className="flex space-x-4">
@@ -158,33 +154,21 @@ export default function PantryPage() {
                   </Button>
                 </div>
               ) : (
-                filteredAndSortedItems.map((item) => (
-                  <PantryItemCard
-                    key={item.id}
-                    item={item}
-                    onDelete={() => deletePantryItem(item.id)}
-                  />
-                ))
+                filteredAndSortedItems.map(item => <PantryItemCard key={item.id} item={item} />)
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="expiring" className="space-y-4">
-            {expiringItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {expiringItems.map((item) => (
-                  <PantryItemCard
-                    key={item.id}
-                    item={item}
-                    onDelete={() => deletePantryItem(item.id)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No items expiring soon</p>
-              </div>
-            )}
+          <TabsContent value="expiring">
+            <div className="space-y-4">
+              {expiringItems.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-500">No items expiring soon</p>
+                </div>
+              ) : (
+                expiringItems.map(item => <PantryItemCard key={item.id} item={item} />)
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="categories">
@@ -193,13 +177,7 @@ export default function PantryPage() {
                 <div key={category}>
                   <h3 className="font-bold mb-2 text-wasfah-deep-teal">{category}</h3>
                   <div className="space-y-3">
-                    {Array.isArray(items) && items.map((item) => (
-                      <PantryItemCard
-                        key={item.id}
-                        item={item}
-                        onDelete={() => deletePantryItem(item.id)}
-                      />
-                    ))}
+                    {items.map(item => <PantryItemCard key={item.id} item={item} />)}
                   </div>
                 </div>
               ))}
