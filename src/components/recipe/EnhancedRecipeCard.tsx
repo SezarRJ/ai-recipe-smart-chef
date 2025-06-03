@@ -103,7 +103,7 @@ export const EnhancedRecipeCard: React.FC<EnhancedRecipeCardProps> = ({
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center gap-1">
                         <Clock size={12} />
-                        <span>{recipe.prep_time + recipe.cooking_time}m</span>
+                        <span>{recipe.prepTime + recipe.cookTime}m</span>
                       </div>
                       
                       <div className="flex items-center gap-1">

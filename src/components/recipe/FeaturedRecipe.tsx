@@ -35,7 +35,7 @@ export const FeaturedRecipe: React.FC<FeaturedRecipeProps> = ({ recipe }) => {
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center space-x-3 text-sm">
                   <div className="flex items-center">
-                    <span>{recipe.prep_time + recipe.cooking_time}m</span>
+                    <span>{recipe.prepTime + recipe.cookTime}m</span>
                   </div>
                   <div className="h-1 w-1 bg-white rounded-full"></div>
                   <div className="flex items-center">
