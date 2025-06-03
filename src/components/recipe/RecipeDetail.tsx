@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,9 +11,15 @@ import { useToast } from '@/hooks/use-toast';
 
 interface RecipeDetailProps {
   recipe: Recipe;
+  onAddToShoppingList?: () => void;
+  onStartCookingMode?: () => void;
 }
 
-export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
+export const RecipeDetail: React.FC<RecipeDetailProps> = ({ 
+  recipe, 
+  onAddToShoppingList,
+  onStartCookingMode 
+}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(recipe.isFavorite || false);
@@ -51,6 +58,25 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
       return quantity.toString();
     }
     return quantity.toFixed(2);
+  };
+
+  const handleStartCooking = () => {
+    if (onStartCookingMode) {
+      onStartCookingMode();
+    } else {
+      navigate(`/cooking/${recipe.id}`);
+    }
+  };
+
+  const handleAddToShoppingList = () => {
+    if (onAddToShoppingList) {
+      onAddToShoppingList();
+    } else {
+      toast({
+        title: "Added to Shopping List",
+        description: "Recipe ingredients added to your shopping list",
+      });
+    }
   };
 
   return (
@@ -210,7 +236,7 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
       {/* Action Buttons */}
       <div className="mt-8 flex gap-4">
         <Button 
-          onClick={() => navigate(`/cooking/${recipe.id}`)}
+          onClick={handleStartCooking}
           className="flex-1 bg-orange-600 hover:bg-orange-700"
         >
           <ChefHat className="mr-2 h-4 w-4" />
@@ -219,7 +245,7 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe }) => {
         <Button variant="outline" className="flex-1">
           Add to Meal Plan
         </Button>
-        <Button variant="outline" className="flex-1">
+        <Button variant="outline" className="flex-1" onClick={handleAddToShoppingList}>
           Add to Shopping List
         </Button>
       </div>
