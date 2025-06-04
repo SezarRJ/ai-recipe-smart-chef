@@ -20,8 +20,8 @@ import RecipeDetailPage from "@/pages/RecipeDetailPage";
 import CookingModePage from "@/pages/CookingMode";
 import ProfilePage from "@/pages/ProfilePage";
 import MenuPage from "@/pages/MenuPage";
-import SettingsPage from "@/pages/SettingsPage";
-import SystemSettingsPage from "@/pages/SystemSettingsPage";
+import Settings from "@/pages/Settings";
+import MainSettingsPage from "@/pages/MainSettingsPage";
 
 // New Feature Pages
 import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
@@ -87,8 +87,8 @@ function App() {
                     <Route path="/cooking/:id" element={<CookingModePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/menu" element={<MenuPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/system-settings" element={<SystemSettingsPage />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/main-settings" element={<MainSettingsPage />} />
                     
                     {/* New Feature Routes */}
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
