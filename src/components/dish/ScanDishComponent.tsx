@@ -1,165 +1,279 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useRef } from 'react';
+import { Camera, Upload, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useRTL } from '@/contexts/RTLContext';
 
 export interface ScanDishResult {
   id: string;
   name: string;
-  confidence: number;
   calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
   ingredients: string[];
-  nutritionInfo: {
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-  };
 }
 
 interface ScanDishComponentProps {
-  onScanComplete: (result: ScanDishResult) => void;
+  onScanResult?: (result: ScanDishResult) => void;
 }
 
-export const ScanDishComponent: React.FC<ScanDishComponentProps> = ({ onScanComplete }) => {
+export const ScanDishComponent: React.FC<ScanDishComponentProps> = ({ onScanResult }) => {
+  const { t } = useRTL();
   const { toast } = useToast();
-  const [isScanning, setIsScanning] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-    }
-  };
-
-  const handleScan = async () => {
-    if (!selectedImage) {
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  
+  const startCamera = async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment' } 
+        });
+        
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+          };
+          setIsCameraActive(true);
+        }
+      } else {
+        throw new Error('getUserMedia not supported');
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
       toast({
-        title: 'No image selected',
-        description: 'Please select an image to scan',
+        title: t('Camera Error', 'خطأ في الكاميرا'),
+        description: t('Could not access your camera. Please check permissions.', 'تعذر الوصول إلى الكاميرا الخاصة بك. يرجى التحقق من الأذونات.'),
         variant: 'destructive'
       });
-      return;
     }
-
-    setIsScanning(true);
-
-    try {
-      // Simulate AI scanning
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Mock result
-      const result: ScanDishResult = {
-        id: Date.now().toString(),
-        name: 'Chicken Caesar Salad',
-        confidence: 85,
-        calories: 320,
-        ingredients: ['Chicken breast', 'Romaine lettuce', 'Caesar dressing', 'Parmesan cheese', 'Croutons'],
-        nutritionInfo: {
-          protein: 28,
-          carbs: 12,
-          fat: 18,
-          fiber: 4
+  };
+  
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraActive(false);
+  };
+  
+  const captureImage = () => {
+    if (videoRef.current) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx && videoRef.current.videoWidth > 0) {
+          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          const imageDataUrl = canvas.toDataURL('image/png');
+          setCapturedImage(imageDataUrl);
+          stopCamera();
+          analyzeImage(imageDataUrl);
+        } else {
+          throw new Error('Could not capture image');
         }
+      } catch (error) {
+        console.error('Error capturing image:', error);
+        toast({
+          title: t('Capture Error', 'خطأ في التقاط الصورة'),
+          description: t('Could not capture image from camera.', 'تعذر التقاط الصورة من الكاميرا.'),
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+  
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check if file is an image
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: t('Invalid File', 'ملف غير صالح'),
+          description: t('Please upload an image file.', 'يرجى تحميل ملف صورة.'),
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        setCapturedImage(imageDataUrl);
+        analyzeImage(imageDataUrl);
       };
-
-      onScanComplete(result);
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const resetCapture = () => {
+    setCapturedImage(null);
+    setIsAnalyzing(false);
+  };
+  
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+  
+  const analyzeImage = (imageUrl: string) => {
+    setIsAnalyzing(true);
+    
+    // Simulate analysis (in a real app, this would call an AI service)
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      
+      // Mock result (would be replaced with actual AI analysis)
+      const mockResult: ScanDishResult = {
+        id: crypto.randomUUID(), // Generate a unique ID
+        name: "Vegetable Salad",
+        calories: 120,
+        protein: 5,
+        carbs: 15,
+        fat: 3,
+        ingredients: ["Lettuce", "Tomato", "Cucumber", "Olive Oil"]
+      };
+      
+      if (onScanResult) {
+        onScanResult(mockResult);
+      }
       
       toast({
-        title: 'Scan complete',
-        description: `Identified: ${result.name} with ${result.confidence}% confidence`
+        title: t("Dish Analyzed", "تم تحليل الطبق"),
+        description: t(`Identified as ${mockResult.name}`, `تم التعرف عليه ك ${mockResult.name}`),
       });
-    } catch (error) {
-      toast({
-        title: 'Scan failed',
-        description: 'Unable to analyze the image. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsScanning(false);
-    }
+    }, 2000);
   };
-
-  const handleCameraCapture = () => {
-    toast({
-      title: 'Camera feature',
-      description: 'Camera capture will be available in the next update',
-    });
-  };
-
+  
+  React.useEffect(() => {
+    // Clean up on component unmount
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Camera className="h-5 w-5" />
-          Scan Your Dish
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-wasfah-light-gray to-wasfah-light-mint/10 pb-2">
+        <CardTitle className="flex items-center text-wasfah-deep-teal">
+          <Camera className="h-5 w-5 mr-2" />
+          {t('Scan Dish', 'مسح الطبق')}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          {selectedImage ? (
-            <div className="space-y-4">
-              <img
-                src={URL.createObjectURL(selectedImage)}
-                alt="Selected dish"
-                className="mx-auto max-h-48 rounded-lg"
-              />
-              <p className="text-sm text-gray-600">{selectedImage.name}</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <Camera className="h-12 w-12 text-gray-400 mx-auto" />
-              <p className="text-gray-500">Upload an image of your dish to analyze</p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handleCameraCapture}
-            className="flex-1"
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Camera
-          </Button>
-          
-          <label className="flex-1">
-            <Button variant="outline" className="w-full" asChild>
-              <span>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
-              </span>
-            </Button>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-          </label>
-        </div>
-
-        <Button
-          onClick={handleScan}
-          disabled={!selectedImage || isScanning}
-          className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
-        >
-          {isScanning ? (
+      <CardContent className="p-4">
+        <div className="flex flex-col items-center gap-4">
+          {!isCameraActive && !capturedImage && (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
+              <Button 
+                onClick={startCamera} 
+                className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                {t('Open Camera', 'فتح الكاميرا')}
+              </Button>
+              
+              <div className="relative w-full">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">
+                    {t('or', 'أو')}
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={triggerFileInput} 
+                className="w-full"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {t('Upload Image', 'تحميل صورة')}
+              </Button>
+              <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*" 
+                onChange={handleFileUpload} 
+                className="hidden"
+              />
             </>
-          ) : (
-            'Scan Dish'
           )}
-        </Button>
+          
+          {isCameraActive && (
+            <div className="relative w-full">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline
+                className="w-full rounded-lg"
+              />
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                <Button 
+                  onClick={captureImage} 
+                  className="bg-wasfah-bright-teal hover:bg-wasfah-teal rounded-full h-12 w-12 flex items-center justify-center"
+                >
+                  <Camera className="h-6 w-6" />
+                </Button>
+                <Button 
+                  onClick={stopCamera} 
+                  variant="outline" 
+                  className="bg-white/80 dark:bg-gray-700/80 border-gray-300 rounded-full h-12 w-12 flex items-center justify-center"
+                >
+                  <XCircle className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {capturedImage && (
+            <div className="relative w-full">
+              <img 
+                src={capturedImage} 
+                alt="Captured dish" 
+                className="w-full rounded-lg"
+              />
+              
+              {isAnalyzing ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-wasfah-bright-teal mx-auto"></div>
+                    <p className="mt-2">{t('Analyzing...', 'جاري التحليل...')}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 flex justify-center gap-2">
+                  <Button 
+                    onClick={resetCapture} 
+                    variant="outline" 
+                    className="border-wasfah-bright-teal text-wasfah-bright-teal"
+                  >
+                    {t('Scan Another', 'مسح آخر')}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 };
-
-export default ScanDishComponent;
