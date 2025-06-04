@@ -2,11 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, X, Camera, Mic } from 'lucide-react';
+import { Trash2, Plus, List, Camera, Mic } from 'lucide-react';
 
-export interface Ingredient {
+interface Ingredient {
   id: string;
   name: string;
   quantity: string;
@@ -14,12 +13,11 @@ export interface Ingredient {
   source: 'manual' | 'pantry';
 }
 
-export interface PantryItem {
+interface PantryItem {
   id: string;
   name: string;
   quantity: string;
   unit: string;
-  icon?: React.ElementType;
 }
 
 interface IngredientManagerProps {
@@ -39,141 +37,93 @@ export const IngredientManager: React.FC<IngredientManagerProps> = ({
   onRemoveIngredient,
   onAddPantryItem,
   onScanIngredients,
-  onVoiceInput,
+  onVoiceInput
 }) => {
-  const [editingPantryId, setEditingPantryId] = useState<string | null>(null);
-  const [pantryEdit, setPantryEdit] = useState<{ quantity: string; unit: string }>({ quantity: '', unit: '' });
-  const [newIngredient, setNewIngredient] = useState({
+  const [ingredientTab, setIngredientTab] = useState('manual');
+  const [ingredientForm, setIngredientForm] = useState({
     name: '',
     quantity: '',
-    unit: 'piece'
+    unit: ''
   });
 
-  const units = ['piece', 'cup', 'tbsp', 'tsp', 'lb', 'oz', 'gram', 'kg', 'ml', 'liter'];
-
-  const handleStartEditPantry = (item: PantryItem) => {
-    setEditingPantryId(item.id);
-    setPantryEdit({ quantity: item.quantity, unit: item.unit });
+  const handleIngredientFormChange = (field: string, value: string) => {
+    setIngredientForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleConfirmPantryEdit = (item: PantryItem) => {
-    if (!pantryEdit.quantity || !pantryEdit.unit) return;
-    onAddPantryItem({
-      ...item,
-      quantity: pantryEdit.quantity,
-      unit: pantryEdit.unit,
-    });
-    setEditingPantryId(null);
-    setPantryEdit({ quantity: '', unit: '' });
-  };
+  const handleAddManualIngredient = () => {
+    if (!ingredientForm.name.trim()) return;
+    
+    const newIngredient: Ingredient = {
+      id: Date.now().toString(),
+      name: ingredientForm.name.trim(),
+      quantity: ingredientForm.quantity || '1',
+      unit: ingredientForm.unit.trim(),
+      source: 'manual',
+    };
 
-  const handleAddIngredient = () => {
-    if (newIngredient.name.trim()) {
-      onAddIngredient({
-        id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: newIngredient.name.trim(),
-        quantity: newIngredient.quantity || '1',
-        unit: newIngredient.unit,
-        source: 'manual'
-      });
-      setNewIngredient({ name: '', quantity: '', unit: 'piece' });
-    }
+    onAddIngredient(newIngredient);
+    setIngredientForm({ name: '', quantity: '', unit: '' });
   };
 
   return (
     <div className="space-y-4">
-      {/* Added Ingredients */}
-      {addedIngredients.length > 0 && (
-        <div className="p-4 bg-wasfah-light-gray rounded-lg">
-          <h3 className="font-semibold text-wasfah-deep-teal mb-3">Your Ingredients ({addedIngredients.length})</h3>
-          <div className="flex flex-wrap gap-2">
-            {addedIngredients.map((ingredient) => (
-              <Badge
-                key={ingredient.id}
-                variant="secondary"
-                className="px-3 py-1 bg-wasfah-mint text-wasfah-deep-teal border border-wasfah-bright-teal"
-              >
-                {ingredient.quantity} {ingredient.unit} {ingredient.name}
-                <button
-                  onClick={() => onRemoveIngredient(ingredient.id)}
-                  className="ml-2 text-wasfah-coral-red hover:text-red-700"
-                >
-                  <X size={14} />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Add Ingredients Section */}
-      <Tabs defaultValue="manual" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-white border border-wasfah-mint">
-          <TabsTrigger value="manual" className="data-[state=active]:bg-wasfah-bright-teal data-[state=active]:text-white">
-            Manual Entry
-          </TabsTrigger>
-          <TabsTrigger value="pantry" className="data-[state=active]:bg-wasfah-bright-teal data-[state=active]:text-white">
-            From Pantry
-          </TabsTrigger>
+      <h2 className="text-lg font-semibold text-center text-wasfah-deep-teal mb-6">Add Ingredients</h2>
+      
+      <Tabs value={ingredientTab} onValueChange={setIngredientTab} className="mb-6">
+        <TabsList className="grid w-full grid-cols-2 bg-wasfah-light-gray p-1 rounded-lg">
+          <TabsTrigger value="manual" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Manual Entry</TabsTrigger>
+          <TabsTrigger value="pantry" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Smart Pantry</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="manual" className="mt-4">
-          <div className="p-4 bg-white border border-wasfah-mint/30 rounded-lg space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <Input
-                  placeholder="e.g., Chicken breast"
-                  value={newIngredient.name}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, name: e.target.value }))}
-                  className="border-wasfah-mint/50 focus:border-wasfah-bright-teal"
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Quantity"
-                  value={newIngredient.quantity}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, quantity: e.target.value }))}
-                  className="border-wasfah-mint/50 focus:border-wasfah-bright-teal"
-                />
-              </div>
-              <div>
-                <select
-                  value={newIngredient.unit}
-                  onChange={(e) => setNewIngredient(prev => ({ ...prev, unit: e.target.value }))}
-                  className="w-full h-10 px-3 border border-wasfah-mint/50 rounded-md focus:border-wasfah-bright-teal"
-                >
-                  {units.map((unit) => (
-                    <option key={unit} value={unit}>
-                      {unit}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
+        <TabsContent value="manual" className="space-y-4 mt-4">
+          <div className="space-y-3">
+            <Input
+              placeholder="Ingredient name (e.g., Chicken Breast)"
+              value={ingredientForm.name}
+              onChange={(e) => handleIngredientFormChange('name', e.target.value)}
+              className="h-12"
+            />
+
             <div className="flex gap-2">
-              <Button 
-                onClick={handleAddIngredient} 
-                className="bg-wasfah-bright-teal hover:bg-wasfah-teal text-white flex-1"
-              >
-                <Plus size={16} className="mr-2" />
-                Add Ingredient
-              </Button>
-              <Button 
-                onClick={onScanIngredients} 
-                variant="outline" 
-                className="border-wasfah-bright-teal text-wasfah-bright-teal hover:bg-wasfah-bright-teal hover:text-white"
-              >
-                <Camera size={16} />
-              </Button>
-              <Button 
-                onClick={onVoiceInput} 
-                variant="outline" 
-                className="border-wasfah-bright-teal text-wasfah-bright-teal hover:bg-wasfah-bright-teal hover:text-white"
-              >
-                <Mic size={16} />
-              </Button>
+              <Input
+                placeholder="Quantity"
+                value={ingredientForm.quantity}
+                onChange={(e) => handleIngredientFormChange('quantity', e.target.value)}
+                className="h-12 flex-1"
+                type="number"
+              />
+              <Input
+                placeholder="Unit (kg, pcs, etc)"
+                value={ingredientForm.unit}
+                onChange={(e) => handleIngredientFormChange('unit', e.target.value)}
+                className="h-12 flex-1"
+              />
             </div>
+
+            <Button
+              onClick={handleAddManualIngredient}
+              className="w-full h-12 bg-wasfah-bright-teal hover:bg-wasfah-teal text-white"
+              disabled={!ingredientForm.name.trim()}
+            >
+              <Plus className="mr-2 h-5 w-5" /> Add Ingredient
+            </Button>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              className="flex-1 h-12 border-wasfah-mint/30 text-wasfah-deep-teal hover:bg-wasfah-light-gray"
+              onClick={onScanIngredients}
+            >
+              <Camera className="mr-2 h-4 w-4" /> Scan
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1 h-12 border-wasfah-mint/30 text-wasfah-deep-teal hover:bg-wasfah-light-gray"
+              onClick={onVoiceInput}
+            >
+              <Mic className="mr-2 h-4 w-4" /> Voice
+            </Button>
           </div>
         </TabsContent>
 
@@ -185,52 +135,59 @@ export const IngredientManager: React.FC<IngredientManagerProps> = ({
                   <p className="font-medium text-wasfah-deep-teal">{item.name}</p>
                   <p className="text-sm text-gray-500">{item.quantity} {item.unit}</p>
                 </div>
-                {editingPantryId === item.id ? (
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      placeholder="Quantity"
-                      value={pantryEdit.quantity}
-                      onChange={e => setPantryEdit(prev => ({ ...prev, quantity: e.target.value }))}
-                      className="h-8 w-16"
-                      type="number"
-                    />
-                    <Input
-                      placeholder="Unit"
-                      value={pantryEdit.unit}
-                      onChange={e => setPantryEdit(prev => ({ ...prev, unit: e.target.value }))}
-                      className="h-8 w-16"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleConfirmPantryEdit(item)}
-                      className="bg-wasfah-bright-teal text-white"
-                    >
-                      Confirm
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditingPantryId(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleStartEditPantry(item)}
-                    disabled={addedIngredients.some(ing => ing.name === item.name)}
-                    className="text-wasfah-bright-teal border-wasfah-bright-teal disabled:opacity-50 hover:bg-wasfah-light-gray"
-                  >
-                    {addedIngredients.some(ing => ing.name === item.name) ? 'Added' : 'Add'}
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onAddPantryItem(item)}
+                  disabled={addedIngredients.some(ing => ing.name === item.name)}
+                  className="text-wasfah-bright-teal border-wasfah-bright-teal disabled:opacity-50 hover:bg-wasfah-light-gray"
+                >
+                  {addedIngredients.some(ing => ing.name === item.name) ? 'Added' : 'Add'}
+                </Button>
               </div>
             ))}
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Added Ingredients List */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center text-wasfah-deep-teal">
+            <List className="mr-2 h-5 w-5" />
+            Your Ingredients
+          </h3>
+          <span className="text-sm text-gray-500">({addedIngredients.length})</span>
+        </div>
+
+        {addedIngredients.length === 0 ? (
+          <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+            <p className="text-gray-500">No ingredients added yet</p>
+            <p className="text-sm text-gray-400 mt-1">Add ingredients to get started</p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {addedIngredients.map(ingredient => (
+              <div key={ingredient.id} className="flex items-center justify-between p-3 bg-wasfah-light-gray rounded-lg">
+                <div className="flex-1">
+                  <p className="font-medium text-wasfah-deep-teal">{ingredient.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {ingredient.quantity} {ingredient.unit} • From {ingredient.source}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onRemoveIngredient(ingredient.id)}
+                  className="text-red-500 hover:bg-red-50 p-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
