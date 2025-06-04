@@ -17,13 +17,12 @@ import SplashScreen from "@/pages/SplashScreen";
 import NewHomePage from "@/pages/NewHomePage";
 import RecipesPage from "@/pages/RecipesPage";
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
-import CookingModePage from "@/pages/CookingMode";
 import ProfilePage from "@/pages/ProfilePage";
 import MenuPage from "@/pages/MenuPage";
 import SettingsPage from "@/pages/SettingsPage";
 import SystemSettingsPage from "@/pages/SystemSettingsPage";
 
-// New Feature Pages
+// Feature Pages
 import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
 import AIFeaturesPage from "@/pages/AIFeaturesPage";
 import HealthTrackingPage from "@/pages/HealthTrackingPage";
@@ -36,7 +35,6 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import AdminRecipesPage from "@/pages/admin/AdminRecipesPage";
 import AdminIngredientsPage from "@/pages/admin/AdminIngredientsPage";
-import AdminIngredientImagesManager from "@/components/AdminIngredientImagesManager";
 import AdminTranslationsPage from "@/pages/admin/AdminTranslationsPage";
 import AdminLanguagePage from "@/pages/admin/AdminLanguagePage";
 import AdminUserTypePage from "@/pages/admin/AdminUserTypePage";
@@ -84,13 +82,12 @@ function App() {
                     <Route path="/home" element={<NewHomePage />} />
                     <Route path="/recipes" element={<RecipesPage />} />
                     <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-                    <Route path="/cooking/:id" element={<CookingModePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/menu" element={<MenuPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/system-settings" element={<SystemSettingsPage />} />
                     
-                    {/* New Feature Routes */}
+                    {/* Feature Routes */}
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
                     <Route path="/ai-features" element={<AIFeaturesPage />} />
                     <Route path="/health-tracking" element={<HealthTrackingPage />} />
@@ -118,7 +115,6 @@ function App() {
                       <Route path="user-types" element={<AdminUserTypePage />} />
                       <Route path="recipes" element={<AdminRecipesPage />} />
                       <Route path="ingredients" element={<AdminIngredientsPage />} />
-                      <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
                       <Route path="translations" element={<AdminTranslationsPage />} />
                       <Route path="languages" element={<AdminLanguagePage />} />
                       <Route path="subscriptions" element={<AdminSubscriptionPage />} />
