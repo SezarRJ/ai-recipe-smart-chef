@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SignOutProps {
   className?: string;
@@ -12,6 +13,10 @@ interface SignOutProps {
 export const SignOut: React.FC<SignOutProps> = ({ className }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { lang } = useParams();
+  const { language } = useLanguage();
+  
+  const currentLanguage = lang || language || 'en';
 
   const handleSignOut = () => {
     // In a real app this would clear auth state, tokens, etc.
@@ -23,8 +28,8 @@ export const SignOut: React.FC<SignOutProps> = ({ className }) => {
       description: "You have been signed out of your account."
     });
     
-    // Navigate to auth page
-    navigate('/auth');
+    // Navigate to auth page with proper language prefix
+    navigate(`/${currentLanguage}/auth`);
   };
 
   return (
