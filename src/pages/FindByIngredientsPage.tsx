@@ -39,18 +39,9 @@ interface PantryItem {
 
 interface Filters {
   dietary: string;
-  cookTime: string;
+  cookingTime: string;
   difficulty: string;
   cuisine: string;
-  cookingTime: string; // Added missing property
-}
-
-interface FilterOptions {
-  dietary: string[];
-  cookTime: string[];
-  difficulty: string[];
-  cuisine: string[];
-  cookingTime: string[]; // Added missing property
 }
 
 // Define a type for the category structure including the new flag
@@ -109,10 +100,9 @@ export default function FindByIngredientsPage() {
     },
   ];
 
-  const FILTER_OPTIONS: FilterOptions = {
+  const FILTER_OPTIONS = {
     dietary: ['Normal', 'Healthy', 'Vegetarian', 'Vegan', 'Gluten-Free'],
-    cookTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'],
-    cookingTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'], // Added missing property
+    cookingTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'],
     difficulty: ['Beginner', 'Intermediate', 'Expert'],
     cuisine: ['Levant', 'Italian', 'Mexican', 'Chinese', 'Indian', 'American'],
   };
@@ -140,8 +130,7 @@ export default function FindByIngredientsPage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<{ name: string; icon: ElementType; requiresCustomForm?: boolean } | null>(null);
   const [filters, setFilters] = useState<Filters>({
     dietary: '',
-    cookTime: '',
-    cookingTime: '', // Added missing property
+    cookingTime: '',
     difficulty: '',
     cuisine: '',
   });
@@ -307,35 +296,37 @@ export default function FindByIngredientsPage() {
           <CategorySelector
             categories={mainCategories}
             selectedCategory={selectedCategory}
-            selectedSubcategory={selectedSubcategory}
+            selectedSubcategory={selectedSubcategory} // This will be null at step 1
             currentStep={currentStep}
             onCategorySelect={handleCategorySelect}
-            onSubcategorySelect={handleSubcategorySelect}
+            onSubcategorySelect={handleSubcategorySelect} // This won't be called in step 1
             onBack={() => { /* No back from step 1 */ }}
           />
         )}
 
-        {/* Step 2: Subcategory Selection */}
+        {/* Step 2: Subcategory Selection (Always shown after category selection) */}
         {currentStep === 2 && selectedCategory && (
            <CategorySelector
-              categories={mainCategories}
+              categories={mainCategories} // Pass all categories to allow CategorySelector to find subcategories
               selectedCategory={selectedCategory}
-              selectedSubcategory={selectedSubcategory}
+              selectedSubcategory={selectedSubcategory} // This will be null initially in step 2
               currentStep={currentStep}
-              onCategorySelect={handleCategorySelect}
-              onSubcategorySelect={handleSubcategorySelect}
-              onBack={() => setCurrentStep(1)}
+              onCategorySelect={handleCategorySelect} // This won't be used here but kept for prop structure
+              onSubcategorySelect={handleSubcategorySelect} // This is where subcategory is selected
+              onBack={() => setCurrentStep(1)} // Back to main categories
             />
         )}
 
         {/* Step 3: Conditional Rendering - Ingredient Manager OR Drink Customization Form */}
         {currentStep === 3 && (
             showDrinkCustomizationForm ? (
+                // If 'Drinks' category and 'Alcoholic' subcategory are selected, show the custom form
                 <DrinkCustomizationForm
                   onGenerateDrink={handleGenerateCustomDrink}
-                  onBack={() => setCurrentStep(2)}
+                  onBack={() => setCurrentStep(2)} // Back to subcategory selection
                 />
             ) : (
+                // Otherwise (Food, Desserts, or non-Alcoholic Drinks), show Ingredient Manager
                 <>
                     <IngredientManager
                       addedIngredients={addedIngredients}
@@ -365,9 +356,10 @@ export default function FindByIngredientsPage() {
           <SearchSummary
             selectedCategory={selectedCategory}
             selectedSubcategory={selectedSubcategory}
+            // Pass 0 ingredient count if it's an alcoholic drink search, otherwise pass the actual count
             ingredientCount={showDrinkCustomizationForm ? 0 : addedIngredients.length}
             filterCount={Object.values(filters).filter(v => v).length}
-            customDrinkOptions={customDrinkOptions}
+            customDrinkOptions={customDrinkOptions} // Pass the new drink options structure
             onSearch={handleSearchRecipes}
           />
         )}

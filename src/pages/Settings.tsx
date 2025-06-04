@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,32 +20,14 @@ import {
   Info, 
   FileText, 
   LogOut,
-  Moon,
-  Fingerprint,
-  Palette,
-  Settings as SettingsIcon
+  Moon, // Added for Dark Mode
+  Fingerprint, // Added for Biometric Authentication
+  Palette // Added for Theme Customization
 } from "lucide-react";
-
-interface SettingItem {
-  icon: React.ElementType;
-  label: string;
-  value?: string;
-  onClick?: () => void;
-  hasArrow?: boolean;
-  hasSwitch?: boolean;
-  onToggle?: () => void;
-  isAdmin?: boolean;
-  dangerous?: boolean;
-}
-
-interface SettingSection {
-  title: string;
-  items: SettingItem[];
-}
 
 const Settings = () => {
   const { t, language, setLanguage, availableLanguages } = useLanguage();
-  const { signOut, session } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   
   const [settings, setSettings] = useState({
@@ -54,11 +35,12 @@ const Settings = () => {
     sounds: true,
     darkMode: false,
     autoSync: true,
-    biometricAuth: false,
+    biometricAuth: false, // New setting for biometric authentication
   });
 
-  const toggleSetting = (key: keyof typeof settings) => {
+  const toggleSetting = (key) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    // Future implementation for dark mode:
     if (key === 'darkMode') {
       document.documentElement.classList.toggle('dark', !settings.darkMode);
     }
@@ -73,10 +55,7 @@ const Settings = () => {
     }
   };
 
-  // Check if user is admin
-  const isAdmin = session?.user?.user_metadata?.isAdmin || false;
-
-  const settingSections: SettingSection[] = [
+  const settingSections = [
     {
       title: "App Preferences",
       items: [
@@ -91,25 +70,25 @@ const Settings = () => {
           icon: Bell,
           label: "Push Notifications",
           hasSwitch: true,
-          value: settings.notifications ? "true" : "false",
+          value: settings.notifications,
           onToggle: () => toggleSetting("notifications")
         },
         {
           icon: Volume2,
           label: "App Sounds",
           hasSwitch: true,
-          value: settings.sounds ? "true" : "false",
+          value: settings.sounds,
           onToggle: () => toggleSetting("sounds")
         },
         {
-          icon: Moon,
+          icon: Moon, // Dark Mode Toggle
           label: "Dark Mode",
           hasSwitch: true,
-          value: settings.darkMode ? "true" : "false",
+          value: settings.darkMode,
           onToggle: () => toggleSetting("darkMode")
         },
         {
-          icon: Palette,
+          icon: Palette, // Theme Customization
           label: "Theme Customization",
           onClick: () => navigate("/theme-customization"),
           hasArrow: true
@@ -139,16 +118,16 @@ const Settings = () => {
         },
         {
           icon: Database,
-          label: "Account Backup & Sync",
-          hasSwitch: true,
-          value: settings.autoSync ? "true" : "false",
+          label: "Account Backup & Sync", // Updated label
+          hasSwitch: true, // Added switch for sync
+          value: settings.autoSync,
           onToggle: () => toggleSetting("autoSync"),
         },
         {
-          icon: Fingerprint,
+          icon: Fingerprint, // Biometric Authentication Toggle
           label: "Biometric Authentication",
           hasSwitch: true,
-          value: settings.biometricAuth ? "true" : "false",
+          value: settings.biometricAuth,
           onToggle: () => toggleSetting("biometricAuth")
         },
         {
@@ -158,26 +137,7 @@ const Settings = () => {
           hasArrow: true
         }
       ]
-    }
-  ];
-
-  // Add admin section if user is admin
-  if (isAdmin) {
-    settingSections.push({
-      title: "Administration",
-      items: [
-        {
-          icon: SettingsIcon,
-          label: "Admin Panel",
-          onClick: () => navigate("/admin"),
-          hasArrow: true,
-          isAdmin: true
-        }
-      ]
-    });
-  }
-
-  settingSections.push(
+    },
     {
       title: "Support & Legal",
       items: [
@@ -213,7 +173,7 @@ const Settings = () => {
         }
       ]
     }
-  );
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wasfah-cream via-white to-orange-50 pb-20 pt-4">
@@ -239,23 +199,15 @@ const Settings = () => {
                     key={itemIndex}
                     className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                       item.onClick ? 'hover:bg-gray-50' : ''
-                    } ${item.isAdmin ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200' : ''}`}
+                    }`}
                     onClick={item.onClick}
                   >
                     <div className="flex items-center gap-3">
                       <item.icon 
                         size={20} 
-                        className={
-                          item.dangerous ? 'text-red-500' : 
-                          item.isAdmin ? 'text-purple-600' : 
-                          'text-gray-600'
-                        } 
+                        className={item.dangerous ? 'text-red-500' : 'text-gray-600'} 
                       />
-                      <span className={
-                        item.dangerous ? 'text-red-500' : 
-                        item.isAdmin ? 'text-purple-700 font-medium' : 
-                        'text-gray-900'
-                      }>
+                      <span className={item.dangerous ? 'text-red-500' : 'text-gray-900'}>
                         {item.label}
                       </span>
                     </div>
@@ -263,7 +215,7 @@ const Settings = () => {
                     <div className="flex items-center gap-2">
                       {item.hasSwitch && (
                         <Switch
-                          checked={item.value === "true"}
+                          checked={item.value}
                           onCheckedChange={item.onToggle}
                         />
                       )}
@@ -281,6 +233,7 @@ const Settings = () => {
           ))}
         </div>
 
+        {/* Sign Out Button */}
         <Card className="mt-6">
           <CardContent className="p-0">
             <Button
@@ -294,6 +247,7 @@ const Settings = () => {
           </CardContent>
         </Card>
 
+        {/* App Version */}
         <div className="text-center mt-6 text-gray-500 text-sm">
           <p>Wasfah AI</p>
           <p>Version 1.0.0</p>

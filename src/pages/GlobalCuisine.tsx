@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -166,31 +165,31 @@ const GlobalCuisinePage = () => {
     title: recipe.title,
     description: recipe.summary?.replace(/<[^>]*>/g, '').substring(0, 100) + '...' || '',
     image_url: recipe.image,
-    image: recipe.image, // Required by Recipe interface
+    image: recipe.image,
     prep_time: Math.floor(recipe.readyInMinutes / 2),
+    prepTime: Math.floor(recipe.readyInMinutes / 2),
     cook_time: Math.ceil(recipe.readyInMinutes / 2),
-    cooking_time: Math.ceil(recipe.readyInMinutes / 2), // Required by Recipe interface
+    cookTime: Math.ceil(recipe.readyInMinutes / 2),
     servings: recipe.servings,
     difficulty: 'Medium' as const,
     calories: recipe.nutrition?.calories || 300,
-    protein: Number(recipe.nutrition?.protein) || 20, // Ensure it's a number
-    carbs: Number(recipe.nutrition?.carbohydrates) || 30, // Ensure it's a number
-    fat: Number(recipe.nutrition?.fat) || 10, // Ensure it's a number
     cuisine_type: recipe.cuisines?.[0] || '',
+    cuisineType: recipe.cuisines?.[0] || '',
     instructions: recipe.instructions?.replace(/<[^>]*>/g, '').split('.').filter(s => s.trim()).map(s => s.trim()) || [],
     categories: recipe.cuisines || [],
     tags: recipe.dishTypes || [],
+    status: 'published' as const,
     author_id: 'api',
     is_verified: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     rating: 4.5,
-    rating_count: 89, // Add missing rating_count
-    isFavorite: false, // Required by Recipe interface
+    ratingCount: 89,
+    isFavorite: false,
     ingredients: recipe.ingredients?.map(ing => ({
       id: `ing-${Math.random()}`,
       name: ing.name,
-      quantity: ing.amount,
+      amount: ing.amount,
       unit: ing.unit
     })) || [],
     nutritionalInfo: recipe.nutrition ? {

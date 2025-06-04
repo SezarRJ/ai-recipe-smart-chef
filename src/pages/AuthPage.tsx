@@ -1,627 +1,382 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { WasfahLogo } from '@/components/icons/WasfahLogo';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, ArrowRight, Languages, Loader2, Phone, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/hooks/useAuth';
+import { Eye, EyeOff, Mail, Phone } from 'lucide-react';
 
-export default function AuthPage() {
+const AuthPage = () => {
   const navigate = useNavigate();
+  const { lang } = useParams();
+  const { language } = useLanguage();
+  const { signIn, signInWithPhone, signUp, signUpWithPhone, sendOTP, verifyOTP, signInWithGoogle, signInWithFacebook } = useAuth();
   const { toast } = useToast();
-  const { signIn, signUp, isAuthenticated, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState('login');
-  const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState('en');
+  
+  const currentLanguage = lang || language || 'en';
+  
+  const [isLogin, setIsLogin] = useState(true);
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [showPassword, setShowPassword] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showOTPForm, setShowOTPForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    phone: '',
+    password: '',
+    fullName: '',
+    otp: ''
+  });
 
-  // Login states
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
-  // Register states
-  const [registerFullName, setRegisterFullName] = useState('');
-  const [registerMethod, setRegisterMethod] = useState('email');
-  const [registerEmail, setRegisterEmail] = useState('');
-  const [registerPhoneNumber, setRegisterPhoneNumber] = useState('');
-  const [registerPassword, setRegisterPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [registerLanguage, setRegisterLanguage] = useState('en');
-
-  // Forgot password states
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [resetSent, setResetSent] = useState(false);
-
-  const t = (en: string, ar?: string) => language === 'ar' && ar ? ar : en;
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      navigate('/home');
-    }
-  }, [isAuthenticated, loading, navigate]);
-
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
-  const validatePassword = (password: string) => {
-    return password.length >= 6;
-  };
-
-  const validatePhoneNumber = (phone: string) => {
-    return /^\+?[\d\s-()]{10,}$/.test(phone);
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateEmail(loginEmail)) {
-      toast({
-        title: t("Invalid Email", "بريد إلكتروني غير صحيح"),
-        description: t("Please enter a valid email address", "يرجى إدخال عنوان بريد إلكتروني صحيح"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!validatePassword(loginPassword)) {
-      toast({
-        title: t("Invalid Password", "كلمة مرور غير صحيحة"),
-        description: t("Password must be at least 6 characters", "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      await signIn(loginEmail, loginPassword);
-      toast({
-        title: t("Login successful", "تسجيل الدخول ناجح"),
-        description: t("Welcome back to WasfahAI!", "مرحبًا بك مرة أخرى في وصفة الذكاء الاصطناعي!"),
-      });
-      navigate('/home');
+      if (showOTPForm) {
+        await verifyOTP(formData.phone, formData.otp);
+        toast({
+          title: 'Success!',
+          description: 'Phone verified successfully!'
+        });
+        navigate(`/${currentLanguage}/home`);
+        return;
+      }
+
+      if (isLogin) {
+        if (authMethod === 'email') {
+          await signIn(formData.email, formData.password);
+        } else {
+          await signInWithPhone(formData.phone, formData.password);
+        }
+        toast({
+          title: 'Welcome back!',
+          description: 'You have been signed in successfully.'
+        });
+        navigate(`/${currentLanguage}/home`);
+      } else {
+        if (authMethod === 'email') {
+          await signUp(formData.email, formData.password);
+          toast({
+            title: 'Account created!',
+            description: 'Please check your email to verify your account.'
+          });
+        } else {
+          await signUpWithPhone(formData.phone, formData.password, formData.fullName);
+          toast({
+            title: 'Account created!',
+            description: 'Please verify your phone number.'
+          });
+        }
+      }
     } catch (error: any) {
       toast({
-        title: t("Login failed", "فشل تسجيل الدخول"),
-        description: error.message || t("Invalid credentials", "بيانات اعتماد غير صحيحة"),
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'An error occurred during authentication.',
+        variant: 'destructive'
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!registerFullName.trim()) {
+  const handleSendOTP = async () => {
+    if (!formData.phone) {
       toast({
-        title: t("Name Required", "الاسم مطلوب"),
-        description: t("Please enter your full name", "يرجى إدخال اسمك الكامل"),
-        variant: "destructive",
+        title: 'Error',
+        description: 'Please enter your phone number.',
+        variant: 'destructive'
       });
       return;
     }
 
-    if (registerMethod === 'email' && !validateEmail(registerEmail)) {
-      toast({
-        title: t("Invalid Email", "بريد إلكتروني غير صحيح"),
-        description: t("Please enter a valid email address", "يرجى إدخال عنوان بريد إلكتروني صحيح"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (registerMethod === 'phone' && !validatePhoneNumber(registerPhoneNumber)) {
-      toast({
-        title: t("Invalid Phone Number", "رقم هاتف غير صحيح"),
-        description: t("Please enter a valid phone number", "يرجى إدخال رقم هاتف صحيح"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!validatePassword(registerPassword)) {
-      toast({
-        title: t("Invalid Password", "كلمة مرور غير صحيحة"),
-        description: t("Password must be at least 6 characters", "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (registerPassword !== confirmPassword) {
-      toast({
-        title: t("Passwords don't match", "كلمات المرور غير متطابقة"),
-        description: t("Please make sure passwords match", "يرجى التأكد من تطابق كلمات المرور"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
+    setLoading(true);
     try {
-      const email = registerMethod === 'email' ? registerEmail : `${registerPhoneNumber}@temp.wasfah.com`;
-      
-      await signUp(email, registerPassword, registerFullName);
-      
+      await sendOTP(formData.phone);
+      setShowOTPForm(true);
       toast({
-        title: t("Registration successful", "التسجيل ناجح"),
-        description: t("Welcome to WasfahAI!", "مرحبًا بك في وصفة الذكاء الاصطناعي!"),
-      });
-      navigate('/home');
-    } catch (error: any) {
-      toast({
-        title: t("Registration failed", "فشل التسجيل"),
-        description: error.message || t("Registration failed", "فشل التسجيل"),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateEmail(forgotEmail)) {
-      toast({
-        title: t("Invalid Email", "بريد إلكتروني غير صحيح"),
-        description: t("Please enter a valid email address", "يرجى إدخال عنوان بريد إلكتروني صحيح"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Simulate password reset
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setResetSent(true);
-      toast({
-        title: t("Reset email sent", "تم إرسال رسالة إعادة التعيين"),
-        description: t("Check your email for password reset instructions", "تحقق من بريدك الإلكتروني للحصول على تعليمات إعادة تعيين كلمة المرور"),
+        title: 'OTP Sent!',
+        description: 'Please check your phone for the verification code.'
       });
     } catch (error: any) {
       toast({
-        title: t("Reset failed", "فشل إعادة التعيين"),
-        description: error.message || t("Failed to send reset email", "فشل في إرسال رسالة إعادة التعيين"),
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to send OTP.',
+        variant: 'destructive'
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleSkip = () => {
-    navigate('/home');
+  const handleGoogleAuth = async () => {
+    await signInWithGoogle();
   };
 
-  const languages = [
-    { code: 'en', name: t('English', 'الإنجليزية') },
-    { code: 'ar', name: t('Arabic', 'العربية') },
-    { code: 'fr', name: t('French', 'الفرنسية') },
-    { code: 'es', name: t('Spanish', 'الإسبانية') }
-  ];
-
-  const formVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: "easeIn" } },
+  const handleFacebookAuth = async () => {
+    await signInWithFacebook();
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-wasfah-light-gray via-white to-wasfah-mint/10 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Left Section: Logo & Background */}
-      <div className="relative w-full md:w-1/2 lg:w-2/5 xl:w-1/3 min-h-[30vh] md:min-h-screen
-                   bg-gradient-to-br from-wasfah-deep-teal via-wasfah-bright-teal to-wasfah-teal 
-                   flex flex-col items-center justify-center p-6 text-white overflow-hidden shadow-2xl">
-        
-        {/* Animated background elements */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0.3 }}
-          animate={{ scale: 1.2, opacity: 0.1 }}
-          transition={{ duration: 20, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-xl"
-        />
-        <motion.div
-          initial={{ scale: 1.2, opacity: 0.2 }}
-          animate={{ scale: 0.8, opacity: 0.05 }}
-          transition={{ duration: 15, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute bottom-20 left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl"
-        />
-
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-          className="relative z-10 flex flex-col items-center justify-center text-center"
-        >
-          <WasfahLogo className="h-28 w-28 sm:h-36 sm:w-36 mb-8 drop-shadow-2xl" />
-          <h1 className="text-3xl sm:text-5xl font-bold text-center mb-6 drop-shadow-lg leading-tight">
-            {t('Welcome to Wasfah AI', 'مرحبًا بك في وصفة الذكاء الاصطناعي')}
-          </h1>
-          <p className="text-lg sm:text-xl text-center opacity-90 max-w-md leading-relaxed">
-            {t('Your ultimate companion for smart cooking and healthy living.', 'رفيقك الأمثل للطبخ الذكي والحياة الصحية.')}
-          </p>
-        </motion.div>
-
-        {/* Language selector */}
-        <div className="absolute top-6 right-6 z-20 w-40">
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="bg-white/20 backdrop-blur-sm text-white border-white/30 hover:border-white/50 transition-all duration-200">
-              <div className="flex items-center text-sm font-medium">
-                <Languages size={18} className="mr-2" />
-                <SelectValue placeholder={t("Select language", "اختر اللغة")} />
-              </div>
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-gray-800">
-              {languages.map((lang) => (
-                <SelectItem key={lang.code} value={lang.code} className="font-medium">
-                  {lang.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Right Section: Auth Forms */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 md:p-12 lg:p-16">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md bg-white/80 backdrop-blur-sm dark:bg-gray-800/90 rounded-2xl shadow-2xl p-8 md:p-10 border border-white/20 dark:border-gray-700/50"
-        >
-          {!showForgotPassword ? (
-            <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-xl p-1">
-                <TabsTrigger
-                  value="login"
-                  className="text-base font-semibold data-[state=active]:bg-wasfah-bright-teal data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-200"
-                >
-                  {t('Login', 'تسجيل الدخول')}
-                </TabsTrigger>
-                <TabsTrigger
-                  value="register"
-                  className="text-base font-semibold data-[state=active]:bg-wasfah-bright-teal data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg transition-all duration-200"
-                >
-                  {t('Register', 'التسجيل')}
-                </TabsTrigger>
-              </TabsList>
-
-              <AnimatePresence mode="wait">
-                {activeTab === 'login' && (
-                  <motion.div
-                    key="loginForm"
-                    variants={formVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                  >
-                    <TabsContent value="login" className="mt-6">
-                      <form onSubmit={handleLogin} className="space-y-6">
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            type="email"
-                            placeholder={t("Email", "البريد الإلكتروني")}
-                            className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                            required
-                            value={loginEmail}
-                            onChange={(e) => setLoginEmail(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t("Password", "كلمة المرور")}
-                            className="pl-10 pr-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                            required
-                            value={loginPassword}
-                            onChange={(e) => setLoginPassword(e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-
-                        <div className="text-right">
-                          <Button 
-                            type="button"
-                            variant="link" 
-                            className="text-sm text-wasfah-bright-teal p-0 hover:underline font-medium"
-                            onClick={() => setShowForgotPassword(true)}
-                          >
-                            {t('Forgot password?', 'هل نسيت كلمة المرور؟')}
-                          </Button>
-                        </div>
-
-                        <Button
-                          type="submit"
-                          className="w-full h-12 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal hover:from-wasfah-teal hover:to-wasfah-deep-teal transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                              {t('Logging in...', 'جاري تسجيل الدخول...')}
-                            </>
-                          ) : (
-                            t('Login', 'تسجيل الدخول')
-                          )}
-                        </Button>
-                      </form>
-                    </TabsContent>
-                  </motion.div>
-                )}
-
-                {activeTab === 'register' && (
-                  <motion.div
-                    key="registerForm"
-                    variants={formVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                  >
-                    <TabsContent value="register" className="mt-6">
-                      <form onSubmit={handleRegister} className="space-y-6">
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            type="text"
-                            placeholder={t("Full Name", "الاسم الكامل")}
-                            className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                            required
-                            value={registerFullName}
-                            onChange={(e) => setRegisterFullName(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="w-full">
-                          <Tabs value={registerMethod} onValueChange={setRegisterMethod} className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 mb-4 bg-gray-100/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-lg">
-                              <TabsTrigger
-                                value="email"
-                                className="text-sm font-medium data-[state=active]:bg-wasfah-teal data-[state=active]:text-white rounded-md transition-all duration-200"
-                              >
-                                <Mail size={16} className="mr-1" /> {t('Email', 'البريد الإلكتروني')}
-                              </TabsTrigger>
-                              <TabsTrigger
-                                value="phone"
-                                className="text-sm font-medium data-[state=active]:bg-wasfah-teal data-[state=active]:text-white rounded-md transition-all duration-200"
-                              >
-                                <Phone size={16} className="mr-1" /> {t('Phone', 'الهاتف')}
-                              </TabsTrigger>
-                            </TabsList>
-                          </Tabs>
-                        </div>
-
-                        <AnimatePresence mode="wait">
-                          {registerMethod === 'email' && (
-                            <motion.div
-                              key="registerEmailInput"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <Input
-                                  type="email"
-                                  placeholder={t("Email", "البريد الإلكتروني")}
-                                  className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                                  required={registerMethod === 'email'}
-                                  value={registerEmail}
-                                  onChange={(e) => setRegisterEmail(e.target.value)}
-                                />
-                              </div>
-                            </motion.div>
-                          )}
-                          {registerMethod === 'phone' && (
-                            <motion.div
-                              key="registerPhoneInput"
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                <Input
-                                  type="tel"
-                                  placeholder={t("Phone Number (e.g., +1234567890)", "رقم الهاتف (مثال: +9665xxxxxxxx)")}
-                                  className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                                  required={registerMethod === 'phone'}
-                                  value={registerPhoneNumber}
-                                  onChange={(e) => setRegisterPhoneNumber(e.target.value)}
-                                />
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t("Password", "كلمة المرور")}
-                            className="pl-10 pr-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                            required
-                            value={registerPassword}
-                            onChange={(e) => setRegisterPassword(e.target.value)}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            type="password"
-                            placeholder={t("Confirm Password", "تأكيد كلمة المرور")}
-                            className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
-                            required
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="relative">
-                          <Languages className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Select value={registerLanguage} onValueChange={setRegisterLanguage}>
-                            <SelectTrigger className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200">
-                              <SelectValue placeholder={t("Select language", "اختر اللغة")} />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-gray-800">
-                              {languages.map((lang) => (
-                                <SelectItem key={lang.code} value={lang.code}>
-                                  {lang.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <Button
-                          type="submit"
-                          className="w-full h-12 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal hover:from-wasfah-teal hover:to-wasfah-deep-teal transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl"
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                              {t('Registering...', 'جاري التسجيل...')}
-                            </>
-                          ) : (
-                            t('Register', 'التسجيل')
-                          )}
-                        </Button>
-                      </form>
-                    </TabsContent>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Tabs>
-          ) : (
-            // Forgot Password Form
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-orange-600">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Social Login Buttons */}
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleAuth}
+              disabled={loading}
             >
-              <div className="text-center mb-6">
-                <KeyRound className="h-12 w-12 mx-auto text-wasfah-bright-teal mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {t('Reset Password', 'إعادة تعيين كلمة المرور')}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  {t('Enter your email to receive reset instructions', 'أدخل بريدك الإلكتروني لتلقي تعليمات إعادة التعيين')}
-                </p>
-              </div>
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleFacebookAuth}
+              disabled={loading}
+            >
+              <svg className="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Continue with Facebook
+            </Button>
+          </div>
 
-              {!resetSent ? (
-                <form onSubmit={handleForgotPassword} className="space-y-6">
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Auth Method Tabs */}
+          <Tabs value={authMethod} onValueChange={(value) => setAuthMethod(value as 'email' | 'phone')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email
+              </TabsTrigger>
+              <TabsTrigger value="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Phone
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="email" className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
                     <Input
-                      type="email"
-                      placeholder={t("Email", "البريد الإلكتروني")}
-                      className="pl-10 h-12 text-base bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border-gray-200/50 focus:border-wasfah-bright-teal transition-all duration-200"
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      placeholder="Enter your full name"
                       required
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Enter your password"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Sign Up'}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="phone" className="space-y-4">
+              {!showOTPForm ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="+1234567890"
+                      required
                     />
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full h-12 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal hover:from-wasfah-teal hover:to-wasfah-deep-teal transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        {t('Sending...', 'جاري الإرسال...')}
-                      </>
-                    ) : (
-                      t('Send Reset Email', 'إرسال رسالة إعادة التعيين')
-                    )}
+                  {!isLogin && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          name="fullName"
+                          type="text"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          placeholder="Enter your full name"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            placeholder="Enter your password"
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <Button type="button" onClick={handleSubmit} className="w-full" disabled={loading}>
+                        {loading ? 'Processing...' : 'Sign Up'}
+                      </Button>
+                    </>
+                  )}
+
+                  {isLogin && (
+                    <Button type="button" onClick={handleSendOTP} className="w-full" disabled={loading}>
+                      {loading ? 'Sending...' : 'Send OTP'}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="otp">Verification Code</Label>
+                    <Input
+                      id="otp"
+                      name="otp"
+                      type="text"
+                      value={formData.otp}
+                      onChange={handleInputChange}
+                      placeholder="Enter 6-digit code"
+                      required
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Verifying...' : 'Verify & Sign In'}
                   </Button>
 
                   <Button
                     type="button"
-                    variant="ghost"
-                    className="w-full text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowForgotPassword(false)}
-                  >
-                    {t('Back to Login', 'العودة لتسجيل الدخول')}
-                  </Button>
-                </form>
-              ) : (
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                    <Mail className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {t('Email Sent!', 'تم إرسال الرسالة!')}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {t('Check your inbox for password reset instructions', 'تحقق من صندوق الوارد للحصول على تعليمات إعادة تعيين كلمة المرور')}
-                  </p>
-                  <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => {
-                      setShowForgotPassword(false);
-                      setResetSent(false);
-                      setForgotEmail('');
-                    }}
+                    onClick={() => setShowOTPForm(false)}
                   >
-                    {t('Back to Login', 'العودة لتسجيل الدخول')}
+                    Back
                   </Button>
-                </div>
+                </form>
               )}
-            </motion.div>
-          )}
+            </TabsContent>
+          </Tabs>
 
-          {!showForgotPassword && (
-            <div className="mt-8 text-center">
-              <Button
-                variant="ghost"
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium"
-                onClick={handleSkip}
-              >
-                {t('Continue as guest', 'المتابعة كضيف')} <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </motion.div>
-      </div>
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-orange-600"
+            >
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default AuthPage;

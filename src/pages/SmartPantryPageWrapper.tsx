@@ -1,9 +1,20 @@
 
 import React from 'react';
-import SmartPantryPage from './SmartPantryPage';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { MobileSmartPantry } from '@/components/pantry/MobileSmartPantry';
+import { useRTL } from '@/contexts/RTLContext';
 
-const SmartPantryPageWrapper = () => {
-  return <SmartPantryPage />;
-};
-
-export default SmartPantryPageWrapper;
+export default function SmartPantryPageWrapper() {
+  const { t } = useRTL();
+  
+  return (
+    <PageContainer 
+      header={{ 
+        title: t('smartPantry.title') || 'Smart Pantry', 
+        showBackButton: true 
+      }}
+    >
+      <MobileSmartPantry />
+    </PageContainer>
+  );
+}

@@ -1,116 +1,67 @@
+
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Settings, User, Heart, Book, ShoppingCart, CreditCard,
   Bell, Languages, Moon, HelpCircle, Globe, Award, LogOut,
-  Camera, Scale, Smartphone, Shield, Wrench, Users, MapPin // Keep icons, some might be used elsewhere or for future
+  Camera, Scale, Smartphone, Shield, Wrench, Users, MapPin
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MenuPage() {
   const { t } = useRTL();
-
-  // Define the list of IDs to remove
-  const idsToRemove = [
-    'profile',
-    'community',
-    'shopping',
-    'language',
-    'appearance',
-    'notifications',
-    'help',
-    // 'log out' is handled by removing the hardcoded card below
-  ];
+  const { lang } = useParams();
+  const { language } = useLanguage();
+  
+  const currentLanguage = lang || language || 'en';
 
   const menuItems = [
-    {
-      id: 'profile',
-      icon: <User className="h-6 w-6 text-indigo-500" />,
-      title: t('Profile', 'الملف الشخصي', 'Profil'),
-      link: '/profile',
-    },
     {
       id: 'favorites',
       icon: <Heart className="h-6 w-6 text-red-500" />,
       title: t('Favorites', 'المفضلة', 'Favoriler'),
-      link: '/favorites',
+      link: `/${currentLanguage}/favorites`,
     },
     {
       id: 'recipes',
       icon: <Book className="h-6 w-6 text-wasfah-deep-teal" />,
       title: t('My Recipes', 'وصفاتي', 'Tariflerim'),
-      link: '/recipes',
+      link: `/${currentLanguage}/recipes`,
     },
     {
       id: 'services',
       icon: <Wrench className="h-6 w-6 text-purple-500" />,
       title: t('Services', 'الخدمات', 'Hizmetler'),
-      link: '/services',
-    },
-    {
-      id: 'community',
-      icon: <Users className="h-6 w-6 text-blue-600" />,
-      title: t('Community', 'المجتمع', 'Topluluk'),
-      link: '/community',
-    },
-    {
-      id: 'shopping',
-      icon: <ShoppingCart className="h-6 w-6 text-wasfah-bright-teal" />,
-      title: t('Shopping List', 'قائمة التسوق', 'Alışveriş Listesi'),
-      link: '/shopping-list',
+      link: `/${currentLanguage}/services`,
     },
     {
       id: 'loyalty',
       icon: <Award className="h-6 w-6 text-amber-500" />,
       title: t('Loyalty Program', 'برنامج الولاء', 'Sadakat Programı'),
-      link: '/loyalty-program',
+      link: `/${currentLanguage}/loyalty-program`,
     },
     {
       id: 'subscription',
       icon: <CreditCard className="h-6 w-6 text-purple-500" />,
       title: t('Subscription', 'الاشتراك', 'Abonelik'),
-      link: '/subscription',
+      link: `/${currentLanguage}/subscription`,
     },
     {
       id: 'settings',
       icon: <Settings className="h-6 w-6 text-gray-500" />,
       title: t('Settings', 'الإعدادات', 'Ayarlar'),
-      link: '/settings',
-    },
-    {
-      id: 'notifications',
-      icon: <Bell className="h-6 w-6 text-orange-500" />,
-      title: t('Notifications', 'الإشعارات', 'Bildirimler'),
-      link: '/notifications',
-    },
-    {
-      id: 'language',
-      icon: <Globe className="h-6 w-6 text-green-500" />,
-      title: t('Language', 'اللغة', 'Dil'),
-      link: '/language-settings',
-    },
-    {
-      id: 'appearance',
-      icon: <Moon className="h-6 w-6 text-indigo-500" />,
-      title: t('Appearance', 'المظهر', 'Görünüm'),
-      link: '/appearance',
-    },
-    {
-      id: 'help',
-      icon: <HelpCircle className="h-6 w-6 text-wasfah-deep-teal" />,
-      title: t('Help & Support', 'المساعدة والدعم', 'Yardım ve Destek'),
-      link: '/help',
+      link: `/${currentLanguage}/settings`,
     },
     {
       id: 'admin',
       icon: <Shield className="h-6 w-6 text-purple-600" />,
       title: t('Admin Panel', 'لوحة الإدارة', 'Yönetici Paneli'),
-      link: '/admin/login',
+      link: `/${currentLanguage}/admin`,
     },
-  ].filter(item => !idsToRemove.includes(item.id)); // Filter out the items to remove
-
+  ];
 
   return (
     <PageContainer header={{ title: t('Menu', 'القائمة', 'Menü') }}>
@@ -133,9 +84,6 @@ export default function MenuPage() {
               </Card>
             </Link>
           ))}
-
-          {/* The hardcoded Log Out card has been removed as requested */}
-
         </div>
       </div>
     </PageContainer>

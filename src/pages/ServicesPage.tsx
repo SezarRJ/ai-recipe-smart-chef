@@ -1,101 +1,163 @@
-
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ChefHat, Camera, Bot, Calendar, Utensils, Heart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import {
+  Camera, Scale, Smartphone, Award, Gift, CreditCard, ShoppingCart,
+  Activity, Heart, Book, Bot, Utensils, Users, MapPin,
+  PlusCircle, Share2, Archive // Added icons for new services
+} from 'lucide-react';
+import { useRTL } from '@/contexts/RTLContext';
 
-const ServicesPage = () => {
-  const navigate = useNavigate();
+export default function ServicesPage() {
+  const { t } = useRTL();
+
+  // Define the list of IDs to remove
+  const idsToRemove = [
+    'loyalty-program',
+    'subscription',
+  ];
+
+  // Define the new services to add
+  const newServices = [
+      {
+          id: 'create-recipe',
+          icon: <PlusCircle className="h-6 w-6 text-green-600" />, // Using PlusCircle icon
+          title: t('Create Recipe', 'إنشاء وصفة', 'Tarif Oluştur'),
+          description: t('Add your own recipes to the app', 'أضف وصفاتك الخاصة إلى التطبيق', 'Kendi tariflerinizi uygulamaya ekleyin'),
+          link: '/create-recipe', // Placeholder link
+      },
+      {
+          id: 'share-recipe',
+          icon: <Share2 className="h-6 w-6 text-blue-500" />, // Using Share2 icon
+          title: t('Share Recipe', 'مشاركة وصفة', 'Tarif Paylaş'),
+          description: t('Share your favorite recipes with others', 'شارك وصفاتك المفضلة مع الآخرين', 'Favori tariflerinizi başkalarıyla paylaşın'),
+          link: '/share-recipe', // Placeholder link
+      },
+      {
+          id: 'smart-pantry',
+          icon: <Archive className="h-6 w-6 text-amber-600" />, // Using Archive icon
+          title: t('Smart Pantry', 'مخزن ذكي', 'Akıllı Kiler'),
+          description: t('Manage your ingredients and find recipes', 'إدارة مكوناتك والعثور على الوصفات', 'Malzemelerinizi yönetin ve tarif bulun'),
+          link: '/smart-pantry', // Placeholder link
+      },
+  ];
+
 
   const services = [
     {
-      icon: <Bot className="h-8 w-8" />,
-      title: 'AI Recipe Generator',
-      description: 'Get personalized recipes based on your preferences and dietary needs',
-      path: '/ai-chef',
-      color: 'bg-blue-500'
+      id: 'scan-dish',
+      icon: <Camera className="h-6 w-6 text-green-500" />,
+      title: t('Scan Dish', 'مسح طبق', 'Yemek Tara'),
+      description: t('Identify dishes and get recipes', 'تحديد الأطباق والحصول على الوصفات', 'Yemekleri tanımlayın ve tarif alın'),
+      link: '/scan-dish',
     },
     {
-      icon: <Camera className="h-8 w-8" />,
-      title: 'Dish Scanner',
-      description: 'Scan any dish to get its recipe and nutritional information',
-      path: '/scan-dish',
-      color: 'bg-purple-500'
+      id: 'scan-ingredients',
+      icon: <Camera className="h-6 w-6 text-amber-500" />,
+      title: t('Scan Ingredients', 'مسح المكونات', 'Malzeme Tara'),
+      description: t('Scan ingredients to find recipes', 'مسح المكونات للعثور على الوصفات', 'Tarif bulmak için malzemeleri tarayın'),
+      link: '/scan-ingredients',
     },
     {
-      icon: <ChefHat className="h-8 w-8" />,
-      title: 'Find by Ingredients',
-      description: 'Enter ingredients you have and discover what you can cook',
-      path: '/ai-find-by-ingredients',
-      color: 'bg-green-500'
+      id: 'body-information',
+      icon: <Scale className="h-6 w-6 text-blue-500" />,
+      title: t('Body Information', 'معلومات الجسم', 'Vücut Bilgisi'),
+      description: t('Track your body metrics', 'تتبع مقاييس جسمك', 'Vücut ölçümlerinizi takip edin'),
+      link: '/body-information',
     },
     {
-      icon: <Calendar className="h-8 w-8" />,
-      title: 'Meal Planning',
-      description: 'Plan your weekly meals with smart suggestions',
-      path: '/meal-plan',
-      color: 'bg-orange-500'
+      id: 'health-tracking',
+      icon: <Activity className="h-6 w-6 text-red-500" />,
+      title: t('Health Tracking', 'تتبع الصحة', 'Sağlık Takibi'),
+      description: t('Monitor your health and nutrition', 'مراقبة صحتك وتغذيتك', 'Sağlığınızı ve beslenmenizi izleyin'),
+      link: '/health-tracking-home',
     },
     {
-      icon: <Utensils className="h-8 w-8" />,
-      title: 'Smart Pantry',
-      description: 'Manage your ingredients and get expiration reminders',
-      path: '/smart-pantry',
-      color: 'bg-teal-500'
+      id: 'ai-chef',
+      icon: <Bot className="h-6 w-6 text-purple-500" />,
+      title: t('AI Chef Assistant', 'مساعد الطاهي الذكي', 'AI Şef Asistanı'),
+      description: t('Get personalized cooking advice', 'احصل على نصائح طبخ شخصية', 'Kişiselleştirilmiş yemek tavsiyeleri alın'),
+      link: '/ai-chef',
     },
     {
-      icon: <Heart className="h-8 w-8" />,
-      title: 'Health Tracking',
-      description: 'Track your nutrition and health goals',
-      path: '/health-tracking-home',
-      color: 'bg-red-500'
-    }
-  ];
+      id: 'meal-planning',
+      icon: <Utensils className="h-6 w-6 text-wasfah-deep-teal" />,
+      title: t('Meal Planning', 'تخطيط الوجبات', 'Öğün Planlama'),
+      description: t('Plan your weekly meals', 'خطط وجباتك الأسبوعية', 'Haftalık öğünlerinizi planlayın'),
+      link: '/meal-plan',
+    },
+    {
+      id: 'shopping-list',
+      icon: <ShoppingCart className="h-6 w-6 text-wasfah-bright-teal" />,
+      title: t('Smart Shopping List', 'قائمة التسوق الذكية', 'Akıllı Alışveriş Listesi'),
+      description: t('Generate shopping lists from recipes', 'إنشاء قوائم التسوق من الوصفات', 'Tariflerden alışveriş listeleri oluşturun'),
+      link: '/shopping-list',
+    },
+    {
+      id: 'loyalty-program', // This will be filtered out
+      icon: <Award className="h-6 w-6 text-amber-500" />,
+      title: t('Loyalty Program', 'برنامج الولاء', 'Sadakat Programı'),
+      description: t('Earn rewards for cooking', 'اكسب مكافآت للطبخ', 'Yemek yaparak ödül kazanın'),
+      link: '/loyalty-program',
+    },
+    {
+      id: 'subscription', // This will be filtered out
+      icon: <CreditCard className="h-6 w-6 text-purple-500" />,
+      title: t('Premium Subscription', 'الاشتراك المميز', 'Premium Abonelik'),
+      description: t('Unlock premium features', 'فتح الميزات المميزة', 'Premium özelliklerin kilidini açın'),
+      link: '/subscription',
+    },
+    {
+      id: 'connected-devices',
+      icon: <Smartphone className="h-6 w-6 text-green-600" />,
+      title: t('Connected Devices', 'الأجهزة المتصلة', 'Bağlı Cihazlar'),
+      description: t('Sync with your smart devices', 'مزامنة مع أجهزتك الذكية', 'Akıllı cihazlarınızla senkronize edin'),
+      link: '/connected-devices',
+    },
+    {
+      id: 'community',
+      icon: <Users className="h-6 w-6 text-blue-600" />,
+      title: t('Community', 'المجتمع', 'Topluluk'),
+      description: t('Connect with other food lovers', 'تواصل مع عشاق الطعام الآخرين', 'Diğer yemek severleriyle bağlantı kurun'),
+      link: '/community',
+    },
+    {
+      id: 'global-cuisine',
+      icon: <MapPin className="h-6 w-6 text-orange-500" />,
+      title: t('Global Cuisine', 'المأكولات العالمية', 'Küresel Mutfak'),
+      description: t('Explore cuisines from around the world', 'استكشف المأكولات من جميع أنحاء العالم', 'Dünyanın her yerinden mutfakları keşfedin'),
+      link: '/global-cuisine',
+    },
+  ]
+  .filter(service => !idsToRemove.includes(service.id)) // Remove specified items
+  .concat(newServices); // Add the new items
+
 
   return (
-    <PageContainer header={{ title: 'Services', showBackButton: true }}>
+    <PageContainer header={{ title: t('Services', 'الخدمات', 'Hizmetler'), showBackButton: true }}>
       <div className="space-y-6 pb-20">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Our Services</h1>
-          <p className="text-gray-600">Discover all the amazing features WasfahAI has to offer</p>
+        <div className="bg-gradient-to-br from-wasfah-bright-teal to-wasfah-deep-teal p-6 rounded-lg text-white text-center mb-6">
+          <h1 className="text-2xl font-bold mb-2">{t('Our Services', 'خدماتنا', 'Hizmetlerimiz')}</h1>
+          <p className="opacity-90">{t('Discover all the amazing features WasfahAI has to offer', 'اكتشف جميع الميزات المذهلة التي تقدمها وصفة الذكية', 'WasfahAI\'nin sunduğu tüm harika özellikleri keşfedin')}</p>
         </div>
 
-        <div className="grid gap-4">
-          {services.map((service, index) => (
-            <Card key={index} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate(service.path)}>
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <div className={`${service.color} text-white p-3 rounded-lg`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {services.map((service) => (
+            <Link to={service.link} key={service.id}>
+              <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full">
+                <CardContent className="p-6 flex flex-col items-center text-center h-full">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-full mb-4">
                     {service.icon}
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{service.title}</CardTitle>
-                    <p className="text-gray-600 text-sm mt-1">{service.description}</p>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+                  <h3 className="text-lg font-semibold mb-2">{service.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 flex-1">{service.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
-
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Need Help?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">
-              Have questions about our services? Our support team is here to help you get the most out of WasfahAI.
-            </p>
-            <Button onClick={() => navigate('/help')} variant="outline" className="w-full">
-              Contact Support
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </PageContainer>
   );
-};
-
-export default ServicesPage;
+}

@@ -1,360 +1,492 @@
 
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Upload, Save } from 'lucide-react';
+import { ChefHat, Plus, Camera, X, Upload } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+
+interface Ingredient {
+  id: string;
+  name: string;
+  quantity: string;
+  unit: string;
+}
+
+interface Instruction {
+  id: string;
+  text: string;
+}
+
+interface FormValues {
+  title: string;
+  description: string;
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  difficulty: string;
+  cuisine: string;
+  category: string;
+  subcategory: string;
+  tags: string[];
+}
 
 const CreateRecipePage = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const form = useForm<FormValues>();
   
-  const [recipe, setRecipe] = useState({
-    title: '',
-    description: '',
-    prep_time: '',
-    cooking_time: '',
-    servings: '',
-    difficulty: '',
-    cuisine_type: '',
-    image_url: '',
-    ingredients: [{ name: '', quantity: '', unit: '' }],
-    instructions: [''],
-    categories: [] as string[],
-    tags: [] as string[]
-  });
-
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [instructions, setInstructions] = useState<Instruction[]>([]);
+  const [newIngredient, setNewIngredient] = useState({ name: '', quantity: '', unit: '' });
+  const [newInstruction, setNewInstruction] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
 
-  const handleInputChange = (field: string, value: string) => {
-    setRecipe(prev => ({ ...prev, [field]: value }));
+  // Main categories and their subcategories
+  const categories = {
+    'Foods': ['Main Dishes', 'Appetizers', 'Pickles', 'Soups', 'Sauces', 'Others'],
+    'Desserts': ['Traditional', 'Western', 'Pastries', 'Ice Cream', 'Others'],
+    'Drinks': ['Detox', 'Cocktails', 'Alcoholic', 'Hot Drinks', 'Others']
   };
 
-  const addIngredient = () => {
-    setRecipe(prev => ({
-      ...prev,
-      ingredients: [...prev.ingredients, { name: '', quantity: '', unit: '' }]
-    }));
+  // List of cuisine countries
+  const cuisines = [
+    'Levant', 'Italian', 'Mexican', 'Chinese', 'Indian', 'Japanese', 'Thai', 
+    'Turkish', 'Syrian', 'Iraqi', 'Yemeni', 'American', 'Moroccan', 'Lebanese', 'German'
+  ];
+
+  // Difficulty levels
+  const difficultyLevels = ['Easy', 'Medium', 'Hard'];
+
+  const handleAddIngredient = () => {
+    if (newIngredient.name.trim()) {
+      setIngredients([
+        ...ingredients,
+        { 
+          id: Date.now().toString(), 
+          name: newIngredient.name,
+          quantity: newIngredient.quantity,
+          unit: newIngredient.unit
+        }
+      ]);
+      setNewIngredient({ name: '', quantity: '', unit: '' });
+    }
   };
 
-  const removeIngredient = (index: number) => {
-    setRecipe(prev => ({
-      ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index)
-    }));
+  const handleRemoveIngredient = (id: string) => {
+    setIngredients(ingredients.filter(ing => ing.id !== id));
   };
 
-  const updateIngredient = (index: number, field: string, value: string) => {
-    setRecipe(prev => ({
-      ...prev,
-      ingredients: prev.ingredients.map((ing, i) => 
-        i === index ? { ...ing, [field]: value } : ing
-      )
-    }));
+  const handleAddInstruction = () => {
+    if (newInstruction.trim()) {
+      setInstructions([
+        ...instructions,
+        { id: Date.now().toString(), text: newInstruction }
+      ]);
+      setNewInstruction('');
+    }
   };
 
-  const addInstruction = () => {
-    setRecipe(prev => ({
-      ...prev,
-      instructions: [...prev.instructions, '']
-    }));
+  const handleRemoveInstruction = (id: string) => {
+    setInstructions(instructions.filter(inst => inst.id !== id));
   };
 
-  const removeInstruction = (index: number) => {
-    setRecipe(prev => ({
-      ...prev,
-      instructions: prev.instructions.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateInstruction = (index: number, value: string) => {
-    setRecipe(prev => ({
-      ...prev,
-      instructions: prev.instructions.map((inst, i) => 
-        i === index ? value : inst
-      )
-    }));
-  };
-
-  const addTag = () => {
-    if (newTag.trim() && !recipe.tags.includes(newTag.trim())) {
-      setRecipe(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()]
-      }));
+  const handleAddTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
       setNewTag('');
     }
   };
 
-  const removeTag = (tag: string) => {
-    setRecipe(prev => ({
-      ...prev,
-      tags: prev.tags.filter(t => t !== tag)
-    }));
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate required fields
-    if (!recipe.title || !recipe.description || recipe.ingredients.length === 0 || recipe.instructions.length === 0) {
+  const handleSubmit = () => {
+    // Check if all required fields are filled
+    if (!form.getValues('title') || !form.getValues('description') || 
+        ingredients.length === 0 || instructions.length === 0) {
       toast({
-        title: 'Missing Information',
-        description: 'Please fill in all required fields',
-        variant: 'destructive'
+        title: "Missing information",
+        description: "Please fill all the required fields.",
+        variant: "destructive"
       });
       return;
     }
 
-    // Save recipe logic would go here
+    // Simulate submitting the form
     toast({
-      title: 'Recipe Created!',
-      description: 'Your recipe has been saved successfully'
+      title: "Recipe submitted",
+      description: "Your recipe has been submitted for approval.",
     });
-    
-    navigate('/recipes');
   };
 
   return (
-    <PageContainer header={{ title: 'Create Recipe', showBackButton: true }}>
-      <form onSubmit={handleSubmit} className="space-y-6 pb-20">
-        {/* Basic Information */}
+    <PageContainer
+      header={{
+        title: 'Create Recipe',
+        showBackButton: true,
+      }}
+    >
+      <div className="space-y-6 pb-20">
         <Card>
-          <CardHeader>
-            <CardTitle>Recipe Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Recipe Title *</Label>
-              <Input
-                id="title"
-                value={recipe.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Enter recipe title"
-                required
-              />
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <ChefHat size={24} className="text-wasfah-bright-teal" />
+              <h2 className="text-xl font-bold text-wasfah-deep-teal">Share Your Recipe</h2>
             </div>
-            
-            <div>
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={recipe.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Describe your recipe"
-                rows={3}
-                required
-              />
-            </div>
+            <p className="text-gray-500 mt-1 mb-4">
+              Share your culinary creations with the community
+            </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="prep_time">Prep Time (min)</Label>
-                <Input
-                  id="prep_time"
-                  type="number"
-                  value={recipe.prep_time}
-                  onChange={(e) => handleInputChange('prep_time', e.target.value)}
-                  placeholder="30"
-                />
-              </div>
-              <div>
-                <Label htmlFor="cooking_time">Cook Time (min)</Label>
-                <Input
-                  id="cooking_time"
-                  type="number"
-                  value={recipe.cooking_time}
-                  onChange={(e) => handleInputChange('cooking_time', e.target.value)}
-                  placeholder="45"
-                />
-              </div>
-              <div>
-                <Label htmlFor="servings">Servings</Label>
-                <Input
-                  id="servings"
-                  type="number"
-                  value={recipe.servings}
-                  onChange={(e) => handleInputChange('servings', e.target.value)}
-                  placeholder="4"
-                />
-              </div>
-              <div>
-                <Label htmlFor="difficulty">Difficulty</Label>
-                <Select value={recipe.difficulty} onValueChange={(value) => handleInputChange('difficulty', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Easy">Easy</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <Form {...form}>
+              <form className="space-y-6">
+                {/* Recipe Basic Info */}
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Recipe Title*</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter recipe title" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-            <div>
-              <Label htmlFor="cuisine_type">Cuisine Type</Label>
-              <Input
-                id="cuisine_type"
-                value={recipe.cuisine_type}
-                onChange={(e) => handleInputChange('cuisine_type', e.target.value)}
-                placeholder="e.g., Italian, Chinese, Mexican"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="image_url">Recipe Image URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="image_url"
-                  value={recipe.image_url}
-                  onChange={(e) => handleInputChange('image_url', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
-                <Button type="button" variant="outline">
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ingredients */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ingredients *</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recipe.ingredients.map((ingredient, index) => (
-              <div key={index} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-6">
-                  <Label>Ingredient</Label>
-                  <Input
-                    value={ingredient.name}
-                    onChange={(e) => updateIngredient(index, 'name', e.target.value)}
-                    placeholder="e.g., Chicken breast"
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description*</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Describe your recipe" 
+                            className="min-h-[100px]" 
+                            {...field} 
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
                   />
                 </div>
-                <div className="col-span-3">
-                  <Label>Quantity</Label>
-                  <Input
-                    value={ingredient.quantity}
-                    onChange={(e) => updateIngredient(index, 'quantity', e.target.value)}
-                    placeholder="2"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Unit</Label>
-                  <Input
-                    value={ingredient.unit}
-                    onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                    placeholder="cups"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => removeIngredient(index)}
-                    disabled={recipe.ingredients.length === 1}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            <Button type="button" variant="outline" onClick={addIngredient}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Ingredient
-            </Button>
-          </CardContent>
-        </Card>
 
-        {/* Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Instructions *</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recipe.instructions.map((instruction, index) => (
-              <div key={index} className="flex gap-2 items-start">
-                <div className="flex-shrink-0 w-8 h-8 bg-wasfah-bright-teal text-white rounded-full flex items-center justify-center text-sm font-bold mt-2">
-                  {index + 1}
+                {/* Recipe Photo Upload */}
+                <div>
+                  <h3 className="font-semibold mb-2">Recipe Photo*</h3>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Camera size={48} className="mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-500 mb-4">Upload photos of your recipe</p>
+                    <Button className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
+                      <Upload size={16} className="mr-2" /> Choose Photo
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <Textarea
-                    value={instruction}
-                    onChange={(e) => updateInstruction(index, e.target.value)}
-                    placeholder={`Step ${index + 1} instructions...`}
-                    rows={2}
+
+                {/* Ingredients Section */}
+                <div>
+                  <h3 className="font-semibold mb-2">Ingredients*</h3>
+                  
+                  <div className="flex space-x-2 mb-2">
+                    <Input 
+                      placeholder="Ingredient name" 
+                      value={newIngredient.name}
+                      onChange={(e) => setNewIngredient({...newIngredient, name: e.target.value})}
+                      className="flex-1"
+                    />
+                    <Input 
+                      placeholder="Qty" 
+                      type="text" 
+                      value={newIngredient.quantity}
+                      onChange={(e) => setNewIngredient({...newIngredient, quantity: e.target.value})}
+                      className="w-20"
+                    />
+                    <Select 
+                      value={newIngredient.unit} 
+                      onValueChange={(value) => setNewIngredient({...newIngredient, unit: value})}
+                    >
+                      <SelectTrigger className="w-24">
+                        <SelectValue placeholder="Unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['g', 'kg', 'ml', 'L', 'tsp', 'tbsp', 'cup', 'oz', 'lb', 'piece'].map(u => (
+                          <SelectItem key={u} value={u}>{u}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      type="button"
+                      onClick={handleAddIngredient} 
+                      className="bg-wasfah-bright-teal hover:bg-wasfah-teal"
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2 mt-3">
+                    {ingredients.map((ingredient) => (
+                      <div 
+                        key={ingredient.id} 
+                        className="flex justify-between items-center p-2 bg-gray-50 rounded-md"
+                      >
+                        <div>
+                          <span className="font-medium">{ingredient.name}</span>
+                          <span className="text-gray-500 ml-2">
+                            {ingredient.quantity} {ingredient.unit}
+                          </span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRemoveIngredient(ingredient.id)}
+                        >
+                          <X size={16} className="text-gray-400" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Instructions Section */}
+                <div>
+                  <h3 className="font-semibold mb-2">Instructions*</h3>
+                  
+                  <div className="flex space-x-2 mb-2">
+                    <Textarea 
+                      placeholder="Add a step..." 
+                      value={newInstruction}
+                      onChange={(e) => setNewInstruction(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button"
+                      onClick={handleAddInstruction} 
+                      className="bg-wasfah-bright-teal hover:bg-wasfah-teal h-auto"
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2 mt-3">
+                    {instructions.map((instruction, index) => (
+                      <div 
+                        key={instruction.id} 
+                        className="flex justify-between items-center p-2 bg-gray-50 rounded-md"
+                      >
+                        <div className="flex space-x-3">
+                          <span className="font-bold text-wasfah-bright-teal">{index + 1}.</span>
+                          <span>{instruction.text}</span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleRemoveInstruction(instruction.id)}
+                        >
+                          <X size={16} className="text-gray-400" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recipe Details */}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="prepTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prep Time (minutes)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="15" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cookTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cook Time (minutes)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="30" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="servings"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Servings</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="4" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="difficulty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Difficulty</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {difficultyLevels.map((level) => (
+                              <SelectItem key={level} value={level.toLowerCase()}>
+                                {level}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cuisine"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cuisine</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select cuisine" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {cuisines.map((cuisine) => (
+                              <SelectItem key={cuisine} value={cuisine.toLowerCase()}>
+                                {cuisine}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.keys(categories).map((category) => (
+                              <SelectItem key={category} value={category.toLowerCase()}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
                   />
                 </div>
-                <Button
+
+                {/* Tags Section */}
+                <div>
+                  <h3 className="font-semibold mb-2">Tags</h3>
+                  
+                  <div className="flex space-x-2 mb-2">
+                    <Input 
+                      placeholder="Add tag (e.g. spicy, quick)" 
+                      value={newTag}
+                      onChange={(e) => setNewTag(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      type="button"
+                      onClick={handleAddTag} 
+                      className="bg-wasfah-bright-teal hover:bg-wasfah-teal"
+                    >
+                      <Plus size={16} />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {tags.map((tag) => (
+                      <div 
+                        key={tag} 
+                        className="flex items-center space-x-1 px-3 py-1 bg-wasfah-light-gray rounded-full text-wasfah-deep-teal text-sm"
+                      >
+                        <span>{tag}</span>
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <Button 
                   type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => removeInstruction(index)}
-                  disabled={recipe.instructions.length === 1}
-                  className="mt-2"
+                  onClick={handleSubmit}
+                  className="w-full bg-wasfah-deep-teal hover:bg-wasfah-deep-teal/90 text-lg py-6"
                 >
-                  <Minus className="h-4 w-4" />
+                  Submit Recipe for Approval
                 </Button>
-              </div>
-            ))}
-            <Button type="button" variant="outline" onClick={addInstruction}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Step
-            </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
-
-        {/* Tags */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tags</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add a tag..."
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-              />
-              <Button type="button" onClick={addTag}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {recipe.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                  {tag} ×
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit */}
-        <div className="flex gap-4">
-          <Button type="submit" className="flex-1 bg-wasfah-bright-teal hover:bg-wasfah-teal">
-            <Save className="h-4 w-4 mr-2" />
-            Save Recipe
-          </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-        </div>
-      </form>
+      </div>
     </PageContainer>
   );
 };
