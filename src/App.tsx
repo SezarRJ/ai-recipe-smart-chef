@@ -131,20 +131,16 @@ function App() {
                       <Route path="support" element={<AdminSupportTicketsPage />} />
                       <Route path="community" element={<AdminCommunityManagementPage />} />
                       <Route path="notifications" element={<AdminNotificationsPage />} />
+                      <Route path="content-library" element={<AdminContentLibraryPage />} />
+                      <Route path="icons-manager" element={<AdminIconsManagerPage />} />
                       <Route path="security" element={<AdminSecurityPage />} />
                       <Route path="maintenance" element={<AdminMaintenancePage />} />
                       <Route path="settings" element={<AdminSettingsPage />} />
-                      <Route path="content-library" element={<AdminContentLibraryPage />} />
-                      <Route path="icons-manager" element={<AdminIconsManagerPage />} />
                     </Route>
                     
-                    {/* Catch all route */}
+                    {/* Fallback route */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
-                  
-                  <BottomToolbar />
-                  <Toaster />
-                  <Sonner />
                 </div>
               </TooltipProvider>
             </RTLProvider>

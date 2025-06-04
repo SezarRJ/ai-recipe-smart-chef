@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Search, Plus, Edit, Trash2, ChefHat, Eye } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, CheckCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,34 +16,37 @@ import {
 
 const mockRecipes = [
   {
-    id: 'RCP-001',
-    title: 'Mediterranean Pasta Salad',
+    id: 'REC-001',
+    title: 'Chicken Tikka Masala',
     author: 'Chef Sarah',
-    category: 'Mediterranean',
+    category: 'Indian',
     status: 'published',
-    views: 1250,
     rating: 4.8,
-    created: '2024-01-15'
+    cookTime: 45,
+    difficulty: 'medium',
+    createdAt: '2024-01-15'
   },
   {
-    id: 'RCP-002',
-    title: 'Spicy Thai Curry',
-    author: 'Chef Mike',
-    category: 'Asian',
-    status: 'draft',
-    views: 0,
-    rating: 0,
-    created: '2024-01-14'
-  },
-  {
-    id: 'RCP-003',
-    title: 'Classic Hummus',
+    id: 'REC-002',
+    title: 'Mediterranean Pasta',
     author: 'Chef Ahmed',
-    category: 'Middle Eastern',
+    category: 'Italian',
+    status: 'pending',
+    rating: 4.5,
+    cookTime: 30,
+    difficulty: 'easy',
+    createdAt: '2024-01-14'
+  },
+  {
+    id: 'REC-003',
+    title: 'Beef Stir Fry',
+    author: 'Chef Maria',
+    category: 'Asian',
     status: 'published',
-    views: 890,
-    rating: 4.6,
-    created: '2024-01-13'
+    rating: 4.7,
+    cookTime: 25,
+    difficulty: 'medium',
+    createdAt: '2024-01-13'
   }
 ];
 
@@ -54,15 +57,25 @@ const AdminRecipesPage = () => {
   const getStatusBadge = (status: string) => {
     const variants = {
       published: 'bg-green-100 text-green-800',
-      draft: 'bg-yellow-100 text-yellow-800',
-      archived: 'bg-gray-100 text-gray-800'
+      pending: 'bg-yellow-100 text-yellow-800',
+      draft: 'bg-gray-100 text-gray-800',
+      rejected: 'bg-red-100 text-red-800'
     };
     return <Badge className={variants[status as keyof typeof variants]}>{status}</Badge>;
   };
 
+  const getDifficultyBadge = (difficulty: string) => {
+    const variants = {
+      easy: 'bg-green-100 text-green-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      hard: 'bg-red-100 text-red-800'
+    };
+    return <Badge className={variants[difficulty as keyof typeof variants]}>{difficulty}</Badge>;
+  };
+
   const filteredRecipes = recipes.filter(recipe =>
     recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    recipe.author.toLowerCase().includes(searchQuery.toLowerCase())
+    recipe.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -71,7 +84,7 @@ const AdminRecipesPage = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">Recipes Management</h1>
-            <p className="text-muted-foreground">Manage recipe content, approval, and moderation.</p>
+            <p className="text-muted-foreground">Manage recipe content, approvals, and categories.</p>
           </div>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
@@ -81,21 +94,16 @@ const AdminRecipesPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <ChefHat className="h-5 w-5 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold text-blue-600">{recipes.length}</div>
-                <div className="text-sm text-gray-600">Total Recipes</div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-blue-600">{recipes.length}</div>
+            <div className="text-sm text-gray-600">Total Recipes</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
             <div className="text-2xl font-bold text-green-600">{recipes.filter(r => r.status === 'published').length}</div>
             <div className="text-sm text-gray-600">Published</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-yellow-600">{recipes.filter(r => r.status === 'draft').length}</div>
-            <div className="text-sm text-gray-600">Drafts</div>
+            <div className="text-2xl font-bold text-yellow-600">{recipes.filter(r => r.status === 'pending').length}</div>
+            <div className="text-sm text-gray-600">Pending Review</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
             <div className="text-2xl font-bold text-purple-600">
@@ -119,13 +127,14 @@ const AdminRecipesPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Recipe</TableHead>
+                <TableHead>Title</TableHead>
                 <TableHead>Author</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Views</TableHead>
                 <TableHead>Rating</TableHead>
-                <TableHead className="w-[120px]">Actions</TableHead>
+                <TableHead>Cook Time</TableHead>
+                <TableHead>Difficulty</TableHead>
+                <TableHead className="w-[150px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,15 +144,19 @@ const AdminRecipesPage = () => {
                   <TableCell>{recipe.author}</TableCell>
                   <TableCell>{recipe.category}</TableCell>
                   <TableCell>{getStatusBadge(recipe.status)}</TableCell>
-                  <TableCell>{recipe.views.toLocaleString()}</TableCell>
-                  <TableCell>{recipe.rating > 0 ? `${recipe.rating}/5` : 'N/A'}</TableCell>
+                  <TableCell>★ {recipe.rating}</TableCell>
+                  <TableCell>{recipe.cookTime}m</TableCell>
+                  <TableCell>{getDifficultyBadge(recipe.difficulty)}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Button variant="ghost" size="icon">
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <CheckCircle className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon">
                         <Trash2 className="h-4 w-4" />
