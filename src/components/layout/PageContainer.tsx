@@ -2,6 +2,7 @@
 import React from 'react';
 import { MobileHeader } from './MobileHeader';
 import { MobileNavbar } from './MobileNavbar';
+import { useRTL } from '@/contexts/RTLContext';
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -26,11 +27,23 @@ export const PageContainer: React.FC<PageContainerProps> = ({
   fullWidth = false,
   noPadding = false,
 }) => {
+  const { direction } = useRTL();
+  
   return (
-    <div className="min-h-screen flex flex-col bg-wasfah-light-gray dark:bg-gray-900 overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-wasfah-light-gray via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-x-hidden" dir={direction}>
       {header && <MobileHeader {...header} />}
-      <main className={`flex-grow ${hideNavbar ? 'pb-4' : 'pb-20'} ${className}`}>
-        <div className={`${fullWidth ? 'w-full' : 'container mx-auto max-w-lg'} ${noPadding ? '' : 'px-4 py-4'} min-h-full`}>
+      <main className={cn(
+        'flex-grow',
+        hideNavbar ? 'pb-6' : 'pb-24',
+        'transition-all duration-300',
+        className
+      )}>
+        <div className={cn(
+          fullWidth ? 'w-full' : 'container mx-auto max-w-lg',
+          noPadding ? '' : 'px-4 py-4',
+          'min-h-full',
+          direction === 'rtl' && 'font-arabic'
+        )}>
           {children}
         </div>
       </main>
@@ -38,3 +51,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({
     </div>
   );
 };
+
+// Helper function for className merging
+function cn(...classes: (string | undefined | false)[]): string {
+  return classes.filter(Boolean).join(' ');
+}
