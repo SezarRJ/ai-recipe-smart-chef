@@ -1,153 +1,103 @@
 
-// src/types/index.ts (or wherever your main interfaces are defined)
-
-// --- IMPORTANT: ADD OR UPDATE THESE INTERFACES ---
-
-export interface ScanHistoryItem {
-  id: string;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  timestamp: string;
-  image: string;
-  ingredients?: string[];
-}
-
 export interface Recipe {
   id: string;
   title: string;
   description: string;
+  image_url: string;
   image: string;
-  image_url?: string; // For compatibility
   prep_time: number;
-  prepTime?: number; // For compatibility
-  cooking_time: number;
-  cook_time?: number; // For compatibility
-  cookTime?: number; // For compatibility
-  total_time?: number;
+  prepTime: number;
+  cook_time: number;
+  cookTime: number;
   servings: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  rating: number;
-  rating_count: number;
-  ratingCount?: number; // For compatibility
-  ingredients: Array<{ 
-    id?: string; 
-    name: string; 
-    quantity: number; 
-    unit: string;
-    amount?: number; // For compatibility
-    inPantry?: boolean; // For compatibility
-  }>;
+  cuisine_type: string;
+  cuisineType: string;
   instructions: string[];
   categories: string[];
   tags: string[];
-  isFavorite: boolean;
-  stepImages?: { [key: number]: string };
-  is_published?: boolean;
-  is_public?: boolean;
-  user_id?: string;
-  author_id?: string; // For compatibility
-  created_at?: string;
-  updated_at?: string;
-  cuisine_type?: string;
-  cuisineType?: string; // For compatibility
-  tips?: string[];
-  category_id?: string;
-  is_verified?: boolean;
+  status: 'draft' | 'published' | 'pending_review';
+  author_id: string;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+  rating?: number;
+  ratingCount?: number;
+  isFavorite?: boolean;
+  ingredients?: RecipeIngredient[];
   nutritionalInfo?: {
+    calories: number;
     protein: number;
     carbs: number;
     fat: number;
-    calories: number;
+    fiber: number;
   };
+  tips?: string[];
 }
 
-export interface CookingModeProps {
-  recipe: Recipe;
-  onClose: () => void;
-  isPremiumUser?: boolean;
+export interface RecipeIngredient {
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  inPantry?: boolean;
+}
+
+export interface Ingredient {
+  id: string;
+  name: string;
+  amount: number;
+  unit: string;
+  category: string;
 }
 
 export interface PantryItem {
   id: string;
   name: string;
+  category: string;
   quantity: number;
   unit: string;
-  category: string;
-  location?: string;
   expiryDate?: string;
-  addedDate?: string;
-  isLowStock?: boolean;
-  daysUntilExpiry?: number;
-}
-
-export interface VoiceLanguage {
-  code: string;
-  name: string;
-  voice: string;
-  rtl: boolean;
+  expiry_date?: string;
+  location?: string;
 }
 
 export interface User {
   id: string;
+  name: string;
   email: string;
-  full_name: string;
-  name?: string; // For compatibility
-  avatar_url?: string;
-  bio?: string;
-  dietary_preferences?: string[];
-  dietaryPreferences?: string[]; // For compatibility
-  cuisine_preferences?: string[];
-  cuisinePreferences?: string[]; // For compatibility
+  avatar?: string;
+  preferences?: {
+    dietary: string[];
+    allergies: string[];
+  };
+  dietaryPreferences?: string[];
+  cuisinePreferences?: string[];
   allergies?: string[];
-  nutritional_goals?: any;
-  nutritionalGoals?: any; // For compatibility
-  chef_avatar?: string;
-  chefAvatar?: string; // For compatibility
+  chefAvatar?: string;
+  nutritionalGoals?: {
+    calories: number;
+    protein: number;
+  };
 }
 
 export interface Meal {
   id: string;
-  type: 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
-  recipe: Recipe;
-  scheduled_for: string;
-  notes?: string; // Add optional notes field
+  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  recipe?: Recipe;
+  scheduledTime?: string;
 }
 
 export interface MealPlan {
   id: string;
-  user_id: string;
   date: string;
+  breakfast?: Recipe;
+  lunch?: Recipe;
+  dinner?: Recipe;
+  snack?: Recipe;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
   meals: Meal[];
-  total_calories: number;
-  total_protein: number;
-  total_carbs: number;
-  total_fat: number;
-}
-
-export type ToastVariant = "link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | "success";
-
-// New interfaces for community moderation
-export interface SharedRecipe extends Recipe {
-  status: 'pending' | 'approved' | 'rejected';
-  submitted_by: string;
-  submitted_at: string;
-  moderated_by?: string;
-  moderated_at?: string;
-  moderation_notes?: string;
-}
-
-export interface ModerationAction {
-  id: string;
-  recipe_id: string;
-  action: 'approve' | 'reject';
-  moderator_id: string;
-  notes?: string;
-  timestamp: string;
 }
