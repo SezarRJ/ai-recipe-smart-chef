@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export interface RTLContextType {
   direction: 'ltr' | 'rtl';
@@ -40,9 +40,44 @@ export const RTLProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // Update document direction and font when direction or language changes
+  useEffect(() => {
+    document.documentElement.dir = direction;
+    document.documentElement.lang = language;
+    
+    // Apply language-specific classes
+    const body = document.body;
+    const html = document.documentElement;
+    
+    // Remove existing language classes
+    body.classList.remove('font-arabic', 'font-turkish', 'font-english');
+    html.classList.remove('font-arabic', 'font-turkish', 'font-english');
+    
+    // Add appropriate language class
+    if (language === 'ar') {
+      body.classList.add('font-arabic');
+      html.classList.add('font-arabic');
+    } else if (language === 'tr') {
+      body.classList.add('font-turkish');
+      html.classList.add('font-turkish');
+    } else {
+      body.classList.add('font-english');
+      html.classList.add('font-english');
+    }
+    
+    // Update CSS custom properties for font size adjustments
+    if (language === 'ar') {
+      document.documentElement.style.setProperty('--text-scale', '1.05');
+      document.documentElement.style.setProperty('--line-height-scale', '1.7');
+    } else {
+      document.documentElement.style.setProperty('--text-scale', '1');
+      document.documentElement.style.setProperty('--line-height-scale', '1.5');
+    }
+  }, [direction, language]);
+
   return (
     <RTLContext.Provider value={{ direction, language, toggleDirection, setLanguage, t }}>
-      <div dir={direction}>
+      <div dir={direction} className={`min-h-screen text-rendering-optimized ${direction === 'rtl' ? 'font-arabic' : ''}`}>
         {children}
       </div>
     </RTLContext.Provider>
