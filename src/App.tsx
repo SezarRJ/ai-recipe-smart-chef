@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,8 +20,8 @@ import RecipeDetailPage from "@/pages/RecipeDetailPage";
 import CookingModePage from "@/pages/CookingMode";
 import ProfilePage from "@/pages/ProfilePage";
 import MenuPage from "@/pages/MenuPage";
-import Settings from "@/pages/Settings";
-import MainSettingsPage from "@/pages/MainSettingsPage";
+import SettingsPage from "@/pages/SettingsPage";
+import SystemSettingsPage from "@/pages/SystemSettingsPage";
 
 // New Feature Pages
 import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
@@ -54,8 +55,6 @@ import AdminSettingsPage from "@/pages/admin/AdminSettingsPage";
 import AdminAccountingPage from "@/pages/admin/AdminAccountingPage";
 import AdminIntegrationsPage from "@/pages/admin/AdminIntegrationsPage";
 import AdminNotificationsPage from "@/pages/admin/AdminNotificationsPage";
-import AdminAdvertisementPage from "@/pages/admin/AdminAdvertisementPage";
-import AdminImageControlPage from "@/pages/admin/AdminImageControlPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,8 +87,8 @@ function App() {
                     <Route path="/cooking/:id" element={<CookingModePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/menu" element={<MenuPage />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/main-settings" element={<MainSettingsPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/system-settings" element={<SystemSettingsPage />} />
                     
                     {/* New Feature Routes */}
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
@@ -120,8 +119,6 @@ function App() {
                       <Route path="recipes" element={<AdminRecipesPage />} />
                       <Route path="ingredients" element={<AdminIngredientsPage />} />
                       <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
-                      <Route path="image-control" element={<AdminImageControlPage />} />
-                      <Route path="advertisements" element={<AdminAdvertisementPage />} />
                       <Route path="translations" element={<AdminTranslationsPage />} />
                       <Route path="languages" element={<AdminLanguagePage />} />
                       <Route path="subscriptions" element={<AdminSubscriptionPage />} />
