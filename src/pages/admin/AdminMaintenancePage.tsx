@@ -1,40 +1,38 @@
 
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Wrench, AlertTriangle, CheckCircle, Clock, Play, Square } from 'lucide-react';
+import { AlertTriangle, Server, Database, Wrench, Shield, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 const AdminMaintenancePage = () => {
-  const { toast } = useToast();
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
-  const handleToggleMaintenance = () => {
-    setMaintenanceMode(!maintenanceMode);
-    toast({
-      title: maintenanceMode ? "Maintenance Mode Disabled" : "Maintenance Mode Enabled",
-      description: `Application is now ${maintenanceMode ? 'available to users' : 'in maintenance mode'}.`,
-    });
-  };
-
-  const maintenanceTasks = [
-    { id: 1, name: 'Database Cleanup', status: 'completed', lastRun: '2 hours ago' },
-    { id: 2, name: 'Cache Clear', status: 'scheduled', lastRun: '1 day ago' },
-    { id: 3, name: 'Log Rotation', status: 'running', lastRun: '30 minutes ago' },
-    { id: 4, name: 'Backup Verification', status: 'pending', lastRun: '1 week ago' }
+  const systemStatus = [
+    { name: 'API Server', status: 'healthy', uptime: '99.9%' },
+    { name: 'Database', status: 'healthy', uptime: '99.8%' },
+    { name: 'File Storage', status: 'warning', uptime: '98.5%' },
+    { name: 'Cache System', status: 'healthy', uptime: '99.7%' },
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'running': return 'bg-blue-100 text-blue-800';
-      case 'scheduled': return 'bg-yellow-100 text-yellow-800';
-      case 'pending': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'healthy': return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'warning': return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+      case 'error': return <XCircle className="h-5 w-5 text-red-500" />;
+      default: return <Server className="h-5 w-5 text-gray-500" />;
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      healthy: 'bg-green-100 text-green-800',
+      warning: 'bg-yellow-100 text-yellow-800',
+      error: 'bg-red-100 text-red-800'
+    };
+    return <Badge className={variants[status as keyof typeof variants]}>{status}</Badge>;
   };
 
   return (
@@ -43,80 +41,109 @@ const AdminMaintenancePage = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">System Maintenance</h1>
-            <p className="text-muted-foreground">Manage system maintenance tasks and schedules.</p>
+            <p className="text-muted-foreground">Monitor system health and perform maintenance tasks.</p>
           </div>
-          <Button 
-            onClick={handleToggleMaintenance}
-            variant={maintenanceMode ? "destructive" : "default"}
-          >
-            {maintenanceMode ? <Square className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
-            {maintenanceMode ? 'Disable' : 'Enable'} Maintenance Mode
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Database className="h-4 w-4 mr-2" />
+              Database Backup
+            </Button>
+            <Button variant="outline">
+              <Wrench className="h-4 w-4 mr-2" />
+              System Check
+            </Button>
+          </div>
         </div>
 
-        {maintenanceMode && (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Maintenance mode is currently active. Users will see a maintenance page.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <div>
-                  <div className="text-2xl font-bold text-green-600">4</div>
-                  <div className="text-sm text-gray-600">Completed Tasks</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-blue-600">2</div>
-              <div className="text-sm text-gray-600">Running Tasks</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-2xl font-bold text-yellow-600">3</div>
-              <div className="text-sm text-gray-600">Scheduled Tasks</div>
-            </CardContent>
-          </Card>
-        </div>
-
+        {/* Maintenance Mode Toggle */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
-              Maintenance Tasks
+              <Shield className="h-5 w-5" />
+              Maintenance Mode
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium">Enable Maintenance Mode</h3>
+                <p className="text-sm text-muted-foreground">
+                  Temporarily disable user access for system maintenance
+                </p>
+              </div>
+              <Switch
+                checked={maintenanceMode}
+                onCheckedChange={setMaintenanceMode}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* System Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
-              {maintenanceTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
+              {systemStatus.map((system, index) => (
+                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="font-medium">{task.name}</div>
-                    <Badge className={getStatusColor(task.status)}>
-                      {task.status}
-                    </Badge>
+                    {getStatusIcon(system.status)}
+                    <div>
+                      <h3 className="font-medium">{system.name}</h3>
+                      <p className="text-sm text-muted-foreground">Uptime: {system.uptime}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">Last run: {task.lastRun}</span>
-                    <Button variant="outline" size="sm">
-                      Run Now
-                    </Button>
-                  </div>
+                  {getStatusBadge(system.status)}
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
+
+        {/* Maintenance Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Database Maintenance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start">
+                <Database className="h-4 w-4 mr-2" />
+                Optimize Database
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Database className="h-4 w-4 mr-2" />
+                Clean Old Logs
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Database className="h-4 w-4 mr-2" />
+                Backup Database
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">System Maintenance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start">
+                <Server className="h-4 w-4 mr-2" />
+                Clear Cache
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Wrench className="h-4 w-4 mr-2" />
+                System Health Check
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Shield className="h-4 w-4 mr-2" />
+                Security Scan
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AdminPageWrapper>
   );

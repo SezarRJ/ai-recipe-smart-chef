@@ -1,29 +1,33 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const images = [
   {
-    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80', // Main dish
-    alt: 'Main dish',
+    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80',
+    alt: 'Delicious main dish',
   },
   {
-    url: 'https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=1920&q=80', // Dessert/sweets
-    alt: 'Dessert dish',
+    url: 'https://images.unsplash.com/photo-1519869325930-281384150729?auto=format&fit=crop&w=1920&q=80',
+    alt: 'Sweet dessert',
   },
   {
-    url: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1920&q=80', // Drink
-    alt: 'Refreshing drinks',
+    url: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1920&q=80',
+    alt: 'Refreshing beverages',
   },
 ];
 
 const SplashScreen = () => {
-  const [idx, setIdx] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setInterval(() => setIdx(i => (i + 1) % images.length), 5000);
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 4000);
+
     return () => clearInterval(timer);
   }, []);
 
@@ -39,55 +43,64 @@ const SplashScreen = () => {
     <div className="min-h-screen flex flex-col justify-end items-center p-0 relative overflow-hidden">
       {/* Background Slideshow */}
       <div className="absolute inset-0">
-        {images.map((img, i) => (
-          <img
-            key={i}
-            src={img.url}
-            alt={img.alt}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === idx ? 'opacity-100' : 'opacity-0'}`}
-            style={{ filter: 'none' }}
-          />
+        {images.map((img, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={img.url}
+              alt={img.alt}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30" />
+          </div>
         ))}
       </div>
 
-      {/* All content at the bottom */}
-      <div className="w-full max-w-md relative z-10 flex flex-col items-center space-y-3 pb-8">
-        {/* Title */}
-        <div className="flex flex-col items-center mb-1">
-          <h1 className="text-xl font-bold text-white tracking-tight">WasfahAI</h1>
+      {/* Content at the bottom */}
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center space-y-4 pb-12 px-6">
+        {/* App Title */}
+        <div className="flex flex-col items-center mb-2">
+          <h1 className="text-3xl font-bold text-white tracking-tight mb-1">WasfahAI</h1>
+          <p className="text-white/90 text-center text-sm">Your AI-Powered Recipe Companion</p>
         </div>
 
-        {/* Discover, Create, Connect Bar */}
-        <div className="px-3 py-0.5 rounded-full bg-white/20 text-xs text-white font-semibold shadow-sm mb-1">
-          Discover, Create, Connect
+        {/* Feature tagline */}
+        <div className="px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-sm text-white font-medium shadow-lg mb-4">
+          Discover • Create • Connect
         </div>
 
         {/* Image Indicators */}
-        <div className="flex justify-center space-x-2 mb-2">
-          {images.map((_, i) => (
+        <div className="flex justify-center space-x-2 mb-6">
+          {images.map((_, index) => (
             <button
-              key={i}
-              onClick={() => setIdx(i)}
-              className={`h-2 rounded-full transition-all duration-300 ${i === idx ? 'bg-teal-500 w-8' : 'bg-gray-300 w-2'}`}
+              key={index}
+              onClick={() => setCurrentImageIndex(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentImageIndex ? 'bg-white w-8' : 'bg-white/50 w-2'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
 
-        {/* Actions */}
+        {/* Action Buttons */}
         <div className="w-full space-y-3">
           <Button
             onClick={handleGetStarted}
-            className="w-full bg-white text-teal-500 hover:bg-gray-50 font-semibold py-3 text-lg shadow-lg rounded-lg transition-all duration-200 flex items-center justify-center group"
+            className="w-full bg-white text-wasfah-deep-teal hover:bg-gray-100 font-semibold py-3 text-lg shadow-xl rounded-lg transition-all duration-300 flex items-center justify-center group"
           >
             Get Started
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
-        </div>
-        <div className="text-center mt-2">
+          
           <Button
             variant="ghost"
             onClick={handleSkip}
-            className="text-white/80 hover:text-white hover:bg-white/10 text-base px-4 py-2 rounded transition-all duration-200"
+            className="w-full text-white/90 hover:text-white hover:bg-white/10 text-base py-2 rounded-lg transition-all duration-200"
           >
             Skip for now
           </Button>

@@ -7,11 +7,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RTLProvider } from "@/contexts/RTLContext";
-import BottomToolbar from "@/components/layout/BottomToolbar";
 
 // Auth & Landing
 import AuthPage from "@/pages/AuthPage";
 import Index from "@/pages/Index";
+import SplashScreen from "@/pages/SplashScreen";
 
 // Main App Pages
 import NewHomePage from "@/pages/NewHomePage";
@@ -78,7 +78,7 @@ function App() {
                     {/* Auth & Landing Routes */}
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/landing" element={<Index />} />
+                    <Route path="/splash" element={<SplashScreen />} />
                     
                     {/* Main App Routes */}
                     <Route path="/home" element={<NewHomePage />} />
