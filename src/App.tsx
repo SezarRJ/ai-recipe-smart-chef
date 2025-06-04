@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RTLProvider } from "@/contexts/RTLContext";
+import BottomToolbar from "@/components/layout/BottomToolbar";
 
 // Auth & Landing
 import AuthPage from "@/pages/AuthPage";
@@ -73,12 +74,29 @@ function App() {
               <TooltipProvider>
                 <div className="min-h-screen bg-background font-sans antialiased">
                   <Routes>
-                    {/* Auth & Landing Routes */}
+                    {/* Root redirect */}
                     <Route path="/" element={<Index />} />
+                    
+                    {/* Language-based routes */}
+                    <Route path="/:lang" element={<Index />} />
+                    <Route path="/:lang/auth" element={<AuthPage />} />
+                    <Route path="/:lang/splash" element={<SplashScreen />} />
+                    <Route path="/:lang/home" element={<NewHomePage />} />
+                    <Route path="/:lang/recipes" element={<RecipesPage />} />
+                    <Route path="/:lang/recipe/:id" element={<RecipeDetailPage />} />
+                    <Route path="/:lang/profile" element={<ProfilePage />} />
+                    <Route path="/:lang/menu" element={<MenuPage />} />
+                    <Route path="/:lang/settings" element={<SettingsPage />} />
+                    <Route path="/:lang/system-settings" element={<SystemSettingsPage />} />
+                    <Route path="/:lang/global-cuisine" element={<GlobalCuisinePage />} />
+                    <Route path="/:lang/ai-features" element={<AIFeaturesPage />} />
+                    <Route path="/:lang/health-tracking" element={<HealthTrackingPage />} />
+                    <Route path="/:lang/health-tracking-home" element={<HealthTrackingHomePage />} />
+                    <Route path="/:lang/create-recipe" element={<CreateRecipePage />} />
+                    
+                    {/* Non-language routes (fallback) */}
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/splash" element={<SplashScreen />} />
-                    
-                    {/* Main App Routes */}
                     <Route path="/home" element={<NewHomePage />} />
                     <Route path="/recipes" element={<RecipesPage />} />
                     <Route path="/recipe/:id" element={<RecipeDetailPage />} />
@@ -86,8 +104,6 @@ function App() {
                     <Route path="/menu" element={<MenuPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/system-settings" element={<SystemSettingsPage />} />
-                    
-                    {/* Feature Routes */}
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
                     <Route path="/ai-features" element={<AIFeaturesPage />} />
                     <Route path="/health-tracking" element={<HealthTrackingPage />} />
@@ -135,8 +151,9 @@ function App() {
                     </Route>
                     
                     {/* Fallback route */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<Navigate to="/en/home" replace />} />
                   </Routes>
+                  <BottomToolbar />
                 </div>
                 <Toaster />
                 <Sonner />
