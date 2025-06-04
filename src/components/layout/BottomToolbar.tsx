@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   Home,
   Compass,
@@ -14,10 +14,12 @@ import { cn } from '@/lib/utils';
 
 const BottomToolbar = () => {
   const location = useLocation();
+  const { lang } = useParams();
   const pathname = location.pathname;
+  const currentLang = lang || 'en';
 
   // Don't show toolbar on admin pages, auth pages, or splash screen
-  if (pathname.startsWith('/admin') || pathname === '/auth' || pathname === '/' || pathname === '/splash') {
+  if (pathname.startsWith('/admin') || pathname.includes('/auth') || pathname === '/' || pathname.includes('/splash')) {
     return null;
   }
 
@@ -25,38 +27,38 @@ const BottomToolbar = () => {
     {
       icon: Home,
       label: 'Home',
-      href: '/home',
-      isActive: pathname === '/home'
+      href: `/${currentLang}/home`,
+      isActive: pathname.includes('/home')
     },
     {
       icon: UtensilsCrossed,
       label: 'Recipes',
-      href: '/recipes',
-      isActive: pathname === '/recipes'
+      href: `/${currentLang}/recipes`,
+      isActive: pathname.includes('/recipes')
     },
     {
       icon: Compass,
       label: 'Cuisine',
-      href: '/global-cuisine',
-      isActive: pathname === '/global-cuisine'
+      href: `/${currentLang}/global-cuisine`,
+      isActive: pathname.includes('/global-cuisine')
     },
     {
       icon: Sparkles,
       label: 'AI Features',
-      href: '/ai-features',
-      isActive: pathname === '/ai-features'
+      href: `/${currentLang}/ai-features`,
+      isActive: pathname.includes('/ai-features')
     },
     {
       icon: Activity,
       label: 'Health',
-      href: '/health-tracking-home',
-      isActive: pathname === '/health-tracking-home'
+      href: `/${currentLang}/health-tracking-home`,
+      isActive: pathname.includes('/health-tracking')
     },
     {
       icon: Settings2,
       label: 'Settings',
-      href: '/settings',
-      isActive: pathname === '/settings'
+      href: `/${currentLang}/settings`,
+      isActive: pathname.includes('/settings')
     }
   ];
 

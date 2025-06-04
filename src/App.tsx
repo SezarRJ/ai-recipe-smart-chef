@@ -12,18 +12,18 @@ import BottomToolbar from "@/components/layout/BottomToolbar";
 // Auth & Landing
 import AuthPage from "@/pages/AuthPage";
 import Index from "@/pages/Index";
+import SplashScreen from "@/pages/SplashScreen";
 
 // Main App Pages
 import NewHomePage from "@/pages/NewHomePage";
 import RecipesPage from "@/pages/RecipesPage";
 import RecipeDetailPage from "@/pages/RecipeDetailPage";
-import CookingModePage from "@/pages/CookingMode";
 import ProfilePage from "@/pages/ProfilePage";
 import MenuPage from "@/pages/MenuPage";
 import SettingsPage from "@/pages/SettingsPage";
 import SystemSettingsPage from "@/pages/SystemSettingsPage";
 
-// New Feature Pages
+// Feature Pages
 import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
 import AIFeaturesPage from "@/pages/AIFeaturesPage";
 import HealthTrackingPage from "@/pages/HealthTrackingPage";
@@ -36,7 +36,6 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
 import AdminRecipesPage from "@/pages/admin/AdminRecipesPage";
 import AdminIngredientsPage from "@/pages/admin/AdminIngredientsPage";
-import AdminIngredientImagesManager from "@/components/AdminIngredientImagesManager";
 import AdminTranslationsPage from "@/pages/admin/AdminTranslationsPage";
 import AdminLanguagePage from "@/pages/admin/AdminLanguagePage";
 import AdminUserTypePage from "@/pages/admin/AdminUserTypePage";
@@ -75,22 +74,36 @@ function App() {
               <TooltipProvider>
                 <div className="min-h-screen bg-background font-sans antialiased">
                   <Routes>
-                    {/* Auth & Landing Routes */}
+                    {/* Root redirect */}
                     <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/landing" element={<Index />} />
                     
-                    {/* Main App Routes */}
+                    {/* Language-based routes */}
+                    <Route path="/:lang" element={<Index />} />
+                    <Route path="/:lang/auth" element={<AuthPage />} />
+                    <Route path="/:lang/splash" element={<SplashScreen />} />
+                    <Route path="/:lang/home" element={<NewHomePage />} />
+                    <Route path="/:lang/recipes" element={<RecipesPage />} />
+                    <Route path="/:lang/recipe/:id" element={<RecipeDetailPage />} />
+                    <Route path="/:lang/profile" element={<ProfilePage />} />
+                    <Route path="/:lang/menu" element={<MenuPage />} />
+                    <Route path="/:lang/settings" element={<SettingsPage />} />
+                    <Route path="/:lang/system-settings" element={<SystemSettingsPage />} />
+                    <Route path="/:lang/global-cuisine" element={<GlobalCuisinePage />} />
+                    <Route path="/:lang/ai-features" element={<AIFeaturesPage />} />
+                    <Route path="/:lang/health-tracking" element={<HealthTrackingPage />} />
+                    <Route path="/:lang/health-tracking-home" element={<HealthTrackingHomePage />} />
+                    <Route path="/:lang/create-recipe" element={<CreateRecipePage />} />
+                    
+                    {/* Non-language routes (fallback) */}
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/splash" element={<SplashScreen />} />
                     <Route path="/home" element={<NewHomePage />} />
                     <Route path="/recipes" element={<RecipesPage />} />
                     <Route path="/recipe/:id" element={<RecipeDetailPage />} />
-                    <Route path="/cooking/:id" element={<CookingModePage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/menu" element={<MenuPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/system-settings" element={<SystemSettingsPage />} />
-                    
-                    {/* New Feature Routes */}
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
                     <Route path="/ai-features" element={<AIFeaturesPage />} />
                     <Route path="/health-tracking" element={<HealthTrackingPage />} />
@@ -118,7 +131,6 @@ function App() {
                       <Route path="user-types" element={<AdminUserTypePage />} />
                       <Route path="recipes" element={<AdminRecipesPage />} />
                       <Route path="ingredients" element={<AdminIngredientsPage />} />
-                      <Route path="ingredient-images" element={<AdminIngredientImagesManager />} />
                       <Route path="translations" element={<AdminTranslationsPage />} />
                       <Route path="languages" element={<AdminLanguagePage />} />
                       <Route path="subscriptions" element={<AdminSubscriptionPage />} />
@@ -131,21 +143,20 @@ function App() {
                       <Route path="support" element={<AdminSupportTicketsPage />} />
                       <Route path="community" element={<AdminCommunityManagementPage />} />
                       <Route path="notifications" element={<AdminNotificationsPage />} />
+                      <Route path="content-library" element={<AdminContentLibraryPage />} />
+                      <Route path="icons-manager" element={<AdminIconsManagerPage />} />
                       <Route path="security" element={<AdminSecurityPage />} />
                       <Route path="maintenance" element={<AdminMaintenancePage />} />
                       <Route path="settings" element={<AdminSettingsPage />} />
-                      <Route path="content-library" element={<AdminContentLibraryPage />} />
-                      <Route path="icons-manager" element={<AdminIconsManagerPage />} />
                     </Route>
                     
-                    {/* Catch all route */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    {/* Fallback route */}
+                    <Route path="*" element={<Navigate to="/en/home" replace />} />
                   </Routes>
-                  
                   <BottomToolbar />
-                  <Toaster />
-                  <Sonner />
                 </div>
+                <Toaster />
+                <Sonner />
               </TooltipProvider>
             </RTLProvider>
           </LanguageProvider>

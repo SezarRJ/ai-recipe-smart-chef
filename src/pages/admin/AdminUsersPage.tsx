@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Search, Plus, Edit, Trash2, Users, Crown, Shield } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,31 +16,31 @@ import {
 
 const mockUsers = [
   {
-    id: 'USER-001',
-    name: 'Ahmed Hassan',
-    email: 'ahmed@example.com',
-    role: 'Premium User',
+    id: 'USR-001',
+    name: 'Sarah Johnson',
+    email: 'sarah@example.com',
+    role: 'user',
     status: 'active',
     joinDate: '2024-01-15',
-    lastActive: '2 minutes ago'
+    lastLogin: '2 hours ago'
   },
   {
-    id: 'USER-002',
-    name: 'Fatima Ali',
-    email: 'fatima@example.com',
-    role: 'Free User',
-    status: 'active',
-    joinDate: '2024-01-14',
-    lastActive: '1 hour ago'
-  },
-  {
-    id: 'USER-003',
-    name: 'Omar Khaled',
-    email: 'omar@example.com',
-    role: 'Admin',
+    id: 'USR-002',
+    name: 'Ahmed Hassan',
+    email: 'ahmed@example.com',
+    role: 'premium',
     status: 'active',
     joinDate: '2024-01-10',
-    lastActive: '5 minutes ago'
+    lastLogin: '1 day ago'
+  },
+  {
+    id: 'USR-003',
+    name: 'Maria Garcia',
+    email: 'maria@example.com',
+    role: 'admin',
+    status: 'active',
+    joinDate: '2023-12-20',
+    lastLogin: '30 minutes ago'
   }
 ];
 
@@ -50,9 +50,9 @@ const AdminUsersPage = () => {
 
   const getRoleBadge = (role: string) => {
     const variants = {
-      'Admin': 'bg-purple-100 text-purple-800',
-      'Premium User': 'bg-blue-100 text-blue-800',
-      'Free User': 'bg-gray-100 text-gray-800'
+      admin: 'bg-purple-100 text-purple-800',
+      premium: 'bg-gold-100 text-gold-800',
+      user: 'bg-blue-100 text-blue-800'
     };
     return <Badge className={variants[role as keyof typeof variants]}>{role}</Badge>;
   };
@@ -87,25 +87,20 @@ const AdminUsersPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold text-blue-600">{users.length}</div>
-                <div className="text-sm text-gray-600">Total Users</div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-blue-600">{users.length}</div>
+            <div className="text-sm text-gray-600">Total Users</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
             <div className="text-2xl font-bold text-green-600">{users.filter(u => u.status === 'active').length}</div>
-            <div className="text-sm text-gray-600">Active</div>
+            <div className="text-sm text-gray-600">Active Users</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-purple-600">{users.filter(u => u.role.includes('Premium')).length}</div>
-            <div className="text-sm text-gray-600">Premium</div>
+            <div className="text-2xl font-bold text-purple-600">{users.filter(u => u.role === 'premium').length}</div>
+            <div className="text-sm text-gray-600">Premium Users</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-orange-600">{users.filter(u => u.role === 'Admin').length}</div>
-            <div className="text-sm text-gray-600">Admins</div>
+            <div className="text-2xl font-bold text-orange-600">{users.filter(u => u.role === 'admin').length}</div>
+            <div className="text-sm text-gray-600">Admin Users</div>
           </div>
         </div>
 
@@ -123,31 +118,31 @@ const AdminUsersPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Join Date</TableHead>
-                <TableHead>Last Active</TableHead>
+                <TableHead>Last Login</TableHead>
                 <TableHead className="w-[120px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{user.name}</div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
-                    </div>
-                  </TableCell>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
                   <TableCell>{user.joinDate}</TableCell>
-                  <TableCell className="text-sm text-gray-500">{user.lastActive}</TableCell>
+                  <TableCell>{user.lastLogin}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <UserCheck className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon">
                         <Trash2 className="h-4 w-4" />

@@ -14,13 +14,16 @@ import {
   CreditCard, 
   LogOut,
   ChevronRight,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Crown
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const SettingsPage = () => {
   const { t, direction } = useRTL();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const quickSettings = [
@@ -47,6 +50,8 @@ const SettingsPage = () => {
     }
   ];
 
+  const isAdmin = user?.user_metadata?.isAdmin || user?.user_metadata?.role === 'admin';
+
   return (
     <PageContainer
       header={{
@@ -61,6 +66,25 @@ const SettingsPage = () => {
           <h1 className="text-2xl font-bold mb-2">{t("Quick Settings", "الإعدادات السريعة")}</h1>
           <p className="opacity-90">{t("Access frequently used settings", "الوصول إلى الإعدادات المستخدمة بكثرة")}</p>
         </div>
+
+        {/* Admin Panel Access - Show only for admins */}
+        {isAdmin && (
+          <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <CardContent className="p-4">
+              <Button 
+                variant="default" 
+                className="w-full flex items-center justify-between bg-purple-600 hover:bg-purple-700"
+                onClick={() => navigate('/admin')}
+              >
+                <div className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  {t("Admin Panel", "لوحة الإدارة")}
+                </div>
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Settings */}
         <Card>
