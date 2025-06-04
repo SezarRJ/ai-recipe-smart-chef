@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -230,7 +231,7 @@ const Settings = () => {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      {item.hasSwitch && (
+                      {item.hasSwitch && item.onToggle && (
                         <Switch
                           checked={Boolean(item.value)}
                           onCheckedChange={item.onToggle}
@@ -277,3 +278,4 @@ const Settings = () => {
 };
 
 export default Settings;
+
