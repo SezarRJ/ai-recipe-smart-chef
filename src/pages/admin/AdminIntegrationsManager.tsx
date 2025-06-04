@@ -1,529 +1,476 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings, Key, AlertTriangle, CheckCircle2, RefreshCw, ExternalLink, LogIn, Cpu, BarChart3, Shield, MessageSquare, Camera, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  ExternalLink, Settings, Key, Database, 
-  Globe, Zap, Shield, CheckCircle, X,
-  Cpu, Link, Code, Webhook, Plus, Save
-} from 'lucide-react';
-import { AdminLayout } from '@/components/layout/AdminLayout';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 
 interface Integration {
   id: string;
   name: string;
   description: string;
-  icon: React.ElementType;
-  enabled: boolean;
-  status: 'connected' | 'disconnected' | 'error';
-  category: 'api' | 'payment' | 'analytics' | 'social';
-  version?: string;
+  icon: React.ReactNode;
+  isConnected: boolean;
+  status: 'active' | 'inactive' | 'error';
   lastSync?: string;
-  apiKey?: string;
-  config?: Record<string, any>;
+  category: 'analytics' | 'monitoring' | 'ai' | 'media' | 'notifications' | 'social' | 'payments';
 }
 
-const integrations: Integration[] = [
-  {
-    id: 'spoonacular',
-    name: 'Spoonacular API',
-    description: 'Recipe and nutrition data provider',
-    icon: Database,
-    enabled: true,
-    status: 'connected',
-    category: 'api',
-    version: 'v1.2',
-    lastSync: '2024-01-20T10:30:00Z',
-    apiKey: '437914c63f4748c49a8236e93c3758eb'
-  },
-  {
-    id: 'stripe',
-    name: 'Stripe',
-    description: 'Payment processing and subscriptions',
-    icon: Shield,
-    enabled: true,
-    status: 'connected',
-    category: 'payment',
-    version: 'v2023-10-16',
-    lastSync: '2024-01-20T09:15:00Z'
-  },
+const mockIntegrations: Integration[] = [
+  // Analytics & Monitoring
   {
     id: 'google-analytics',
     name: 'Google Analytics',
-    description: 'Website analytics and user tracking',
-    icon: Globe,
-    enabled: false,
-    status: 'disconnected',
+    description: 'User behavior tracking and insights',
+    icon: <BarChart3 className="w-6 h-6 text-orange-600" />,
+    isConnected: false,
+    status: 'inactive',
     category: 'analytics'
   },
   {
+    id: 'sentry',
+    name: 'Sentry',
+    description: 'Error monitoring and debugging',
+    icon: <Shield className="w-6 h-6 text-purple-600" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'monitoring'
+  },
+  
+  // AI/ML Services
+  {
     id: 'openai',
-    name: 'OpenAI',
-    description: 'AI-powered recipe generation and assistance',
-    icon: Zap,
-    enabled: false,
-    status: 'disconnected',
-    category: 'api'
-  }
+    name: 'OpenAI API',
+    description: 'AI Chef Assistant functionality',
+    icon: <Cpu className="w-6 h-6 text-green-600" />,
+    isConnected: true,
+    status: 'active',
+    lastSync: '2 minutes ago',
+    category: 'ai'
+  },
+  {
+    id: 'perplexity',
+    name: 'Perplexity API',
+    description: 'Alternative cooking advice and recipe suggestions',
+    icon: <MessageSquare className="w-6 h-6 text-blue-600" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'ai'
+  },
+  
+  // Image Processing
+  {
+    id: 'cloudinary',
+    name: 'Cloudinary',
+    description: 'Image optimization and CDN delivery',
+    icon: <Camera className="w-6 h-6 text-yellow-600" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'media'
+  },
+  
+  // Notifications
+  {
+    id: 'resend',
+    name: 'Resend',
+    description: 'Email delivery service',
+    icon: <MessageSquare className="w-6 h-6 text-green-600" />,
+    isConnected: true,
+    status: 'active',
+    lastSync: '1 minute ago',
+    category: 'notifications'
+  },
+  {
+    id: 'twilio',
+    name: 'Twilio',
+    description: 'SMS notifications',
+    icon: <MessageSquare className="w-6 h-6 text-red-600" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'notifications'
+  },
+  {
+    id: 'firebase-messaging',
+    name: 'Firebase Cloud Messaging',
+    description: 'Push notifications',
+    icon: <MessageSquare className="w-6 h-6 text-orange-500" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'notifications'
+  },
+  
+  // Social Media
+  {
+    id: 'facebook-api',
+    name: 'Facebook API',
+    description: 'Recipe sharing on Facebook',
+    icon: <Share2 className="w-6 h-6 text-blue-700" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'social'
+  },
+  {
+    id: 'instagram-api',
+    name: 'Instagram API',
+    description: 'Recipe sharing on Instagram',
+    icon: <Share2 className="w-6 h-6 text-pink-600" />,
+    isConnected: false,
+    status: 'inactive',
+    category: 'social'
+  },
+  
+  // Payments
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    description: 'Payment processing integration',
+    icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 8.5C14 8.5 14 4 9.5 4C5 4 5 8.5 5 8.5C5 8.5 5 13 9.5 13C14 13 14 8.5 14 8.5Z" stroke="#7A73FF" strokeWidth="2" />
+      <path d="M19 15.5C19 15.5 19 11 14.5 11C10 11 10 15.5 10 15.5C10 15.5 10 20 14.5 20C19 20 19 15.5 19 15.5Z" stroke="#7A73FF" strokeWidth="2" />
+    </svg>,
+    isConnected: false,
+    status: 'inactive',
+    category: 'payments'
+  },
 ];
 
-export default function AdminIntegrationsManager() {
+interface ApiKey {
+  id: string;
+  name: string;
+  service: string;
+  key: string;
+  createdAt: string;
+  lastUsed?: string;
+}
+
+const mockApiKeys: ApiKey[] = [
+  {
+    id: '1',
+    name: 'OpenAI Production',
+    service: 'OpenAI',
+    key: 'sk-proj-***********************************',
+    createdAt: '2025-01-30',
+    lastUsed: '2 minutes ago'
+  },
+  {
+    id: '2',
+    name: 'Resend API Key',
+    service: 'Resend',
+    key: 're_***********',
+    createdAt: '2025-01-30',
+    lastUsed: '1 minute ago'
+  },
+];
+
+const AdminIntegrationsManager: React.FC = () => {
+  const [integrations, setIntegrations] = useState<Integration[]>(mockIntegrations);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
-  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
-  const [integrationList, setIntegrationList] = useState(integrations);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
-  const [configData, setConfigData] = useState({
-    apiKey: '',
-    webhookUrl: '',
-    settings: ''
-  });
-  const [newIntegration, setNewIntegration] = useState({
-    name: '',
-    description: '',
-    category: 'api' as const,
-    apiKey: '',
-    webhookUrl: ''
-  });
-
+  
+  const categories = [
+    { id: 'all', name: 'All Services', count: integrations.length },
+    { id: 'analytics', name: 'Analytics', count: integrations.filter(i => i.category === 'analytics').length },
+    { id: 'monitoring', name: 'Monitoring', count: integrations.filter(i => i.category === 'monitoring').length },
+    { id: 'ai', name: 'AI/ML', count: integrations.filter(i => i.category === 'ai').length },
+    { id: 'media', name: 'Media', count: integrations.filter(i => i.category === 'media').length },
+    { id: 'notifications', name: 'Notifications', count: integrations.filter(i => i.category === 'notifications').length },
+    { id: 'social', name: 'Social', count: integrations.filter(i => i.category === 'social').length },
+    { id: 'payments', name: 'Payments', count: integrations.filter(i => i.category === 'payments').length },
+  ];
+  
+  const filteredIntegrations = selectedCategory === 'all' 
+    ? integrations 
+    : integrations.filter(i => i.category === selectedCategory);
+  
   const handleToggleIntegration = (id: string) => {
-    setIntegrationList(prev => 
-      prev.map(integration => 
-        integration.id === id 
-          ? { ...integration, enabled: !integration.enabled }
-          : integration
-      )
-    );
-
-    const integration = integrationList.find(i => i.id === id);
-    toast({
-      title: integration?.enabled ? "Integration Disabled" : "Integration Enabled",
-      description: `${integration?.name} has been ${integration?.enabled ? 'disabled' : 'enabled'}.`,
-    });
-  };
-
-  const handleConfigureIntegration = (integration: Integration) => {
-    setSelectedIntegration(integration);
-    setConfigData({
-      apiKey: integration.apiKey || '',
-      webhookUrl: integration.config?.webhookUrl || '',
-      settings: JSON.stringify(integration.config || {}, null, 2)
-    });
-    setIsConfigDialogOpen(true);
-  };
-
-  const handleSaveConfiguration = () => {
-    if (!selectedIntegration) return;
-
-    setIntegrationList(prev => 
-      prev.map(integration => 
-        integration.id === selectedIntegration.id 
-          ? { 
-              ...integration, 
-              apiKey: configData.apiKey,
-              config: {
-                ...integration.config,
-                webhookUrl: configData.webhookUrl,
-                ...(configData.settings ? JSON.parse(configData.settings) : {})
-              },
-              status: configData.apiKey ? 'connected' : 'disconnected',
-              enabled: configData.apiKey ? true : integration.enabled
-            }
-          : integration
-      )
-    );
-
-    toast({
-      title: "Configuration Saved",
-      description: `${selectedIntegration.name} integration has been updated.`,
-    });
-
-    setIsConfigDialogOpen(false);
-    setSelectedIntegration(null);
-  };
-
-  const handleAddIntegration = () => {
-    if (!newIntegration.name || !newIntegration.description) {
+    setIntegrations(integrations.map(integration => 
+      integration.id === id 
+        ? { 
+            ...integration, 
+            isConnected: !integration.isConnected,
+            status: !integration.isConnected ? 'active' : 'inactive'
+          }
+        : integration
+    ));
+    
+    const integration = integrations.find(int => int.id === id);
+    if (integration) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        title: integration.isConnected ? 'Integration Disabled' : 'Integration Enabled',
+        description: `${integration.name} has been ${integration.isConnected ? 'disconnected' : 'connected'} successfully.`,
       });
-      return;
     }
-
-    const integration: Integration = {
-      id: newIntegration.name.toLowerCase().replace(/\s+/g, '-'),
-      name: newIntegration.name,
-      description: newIntegration.description,
-      icon: Code,
-      enabled: false,
-      status: 'disconnected',
-      category: newIntegration.category,
-      apiKey: newIntegration.apiKey
-    };
-
-    setIntegrationList(prev => [...prev, integration]);
-    setIsAddDialogOpen(false);
-    setNewIntegration({
-      name: '',
-      description: '',
-      category: 'api',
-      apiKey: '',
-      webhookUrl: ''
-    });
-
-    toast({
-      title: "Integration Added",
-      description: `${newIntegration.name} has been added successfully.`,
-    });
   };
-
-  const handleTestConnection = async (integration: Integration) => {
-    toast({
-      title: "Testing Connection",
-      description: "Testing integration connection...",
-    });
-
-    // Simulate API test
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  const handleSyncIntegration = (id: string) => {
+    const integration = integrations.find(int => int.id === id);
+    if (integration) {
+      toast({
+        title: 'Syncing Integration',
+        description: `Synchronizing data with ${integration.name}...`,
+      });
       
-      setIntegrationList(prev => 
-        prev.map(int => 
-          int.id === integration.id 
-            ? { ...int, status: 'connected' as const }
-            : int
-        )
-      );
-
-      toast({
-        title: "Connection Successful",
-        description: `${integration.name} is working correctly!`,
-      });
-    } catch (error) {
-      setIntegrationList(prev => 
-        prev.map(int => 
-          int.id === integration.id 
-            ? { ...int, status: 'error' as const }
-            : int
-        )
-      );
-
-      toast({
-        title: "Connection Failed",
-        description: `Failed to connect to ${integration.name}`,
-        variant: "destructive"
-      });
+      setTimeout(() => {
+        setIntegrations(integrations.map(int => 
+          int.id === id ? { ...int, lastSync: 'Just now' } : int
+        ));
+        
+        toast({
+          title: 'Sync Complete',
+          description: `${integration.name} data has been synchronized.`,
+        });
+      }, 2000);
     }
   };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Connected</Badge>;
-      case 'error':
-        return <Badge className="bg-red-100 text-red-800"><X className="h-3 w-3 mr-1" />Error</Badge>;
-      default:
-        return <Badge variant="secondary">Disconnected</Badge>;
-    }
+  
+  const handleCreateApiKey = () => {
+    toast({
+      title: 'Feature Coming Soon',
+      description: 'API key generation will be available in the next update.',
+    });
   };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'api': return <Database className="h-4 w-4" />;
-      case 'payment': return <Shield className="h-4 w-4" />;
-      case 'analytics': return <Globe className="h-4 w-4" />;
-      case 'social': return <Link className="h-4 w-4" />;
-      default: return <Cpu className="h-4 w-4" />;
-    }
+  
+  const handleDeleteApiKey = (id: string) => {
+    setApiKeys(apiKeys.filter(key => key.id !== id));
+    toast({
+      title: 'API Key Deleted',
+      description: 'The API key has been permanently revoked.',
+    });
   };
 
   return (
-    <AdminLayout title="Integrations">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
-            <p className="text-muted-foreground">Manage third-party integrations and API connections</p>
-          </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Integration
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Integration</DialogTitle>
-                <DialogDescription>
-                  Configure a new third-party integration for your application.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Integration Name</Label>
-                  <Input
-                    id="name"
-                    value={newIntegration.name}
-                    onChange={(e) => setNewIntegration({...newIntegration, name: e.target.value})}
-                    placeholder="e.g., Google Maps API"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    value={newIntegration.description}
-                    onChange={(e) => setNewIntegration({...newIntegration, description: e.target.value})}
-                    placeholder="Brief description of the integration"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <select
-                    id="category"
-                    value={newIntegration.category}
-                    onChange={(e) => setNewIntegration({...newIntegration, category: e.target.value as any})}
-                    className="w-full p-2 border rounded-md"
-                  >
-                    <option value="api">API</option>
-                    <option value="payment">Payment</option>
-                    <option value="analytics">Analytics</option>
-                    <option value="social">Social</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="apiKey">API Key (Optional)</Label>
-                  <Input
-                    id="apiKey"
-                    type="password"
-                    value={newIntegration.apiKey}
-                    onChange={(e) => setNewIntegration({...newIntegration, apiKey: e.target.value})}
-                    placeholder="Enter API key"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleAddIntegration}>
-                  Add Integration
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-semibold flex items-center">
+            <Settings className="mr-2 h-6 w-6" /> Analytics & Integrations Manager
+          </h1>
+          <p className="text-muted-foreground">Manage analytics, monitoring, AI services, and third-party integrations</p>
         </div>
+      </div>
 
-        {/* Configuration Dialog */}
-        <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Configure {selectedIntegration?.name}</DialogTitle>
-              <DialogDescription>
-                Update integration settings and API credentials
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="configApiKey">API Key</Label>
-                <Input
-                  id="configApiKey"
-                  type="password"
-                  placeholder="Enter API key"
-                  value={configData.apiKey}
-                  onChange={(e) => setConfigData({...configData, apiKey: e.target.value})}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="webhookUrl">Webhook URL</Label>
-                <Input
-                  id="webhookUrl"
-                  placeholder="https://your-app.com/webhooks"
-                  value={configData.webhookUrl}
-                  onChange={(e) => setConfigData({...configData, webhookUrl: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="settings">Additional Settings (JSON)</Label>
-                <Textarea
-                  id="settings"
-                  placeholder='{"timeout": 30, "retries": 3}'
-                  value={configData.settings}
-                  onChange={(e) => setConfigData({...configData, settings: e.target.value})}
-                  rows={4}
-                />
-              </div>
+      <Tabs defaultValue="integrations">
+        <TabsList className="mb-4">
+          <TabsTrigger value="integrations">Service Integrations</TabsTrigger>
+          <TabsTrigger value="api-keys">API Keys</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="analytics-setup">Analytics Setup</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="integrations">
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.id)}
+                >
+                  {category.name} ({category.count})
+                </Button>
+              ))}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsConfigDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveConfiguration}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Configuration
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Tabs defaultValue="all" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="all">All Integrations</TabsTrigger>
-            <TabsTrigger value="api">APIs</TabsTrigger>
-            <TabsTrigger value="payment">Payments</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="social">Social</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {integrationList.map((integration) => (
-                <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <integration.icon className="h-5 w-5 text-primary" />
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              {filteredIntegrations.map((integration) => (
+                <Card key={integration.id} className={integration.status === 'error' ? 'border-red-300' : ''}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-slate-100 rounded-md">
+                          {integration.icon}
                         </div>
                         <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          {integration.version && (
-                            <p className="text-xs text-muted-foreground">v{integration.version}</p>
-                          )}
+                          <CardTitle>{integration.name}</CardTitle>
+                          <CardDescription>{integration.description}</CardDescription>
                         </div>
                       </div>
-                      <Switch
-                        checked={integration.enabled}
-                        onCheckedChange={() => handleToggleIntegration(integration.id)}
-                      />
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor={`toggle-${integration.id}`} className="mr-2">
+                          {integration.isConnected ? 'Enabled' : 'Disabled'}
+                        </Label>
+                        <Switch 
+                          id={`toggle-${integration.id}`}
+                          checked={integration.isConnected}
+                          onCheckedChange={() => handleToggleIntegration(integration.id)}
+                        />
+                      </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">{integration.description}</p>
-
+                  <CardContent>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        {getCategoryIcon(integration.category)}
-                        <span className="text-sm capitalize">{integration.category}</span>
+                        {integration.status === 'active' && (
+                          <div className="flex items-center text-green-600">
+                            <CheckCircle2 className="h-4 w-4 mr-1" /> Active
+                          </div>
+                        )}
+                        {integration.status === 'inactive' && (
+                          <div className="flex items-center text-gray-600">
+                            <div className="h-2 w-2 rounded-full bg-gray-600 mr-2" /> Inactive
+                          </div>
+                        )}
+                        {integration.status === 'error' && (
+                          <div className="flex items-center text-red-600">
+                            <AlertTriangle className="h-4 w-4 mr-1" /> Error
+                          </div>
+                        )}
+                        {integration.lastSync && (
+                          <span className="text-xs text-gray-500">Last sync: {integration.lastSync}</span>
+                        )}
                       </div>
-                      {getStatusBadge(integration.status)}
-                    </div>
-
-                    {integration.lastSync && (
-                      <p className="text-xs text-muted-foreground">
-                        Last sync: {new Date(integration.lastSync).toLocaleString()}
-                      </p>
-                    )}
-
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleConfigureIntegration(integration)}
-                      >
-                        <Settings className="h-4 w-4 mr-1" />
-                        Configure
-                      </Button>
-                      {integration.status === 'connected' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleTestConnection(integration)}
-                        >
-                          Test
-                        </Button>
+                      
+                      {integration.isConnected && (
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs"
+                            onClick={() => handleSyncIntegration(integration.id)}
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" /> Sync Now
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            <Settings className="h-3 w-3 mr-1" /> Configure
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </CardContent>
+                  {integration.status === 'error' && (
+                    <CardFooter className="bg-red-50 text-red-700 text-sm p-4">
+                      <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0" />
+                      There was an error connecting to this service. Please check your API credentials.
+                    </CardFooter>
+                  )}
                 </Card>
               ))}
             </div>
-          </TabsContent>
-
-          {['api', 'payment', 'analytics', 'social'].map((category) => (
-            <TabsContent key={category} value={category} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {integrationList
-                  .filter(integration => integration.category === category)
-                  .map((integration) => (
-                    <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <integration.icon className="h-5 w-5 text-primary" />
-                            </div>
-                            <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          </div>
-                          <Switch
-                            checked={integration.enabled}
-                            onCheckedChange={() => handleToggleIntegration(integration.id)}
-                          />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-sm text-muted-foreground">{integration.description}</p>
-                        {getStatusBadge(integration.status)}
-                        <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => handleConfigureIntegration(integration)}
-                          >
-                            <Settings className="h-4 w-4 mr-1" />
-                            Configure
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="api-keys">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>API Keys</CardTitle>
+                <CardDescription>Manage API keys for external service access</CardDescription>
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* Global Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Global Integration Settings</CardTitle>
-            <CardDescription>Configure global integration settings and defaults</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="global-webhook-url">Default Webhook URL</Label>
-                <Input id="global-webhook-url" placeholder="https://your-app.com/webhooks" />
+              <Button onClick={handleCreateApiKey}>
+                <Key className="mr-2 h-4 w-4" /> Generate New Key
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {apiKeys.map((apiKey) => (
+                  <div key={apiKey.id} className="p-4 border rounded-lg flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{apiKey.name}</div>
+                      <div className="text-sm text-gray-500 flex items-center space-x-4">
+                        <span>{apiKey.key}</span>
+                        <span>Created: {apiKey.createdAt}</span>
+                        {apiKey.lastUsed && <span>Last used: {apiKey.lastUsed}</span>}
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">Show</Button>
+                      <Button variant="outline" size="sm">Copy</Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => handleDeleteApiKey(apiKey.id)}
+                      >
+                        Revoke
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="timeout">Request Timeout (seconds)</Label>
-                <Input id="timeout" type="number" placeholder="30" />
+            </CardContent>
+            <CardFooter className="bg-amber-50 text-amber-800 text-sm border-t">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Keep your API keys secure. Never share them in public repositories or client-side code.
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="webhooks">
+          <Card>
+            <CardHeader>
+              <CardTitle>Webhook Configuration</CardTitle>
+              <CardDescription>Configure endpoints for real-time event notifications</CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center items-center h-64 text-muted-foreground">
+              <div className="text-center">
+                <ExternalLink className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">Webhook Configuration Coming Soon</p>
+                <p className="mt-2">Set up webhook endpoints to receive event notifications in real-time.</p>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch id="auto-retry" />
-              <Label htmlFor="auto-retry">Auto-retry failed requests</Label>
-            </div>
-            <Button>Save Global Settings</Button>
-          </CardContent>
-        </Card>
-      </div>
-    </AdminLayout>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="analytics-setup">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics Configuration</CardTitle>
+              <CardDescription>Set up tracking and monitoring for your application</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="ga-id">Google Analytics Measurement ID</Label>
+                  <Input 
+                    id="ga-id"
+                    placeholder="G-XXXXXXXXXX"
+                    defaultValue="G-XXXXXXXXXX"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Get this from your Google Analytics dashboard
+                  </p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="sentry-dsn">Sentry DSN</Label>
+                  <Input 
+                    id="sentry-dsn"
+                    placeholder="https://xxxx@sentry.io/xxxx"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your Sentry Data Source Name for error monitoring
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="track-user-interactions" defaultChecked />
+                  <Label htmlFor="track-user-interactions">Track user interactions</Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="track-recipe-views" defaultChecked />
+                  <Label htmlFor="track-recipe-views">Track recipe views</Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Switch id="track-ai-interactions" defaultChecked />
+                  <Label htmlFor="track-ai-interactions">Track AI Chef interactions</Label>
+                </div>
+              </div>
+              
+              <Button className="w-full">
+                Save Analytics Configuration
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
-}
+};
+
+export default AdminIntegrationsManager;

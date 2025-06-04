@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Search, Filter, MoreHorizontal, Check, X, Eye } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Check, X, Eye, MessageSquare, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,129 +31,118 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { AdminLayout } from '@/components/layout/AdminLayout';
 
-const mockPendingRecipes = [
+const mockCommunityPosts = [
   {
-    id: 'RCP-001',
-    title: 'Homemade Pizza Margherita',
-    author: 'John Smith',
-    authorId: 'user123',
-    submittedAt: '2023-09-20',
-    status: 'pending',
-    description: 'A classic Italian pizza with fresh basil and mozzarella',
-    cookTime: 25,
-    difficulty: 'Medium',
-    image: '/placeholder.svg'
-  },
-  {
-    id: 'RCP-002',
-    title: 'Spicy Thai Curry',
-    author: 'Lisa Chen',
-    authorId: 'user456',
-    submittedAt: '2023-09-19',
-    status: 'pending',
-    description: 'Authentic Thai green curry with coconut milk and vegetables',
-    cookTime: 35,
-    difficulty: 'Hard',
-    image: '/placeholder.svg'
-  },
-  {
-    id: 'RCP-003',
-    title: 'Chocolate Chip Cookies',
+    id: 'POST-001',
+    type: 'comment',
+    content: 'This recipe is amazing! I tried it last night and my family loved it.',
     author: 'Sarah Johnson',
-    authorId: 'user789',
-    submittedAt: '2023-09-18',
+    authorId: 'user123',
+    postTitle: 'Mediterranean Chicken Bowl',
+    status: 'approved',
+    reportCount: 0,
+    createdAt: '2023-09-20'
+  },
+  {
+    id: 'POST-002',
+    type: 'review',
+    content: 'Terrible recipe, complete waste of ingredients and time.',
+    author: 'Anonymous User',
+    authorId: 'user456',
+    postTitle: 'Vegan Pasta Salad',
     status: 'pending',
-    description: 'Soft and chewy chocolate chip cookies perfect for any occasion',
-    cookTime: 15,
-    difficulty: 'Easy',
-    image: '/placeholder.svg'
+    reportCount: 3,
+    createdAt: '2023-09-19'
+  },
+  {
+    id: 'POST-003',
+    type: 'question',
+    content: 'Can I substitute almond flour for regular flour in this recipe?',
+    author: 'Michael Chen',
+    authorId: 'user789',
+    postTitle: 'Chocolate Chip Cookies',
+    status: 'approved',
+    reportCount: 0,
+    createdAt: '2023-09-18'
   }
 ];
 
 const CommunityManagement = () => {
   const { toast } = useToast();
-  const [recipes, setRecipes] = useState(mockPendingRecipes);
-  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
-  const [recipeDialog, setRecipeDialog] = useState(false);
+  const [posts, setPosts] = useState(mockCommunityPosts);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [postDialog, setPostDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [moderationReason, setModerationReason] = useState('');
+  const [moderationAction, setModerationAction] = useState<'approve' | 'reject' | 'remove'>('approve');
 
-  const handleViewRecipe = (recipe: any) => {
-    setSelectedRecipe(recipe);
-    setRecipeDialog(true);
+  const handleViewPost = (post: any) => {
+    setSelectedPost(post);
+    setPostDialog(true);
   };
 
-  const handleApproveRecipe = (recipeId: string) => {
-    setRecipes(prev => 
-      prev.map(recipe => 
-        recipe.id === recipeId 
-          ? { ...recipe, status: 'approved' }
-          : recipe
+  const handleModeratePost = (action: 'approve' | 'reject' | 'remove') => {
+    setModerationAction(action);
+  };
+
+  const handleSubmitModeration = () => {
+    if (!selectedPost) return;
+
+    setPosts(prev => 
+      prev.map(post => 
+        post.id === selectedPost.id 
+          ? { ...post, status: moderationAction === 'remove' ? 'removed' : moderationAction === 'approve' ? 'approved' : 'rejected' }
+          : post
       )
     );
-    
+
+    const actionText = {
+      approve: 'approved',
+      reject: 'rejected', 
+      remove: 'removed'
+    }[moderationAction];
+
     toast({
-      title: "Recipe Approved",
-      description: "The recipe has been approved and published to the community.",
+      title: "Post Moderated",
+      description: `The post has been ${actionText}.`,
     });
-    
-    setRecipeDialog(false);
+
+    setPostDialog(false);
+    setModerationReason('');
+    setSelectedPost(null);
   };
 
-  const handleRejectRecipe = () => {
-    if (!selectedRecipe) return;
-
-    if (!rejectionReason.trim()) {
-      toast({
-        title: "Rejection Reason Required",
-        description: "Please provide a reason for rejecting this recipe.",
-        variant: "destructive",
-      });
-      return;
+  const getStatusBadge = (status: string, reportCount: number = 0) => {
+    if (reportCount > 2) {
+      return <Badge variant="destructive" className="flex items-center gap-1">
+        <AlertTriangle className="h-3 w-3" />
+        Reported ({reportCount})
+      </Badge>;
     }
 
-    setRecipes(prev => 
-      prev.map(recipe => 
-        recipe.id === selectedRecipe.id 
-          ? { ...recipe, status: 'rejected', rejectionReason }
-          : recipe
-      )
-    );
-
-    toast({
-      title: "Recipe Rejected",
-      description: `Recipe rejected and author has been notified.`,
-    });
-
-    setRecipeDialog(false);
-    setRejectionReason('');
-    setSelectedRecipe(null);
-  };
-
-  const getStatusBadge = (status: string) => {
     const badges = {
       pending: <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Pending</Badge>,
       approved: <Badge variant="outline" className="bg-green-50 text-green-700">Approved</Badge>,
-      rejected: <Badge variant="destructive">Rejected</Badge>
+      rejected: <Badge variant="destructive">Rejected</Badge>,
+      removed: <Badge variant="destructive">Removed</Badge>
     };
     return badges[status as keyof typeof badges] || <Badge variant="outline">{status}</Badge>;
   };
 
-  const getDifficultyBadge = (difficulty: string) => {
+  const getTypeBadge = (type: string) => {
     const badges = {
-      Easy: <Badge variant="outline" className="bg-green-50 text-green-700">Easy</Badge>,
-      Medium: <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Medium</Badge>,
-      Hard: <Badge variant="destructive">Hard</Badge>
+      comment: <Badge variant="outline" className="bg-blue-50 text-blue-700">Comment</Badge>,
+      review: <Badge variant="outline" className="bg-purple-50 text-purple-700">Review</Badge>,
+      question: <Badge variant="outline" className="bg-green-50 text-green-700">Question</Badge>
     };
-    return badges[difficulty as keyof typeof badges] || <Badge variant="outline">{difficulty}</Badge>;
+    return badges[type as keyof typeof badges] || <Badge variant="outline">{type}</Badge>;
   };
 
-  const filteredRecipes = recipes.filter(recipe =>
-    recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    recipe.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    recipe.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPosts = posts.filter(post =>
+    post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.postTitle.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -160,23 +150,27 @@ const CommunityManagement = () => {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Community Recipe Management</h1>
-            <p className="text-muted-foreground">Review and moderate user-submitted recipes.</p>
+            <h1 className="text-2xl font-semibold">Community Content Moderation</h1>
+            <p className="text-muted-foreground">Manage user comments, reviews, and community posts.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-yellow-600">{recipes.filter(r => r.status === 'pending').length}</div>
+            <div className="text-2xl font-bold text-yellow-600">{posts.filter(p => p.status === 'pending').length}</div>
             <div className="text-sm text-gray-600">Pending Review</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-green-600">{recipes.filter(r => r.status === 'approved').length}</div>
+            <div className="text-2xl font-bold text-green-600">{posts.filter(p => p.status === 'approved').length}</div>
             <div className="text-sm text-gray-600">Approved</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-red-600">{recipes.filter(r => r.status === 'rejected').length}</div>
-            <div className="text-sm text-gray-600">Rejected</div>
+            <div className="text-2xl font-bold text-red-600">{posts.filter(p => p.reportCount > 0).length}</div>
+            <div className="text-sm text-gray-600">Reported</div>
+          </div>
+          <div className="bg-white p-4 rounded-lg border">
+            <div className="text-2xl font-bold text-gray-600">{posts.filter(p => p.status === 'removed').length}</div>
+            <div className="text-sm text-gray-600">Removed</div>
           </div>
         </div>
 
@@ -184,7 +178,7 @@ const CommunityManagement = () => {
           <div className="relative w-full md:w-80">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search recipes..."
+              placeholder="Search posts..."
               className="pl-8 w-full md:w-80"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -202,26 +196,28 @@ const CommunityManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Recipe ID</TableHead>
-                <TableHead>Title</TableHead>
+                <TableHead>Content</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Author</TableHead>
-                <TableHead>Difficulty</TableHead>
+                <TableHead>Recipe</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Submitted</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead className="w-[70px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRecipes.map((recipe) => (
-                <TableRow key={recipe.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewRecipe(recipe)}>
-                  <TableCell className="font-medium">{recipe.id}</TableCell>
+              {filteredPosts.filter(post => post.status !== 'removed').map((post) => (
+                <TableRow key={post.id} className="cursor-pointer hover:bg-gray-50" onClick={() => handleViewPost(post)}>
                   <TableCell className="max-w-xs">
-                    <span className="truncate" title={recipe.title}>{recipe.title}</span>
+                    <span className="truncate" title={post.content}>{post.content}</span>
                   </TableCell>
-                  <TableCell>{recipe.author}</TableCell>
-                  <TableCell>{getDifficultyBadge(recipe.difficulty)}</TableCell>
-                  <TableCell>{getStatusBadge(recipe.status)}</TableCell>
-                  <TableCell>{recipe.submittedAt}</TableCell>
+                  <TableCell>{getTypeBadge(post.type)}</TableCell>
+                  <TableCell>{post.author}</TableCell>
+                  <TableCell className="max-w-xs">
+                    <span className="truncate" title={post.postTitle}>{post.postTitle}</span>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(post.status, post.reportCount)}</TableCell>
+                  <TableCell>{post.createdAt}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -232,18 +228,22 @@ const CommunityManagement = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleViewRecipe(recipe)}>
+                        <DropdownMenuItem onClick={() => handleViewPost(post)}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleApproveRecipe(recipe.id); }}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewPost(post); handleModeratePost('approve'); }}>
                           <Check className="h-4 w-4 mr-2" />
                           Approve
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewRecipe(recipe); }}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewPost(post); handleModeratePost('reject'); }}>
                           <X className="h-4 w-4 mr-2" />
                           Reject
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewPost(post); handleModeratePost('remove'); }}>
+                          <AlertTriangle className="h-4 w-4 mr-2" />
+                          Remove
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -254,61 +254,78 @@ const CommunityManagement = () => {
           </Table>
         </div>
 
-        <Dialog open={recipeDialog} onOpenChange={setRecipeDialog}>
+        <Dialog open={postDialog} onOpenChange={setPostDialog}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                {selectedRecipe?.title}
-                {selectedRecipe && getDifficultyBadge(selectedRecipe.difficulty)}
+                Community Post Moderation
+                {selectedPost && getTypeBadge(selectedPost.type)}
               </DialogTitle>
               <DialogDescription>
-                Submitted by {selectedRecipe?.author} on {selectedRecipe?.submittedAt}
+                Review and moderate community content
               </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Description</h4>
-                <p className="text-sm text-gray-700">{selectedRecipe?.description}</p>
+                <h4 className="font-medium mb-2">Content</h4>
+                <p className="text-sm text-gray-700">{selectedPost?.content}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium">Cook Time:</span> {selectedRecipe?.cookTime} minutes
+                  <span className="font-medium">Author:</span> {selectedPost?.author}
                 </div>
                 <div>
-                  <span className="font-medium">Status:</span> {selectedRecipe && getStatusBadge(selectedRecipe.status)}
+                  <span className="font-medium">Type:</span> {selectedPost?.type}
+                </div>
+                <div>
+                  <span className="font-medium">Recipe:</span> {selectedPost?.postTitle}
+                </div>
+                <div>
+                  <span className="font-medium">Reports:</span> {selectedPost?.reportCount || 0}
                 </div>
               </div>
 
-              {selectedRecipe?.status === 'pending' && (
-                <div>
-                  <label className="text-sm font-medium">Rejection Reason (if rejecting)</label>
-                  <Textarea
-                    placeholder="Provide a reason for rejection (optional for approval)..."
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-              )}
+              <div>
+                <label className="text-sm font-medium">Moderation Notes</label>
+                <Textarea
+                  placeholder="Add notes about your moderation decision..."
+                  value={moderationReason}
+                  onChange={(e) => setModerationReason(e.target.value)}
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setRecipeDialog(false)}>
+              <Button variant="outline" onClick={() => setPostDialog(false)}>
                 Cancel
               </Button>
-              {selectedRecipe?.status === 'pending' && (
-                <>
-                  <Button variant="destructive" onClick={handleRejectRecipe}>
-                    Reject Recipe
-                  </Button>
-                  <Button onClick={() => handleApproveRecipe(selectedRecipe.id)}>
-                    Approve Recipe
-                  </Button>
-                </>
-              )}
+              <Button 
+                variant="outline" 
+                className="text-green-600 hover:text-green-700"
+                onClick={() => { handleModeratePost('approve'); handleSubmitModeration(); }}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Approve
+              </Button>
+              <Button 
+                variant="outline" 
+                className="text-yellow-600 hover:text-yellow-700"
+                onClick={() => { handleModeratePost('reject'); handleSubmitModeration(); }}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Reject
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={() => { handleModeratePost('remove'); handleSubmitModeration(); }}
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Remove
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

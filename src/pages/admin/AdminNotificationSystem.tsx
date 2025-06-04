@@ -25,8 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import { AdminLayout } from '@/components/layout/AdminLayout';
+import { toast } from 'sonner';
 
 const mockNotifications = [
   {
@@ -66,10 +65,8 @@ const mockNotifications = [
 ];
 
 const AdminNotificationSystem = () => {
-  const { toast } = useToast();
   const [notifications, setNotifications] = useState(mockNotifications);
   const [createDialog, setCreateDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [newNotification, setNewNotification] = useState({
     title: '',
     message: '',
@@ -80,28 +77,10 @@ const AdminNotificationSystem = () => {
   });
 
   const handleCreateNotification = () => {
-    if (!newNotification.title || !newNotification.message) {
-      toast({
-        title: "Validation Error",
-        description: "Title and message are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (newNotification.scheduled && !newNotification.scheduledDate) {
-      toast({
-        title: "Validation Error",
-        description: "Scheduled date is required when scheduling is enabled.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const notification = {
       id: Date.now().toString(),
       ...newNotification,
-      status: newNotification.scheduled ? 'scheduled' : 'draft',
+      status: 'draft',
       createdAt: new Date().toISOString().split('T')[0],
       sentCount: 0
     };
@@ -118,38 +97,7 @@ const AdminNotificationSystem = () => {
     });
 
     setCreateDialog(false);
-    toast({
-      title: "Notification Created",
-      description: `Notification ${notification.status === 'scheduled' ? 'scheduled' : 'created'} successfully!`,
-    });
-  };
-
-  const handleBulkSend = (selectedIds: string[]) => {
-    if (selectedIds.length === 0) {
-      toast({
-        title: "No Selection",
-        description: "Please select notifications to send.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setNotifications(prev => 
-      prev.map(notification => 
-        selectedIds.includes(notification.id) && notification.status === 'draft'
-          ? { 
-              ...notification, 
-              status: 'sent',
-              sentCount: notification.targetUsers === 'all' ? 1250 : notification.targetUsers === 'premium' ? 150 : 50
-            }
-          : notification
-      )
-    );
-
-    toast({
-      title: "Bulk Send Complete",
-      description: `${selectedIds.length} notifications sent successfully!`,
-    });
+    toast.success('Notification created successfully!');
   };
 
   const handleSendNotification = (notificationId: string) => {
@@ -164,18 +112,12 @@ const AdminNotificationSystem = () => {
           : notification
       )
     );
-    toast({
-      title: "Notification Sent",
-      description: "Notification sent successfully!",
-    });
+    toast.success('Notification sent successfully!');
   };
 
   const handleDeleteNotification = (notificationId: string) => {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    toast({
-      title: "Notification Deleted",
-      description: "Notification deleted successfully!",
-    });
+    toast.success('Notification deleted successfully!');
   };
 
   const getTypeBadge = (type: string) => {
@@ -206,223 +148,214 @@ const AdminNotificationSystem = () => {
     return badges[target as keyof typeof badges] || <Badge variant="outline">{target}</Badge>;
   };
 
-  const filteredNotifications = notifications.filter(notification =>
-    notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    notification.message.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <AdminLayout title="Notification System">
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Notification System</h1>
-            <p className="text-muted-foreground">Send notifications and announcements to users.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Dialog open={createDialog} onOpenChange={setCreateDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Notification System</h1>
+          <p className="text-muted-foreground">Send notifications and announcements to users.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog open={createDialog} onOpenChange={setCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Notification
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Create New Notification</DialogTitle>
+                <DialogDescription>
+                  Send a notification to your users.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={newNotification.title}
+                    onChange={(e) => setNewNotification(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Notification title..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    value={newNotification.message}
+                    onChange={(e) => setNewNotification(prev => ({ ...prev, message: e.target.value }))}
+                    placeholder="Notification message..."
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="type">Type</Label>
+                    <Select 
+                      value={newNotification.type} 
+                      onValueChange={(value) => setNewNotification(prev => ({ ...prev, type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="info">Info</SelectItem>
+                        <SelectItem value="success">Success</SelectItem>
+                        <SelectItem value="warning">Warning</SelectItem>
+                        <SelectItem value="error">Error</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="target">Target Users</Label>
+                    <Select 
+                      value={newNotification.targetUsers} 
+                      onValueChange={(value) => setNewNotification(prev => ({ ...prev, targetUsers: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Users</SelectItem>
+                        <SelectItem value="premium">Premium Users</SelectItem>
+                        <SelectItem value="specific">Specific Users</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="scheduled"
+                    checked={newNotification.scheduled}
+                    onCheckedChange={(checked) => setNewNotification(prev => ({ ...prev, scheduled: checked }))}
+                  />
+                  <Label htmlFor="scheduled">Schedule for later</Label>
+                </div>
+                {newNotification.scheduled && (
+                  <div>
+                    <Label htmlFor="scheduledDate">Scheduled Date</Label>
+                    <Input
+                      id="scheduledDate"
+                      type="datetime-local"
+                      value={newNotification.scheduledDate}
+                      onChange={(e) => setNewNotification(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                    />
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCreateDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateNotification}>
                   Create Notification
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Notification</DialogTitle>
-                  <DialogDescription>
-                    Send a notification to your users.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="text-2xl font-bold text-blue-600">{notifications.filter(n => n.status === 'draft').length}</div>
+          <div className="text-sm text-gray-600">Draft</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="text-2xl font-bold text-green-600">{notifications.filter(n => n.status === 'sent').length}</div>
+          <div className="text-sm text-gray-600">Sent</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="text-2xl font-bold text-orange-600">{notifications.filter(n => n.scheduled).length}</div>
+          <div className="text-sm text-gray-600">Scheduled</div>
+        </div>
+        <div className="bg-white p-4 rounded-lg border">
+          <div className="text-2xl font-bold text-purple-600">{notifications.reduce((sum, n) => sum + n.sentCount, 0)}</div>
+          <div className="text-sm text-gray-600">Total Sent</div>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search notifications..."
+            className="pl-8 w-full md:w-80"
+          />
+        </div>
+        <div className="flex items-center gap-2 self-end">
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4 mr-2" />
+            Filter
+          </Button>
+        </div>
+      </div>
+
+      <div className="border rounded-md">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Target</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Sent Count</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="w-[120px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {notifications.map((notification) => (
+              <TableRow key={notification.id}>
+                <TableCell>
                   <div>
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={newNotification.title}
-                      onChange={(e) => setNewNotification(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Notification title..."
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      value={newNotification.message}
-                      onChange={(e) => setNewNotification(prev => ({ ...prev, message: e.target.value }))}
-                      placeholder="Notification message..."
-                      rows={3}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="type">Type</Label>
-                      <Select 
-                        value={newNotification.type} 
-                        onValueChange={(value) => setNewNotification(prev => ({ ...prev, type: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="info">Info</SelectItem>
-                          <SelectItem value="success">Success</SelectItem>
-                          <SelectItem value="warning">Warning</SelectItem>
-                          <SelectItem value="error">Error</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="target">Target Users</Label>
-                      <Select 
-                        value={newNotification.targetUsers} 
-                        onValueChange={(value) => setNewNotification(prev => ({ ...prev, targetUsers: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Users</SelectItem>
-                          <SelectItem value="premium">Premium Users</SelectItem>
-                          <SelectItem value="specific">Specific Users</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="font-medium">{notification.title}</div>
+                    <div className="text-sm text-gray-500 truncate max-w-xs">
+                      {notification.message}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="scheduled"
-                      checked={newNotification.scheduled}
-                      onCheckedChange={(checked) => setNewNotification(prev => ({ ...prev, scheduled: checked }))}
-                    />
-                    <Label htmlFor="scheduled">Schedule for later</Label>
-                  </div>
-                  {newNotification.scheduled && (
-                    <div>
-                      <Label htmlFor="scheduledDate">Scheduled Date</Label>
-                      <Input
-                        id="scheduledDate"
-                        type="datetime-local"
-                        value={newNotification.scheduledDate}
-                        onChange={(e) => setNewNotification(prev => ({ ...prev, scheduledDate: e.target.value }))}
-                      />
-                    </div>
-                  )}
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setCreateDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateNotification}>
-                    Create Notification
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-blue-600">{notifications.filter(n => n.status === 'draft').length}</div>
-            <div className="text-sm text-gray-600">Draft</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-green-600">{notifications.filter(n => n.status === 'sent').length}</div>
-            <div className="text-sm text-gray-600">Sent</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-orange-600">{notifications.filter(n => n.scheduled).length}</div>
-            <div className="text-sm text-gray-600">Scheduled</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-purple-600">{notifications.reduce((sum, n) => sum + n.sentCount, 0)}</div>
-            <div className="text-sm text-gray-600">Total Sent</div>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search notifications..."
-              className="pl-8 w-full md:w-80"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2 self-end">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-          </div>
-        </div>
-
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sent Count</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[120px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredNotifications.map((notification) => (
-                <TableRow key={notification.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{notification.title}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {notification.message}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getTypeBadge(notification.type)}</TableCell>
-                  <TableCell>{getTargetBadge(notification.targetUsers)}</TableCell>
-                  <TableCell>{getStatusBadge(notification.status)}</TableCell>
-                  <TableCell>{notification.sentCount.toLocaleString()}</TableCell>
-                  <TableCell>{notification.createdAt}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {notification.status === 'draft' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSendNotification(notification.id)}
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      )}
+                </TableCell>
+                <TableCell>{getTypeBadge(notification.type)}</TableCell>
+                <TableCell>{getTargetBadge(notification.targetUsers)}</TableCell>
+                <TableCell>{getStatusBadge(notification.status)}</TableCell>
+                <TableCell>{notification.sentCount.toLocaleString()}</TableCell>
+                <TableCell>{notification.createdAt}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    {notification.status === 'draft' && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteNotification(notification.id)}
-                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleSendNotification(notification.id)}
+                        className="text-green-600 hover:text-green-700"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Send className="h-4 w-4" />
                       </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing <strong>{filteredNotifications.length}</strong> of <strong>{notifications.length}</strong> notifications
-          </p>
-        </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteNotification(notification.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
-    </AdminLayout>
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Showing <strong>{notifications.length}</strong> notifications
+        </p>
+      </div>
+    </div>
   );
 };
 

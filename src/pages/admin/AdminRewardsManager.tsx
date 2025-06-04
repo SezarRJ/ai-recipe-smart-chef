@@ -1,354 +1,216 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Gift, Plus, Edit, Trash2, Users, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PieChart, BarChart3, Award, Plus, Edit2, Trash2, Eye, ArrowUpDown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
-interface RewardTier {
-  id: string;
-  name: string;
-  pointsRequired: number;
-  benefits: string[];
-  color: string;
-}
-
-interface RewardActivity {
-  id: string;
-  userId: string;
-  userName: string;
-  activityType: string;
-  pointsEarned: number;
-  date: string;
-}
-
-const mockRewardTiers: RewardTier[] = [
+const mockRewards = [
   {
-    id: '1',
-    name: 'Bronze',
-    pointsRequired: 0,
-    benefits: ['Recipe bookmarks', 'Basic meal planning'],
-    color: '#CD7F32',
+    id: 'RWD-001',
+    name: 'Recipe Master',
+    description: 'Complete 10 recipes',
+    type: 'achievement',
+    points: 100,
+    icon: '🏆',
+    active: true,
+    claimed: 45
   },
   {
-    id: '2',
-    name: 'Silver',
-    pointsRequired: 1000,
-    benefits: ['Recipe sharing', 'Advanced meal planning', '5% discount on premium'],
-    color: '#C0C0C0',
+    id: 'RWD-002',
+    name: 'Daily Cook',
+    description: 'Cook for 7 consecutive days',
+    type: 'challenge',
+    points: 150,
+    icon: '🔥',
+    active: true,
+    claimed: 23
   },
   {
-    id: '3',
-    name: 'Gold',
-    pointsRequired: 5000,
-    benefits: ['Chef avatar customization', 'Ad-free experience', '15% discount on premium'],
-    color: '#FFD700',
-  },
-  {
-    id: '4',
-    name: 'Platinum',
-    pointsRequired: 10000,
-    benefits: ['Early access to features', 'Priority support', '25% discount on premium'],
-    color: '#E5E4E2',
-  },
+    id: 'RWD-003',
+    name: 'Healthy Choice',
+    description: 'Try 5 healthy recipes',
+    type: 'achievement',
+    points: 75,
+    icon: '🥗',
+    active: false,
+    claimed: 67
+  }
 ];
 
-const mockRewardActivities: RewardActivity[] = [
-  {
-    id: '1',
-    userId: 'user123',
-    userName: 'John Smith',
-    activityType: 'Recipe Created',
-    pointsEarned: 50,
-    date: '2025-05-15',
-  },
-  {
-    id: '2',
-    userId: 'user456',
-    userName: 'Emma Johnson',
-    activityType: 'Recipe Shared',
-    pointsEarned: 30,
-    date: '2025-05-14',
-  },
-  {
-    id: '3',
-    userId: 'user789',
-    userName: 'Michael Brown',
-    activityType: 'Meal Plan Created',
-    pointsEarned: 100,
-    date: '2025-05-13',
-  },
-];
+const AdminRewardsManager = () => {
+  const [rewards, setRewards] = useState(mockRewards);
+  const [newReward, setNewReward] = useState({
+    name: '',
+    description: '',
+    type: 'achievement',
+    points: 0,
+    icon: ''
+  });
 
-const AdminRewardsManager: React.FC = () => {
-  const [rewardTiers, setRewardTiers] = useState<RewardTier[]>(mockRewardTiers);
-  const [rewardActivities, setRewardActivities] = useState<RewardActivity[]>(mockRewardActivities);
-  const [editingTier, setEditingTier] = useState<string | null>(null);
-  const { toast } = useToast();
-  
-  const handleDeleteTier = (id: string) => {
-    setRewardTiers(rewardTiers.filter(tier => tier.id !== id));
-    toast({
-      title: 'Reward Tier Deleted',
-      description: 'The reward tier has been successfully removed.',
-    });
+  const getTypeBadge = (type: string) => {
+    const variants = {
+      achievement: 'bg-blue-100 text-blue-800',
+      challenge: 'bg-purple-100 text-purple-800',
+      milestone: 'bg-green-100 text-green-800'
+    };
+    return <Badge className={variants[type as keyof typeof variants]}>{type}</Badge>;
   };
-  
-  const topEarners = [
-    { name: 'Emma Johnson', points: 8750 },
-    { name: 'John Smith', points: 7540 },
-    { name: 'Michael Brown', points: 6320 },
-    { name: 'Sarah Wilson', points: 5430 },
-    { name: 'David Lee', points: 4870 },
-  ];
-  
-  const activityDistribution = [
-    { type: 'Recipe Created', percentage: 35 },
-    { type: 'Recipe Shared', percentage: 25 },
-    { type: 'Meal Plan Created', percentage: 15 },
-    { type: 'Comments Posted', percentage: 10 },
-    { type: 'Recipe Cooked', percentage: 15 },
-  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold flex items-center">
-            <Award className="mr-2 h-6 w-6" /> Rewards & Loyalty Program
-          </h1>
-          <p className="text-muted-foreground">Manage reward tiers, points, and customer loyalty</p>
+          <h2 className="text-2xl font-semibold">Rewards Management</h2>
+          <p className="text-muted-foreground">Create and manage user rewards and achievements.</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Create New Tier
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Reward
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Reward</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                placeholder="Reward name"
+                value={newReward.name}
+                onChange={(e) => setNewReward(prev => ({ ...prev, name: e.target.value }))}
+              />
+              <Textarea
+                placeholder="Reward description"
+                value={newReward.description}
+                onChange={(e) => setNewReward(prev => ({ ...prev, description: e.target.value }))}
+              />
+              <Input
+                placeholder="Icon (emoji)"
+                value={newReward.icon}
+                onChange={(e) => setNewReward(prev => ({ ...prev, icon: e.target.value }))}
+              />
+              <Input
+                type="number"
+                placeholder="Points"
+                value={newReward.points}
+                onChange={(e) => setNewReward(prev => ({ ...prev, points: parseInt(e.target.value) }))}
+              />
+              <Button className="w-full">Create Reward</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Users in Program</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Rewards</CardTitle>
+            <Gift className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,351</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-green-500 font-medium">+12%</span> from last month
+            <div className="text-2xl font-bold">{rewards.length}</div>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-500">{rewards.filter(r => r.active).length}</span> active
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Average Points Per User</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Claims</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,254</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-green-500 font-medium">+5.2%</span> from last month
-            </p>
+            <div className="text-2xl font-bold">{rewards.reduce((sum, r) => sum + r.claimed, 0)}</div>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Points Awarded Today</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Points</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3,872</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-green-500 font-medium">+15.6%</span> from yesterday
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Premium Conversions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">
-              <span className="text-green-500 font-medium">+8.3%</span> from last month
-            </p>
+            <div className="text-2xl font-bold">
+              {Math.round(rewards.reduce((sum, r) => sum + r.points, 0) / rewards.length)}
+            </div>
+            <p className="text-xs text-muted-foreground">Per reward</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="tiers">
-        <TabsList className="mb-4">
-          <TabsTrigger value="tiers">Reward Tiers</TabsTrigger>
-          <TabsTrigger value="activities">Point Activities</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="tiers">
-          <Card>
-            <CardHeader>
-              <CardTitle>Manage Reward Tiers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tier</TableHead>
-                      <TableHead>Points Required</TableHead>
-                      <TableHead>Benefits</TableHead>
-                      <TableHead>Color</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rewardTiers.map((tier) => (
-                      <TableRow key={tier.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: tier.color }}
-                            ></div>
-                            <span className="font-medium">{tier.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{tier.pointsRequired.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <ul className="list-disc pl-4 text-sm">
-                            {tier.benefits.map((benefit, idx) => (
-                              <li key={idx}>{benefit}</li>
-                            ))}
-                          </ul>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <div
-                              className="w-6 h-6 rounded border"
-                              style={{ backgroundColor: tier.color }}
-                            ></div>
-                            <span className="text-sm">{tier.color}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => handleDeleteTier(tier.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="activities">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Recent Point Activities</CardTitle>
-              <div className="flex items-center space-x-2">
-                <Input
-                  placeholder="Search activities..."
-                  className="w-60"
-                />
-                <Button variant="outline" size="sm">
-                  <ArrowUpDown className="h-4 w-4 mr-2" /> Sort
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Activity</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rewardActivities.map((activity) => (
-                      <TableRow key={activity.id}>
-                        <TableCell className="font-medium">{activity.userName}</TableCell>
-                        <TableCell>{activity.activityType}</TableCell>
-                        <TableCell>+{activity.pointsEarned}</TableCell>
-                        <TableCell>{activity.date}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="analytics">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" /> Top Earners
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {topEarners.map((user, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                          {user.name.charAt(0)}
-                        </div>
-                        <span>{user.name}</span>
-                      </div>
-                      <span className="font-medium">{user.points.toLocaleString()} points</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <PieChart className="h-5 w-5 mr-2" /> Activity Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {activityDistribution.map((activity, index) => (
-                    <div key={index}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm">{activity.type}</span>
-                        <span className="text-sm font-medium">{activity.percentage}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-wasfah-bright-teal h-2 rounded-full"
-                          style={{ width: `${activity.percentage}%` }}
-                        ></div>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Rewards</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Reward</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Points</TableHead>
+                <TableHead>Claims</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rewards.map((reward) => (
+                <TableRow key={reward.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{reward.icon}</span>
+                      <div>
+                        <div className="font-medium">{reward.name}</div>
+                        <div className="text-sm text-muted-foreground">{reward.description}</div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                  </TableCell>
+                  <TableCell>{getTypeBadge(reward.type)}</TableCell>
+                  <TableCell>{reward.points}</TableCell>
+                  <TableCell>{reward.claimed}</TableCell>
+                  <TableCell>
+                    <Badge variant={reward.active ? "default" : "secondary"}>
+                      {reward.active ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,417 +1,276 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import React from 'react';
+import { Server, Database, AlertTriangle, Clock, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Activity, Server, Database, Cpu, MemoryStick, 
-  HardDrive, Network, AlertTriangle, CheckCircle2,
-  RefreshCw, Monitor, Zap, Clock, TrendingUp
-} from 'lucide-react';
-import { 
-  LineChart, Line, AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from 'recharts';
 
-interface SystemMetric {
-  name: string;
-  value: number;
-  unit: string;
-  status: 'good' | 'warning' | 'critical';
-  trend: 'up' | 'down' | 'stable';
-}
-
-interface ServiceStatus {
-  name: string;
-  status: 'healthy' | 'degraded' | 'down';
-  uptime: string;
-  responseTime: number;
-  lastCheck: string;
-}
-
-export default function AdminSystemMonitoring() {
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Mock system metrics
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetric[]>([
-    { name: 'CPU Usage', value: 34, unit: '%', status: 'good', trend: 'stable' },
-    { name: 'Memory Usage', value: 67, unit: '%', status: 'warning', trend: 'up' },
-    { name: 'Disk Usage', value: 45, unit: '%', status: 'good', trend: 'stable' },
-    { name: 'Network I/O', value: 12.5, unit: 'MB/s', status: 'good', trend: 'down' },
-    { name: 'Database Connections', value: 23, unit: '', status: 'good', trend: 'stable' },
-    { name: 'API Response Time', value: 145, unit: 'ms', status: 'good', trend: 'stable' }
-  ]);
-
-  const [services, setServices] = useState<ServiceStatus[]>([
-    { name: 'Web Server', status: 'healthy', uptime: '99.9%', responseTime: 120, lastCheck: '30 seconds ago' },
-    { name: 'Database', status: 'healthy', uptime: '99.8%', responseTime: 45, lastCheck: '1 minute ago' },
-    { name: 'API Gateway', status: 'healthy', uptime: '99.9%', responseTime: 89, lastCheck: '45 seconds ago' },
-    { name: 'File Storage', status: 'healthy', uptime: '99.7%', responseTime: 67, lastCheck: '2 minutes ago' },
-    { name: 'Cache Layer', status: 'healthy', uptime: '99.9%', responseTime: 12, lastCheck: '1 minute ago' },
-    { name: 'Background Jobs', status: 'degraded', uptime: '98.5%', responseTime: 234, lastCheck: '3 minutes ago' }
-  ]);
-
-  // Mock performance data
-  const performanceData = [
-    { time: '00:00', cpu: 30, memory: 65, requests: 120 },
-    { time: '01:00', cpu: 25, memory: 62, requests: 95 },
-    { time: '02:00', cpu: 22, memory: 58, requests: 80 },
-    { time: '03:00', cpu: 28, memory: 61, requests: 110 },
-    { time: '04:00', cpu: 35, memory: 68, requests: 140 },
-    { time: '05:00', cpu: 42, memory: 72, requests: 180 },
-    { time: '06:00', cpu: 38, memory: 70, requests: 160 },
-    { time: '07:00', cpu: 45, memory: 75, requests: 200 },
-    { time: '08:00', cpu: 52, memory: 78, requests: 250 },
-    { time: '09:00', cpu: 48, memory: 76, requests: 220 },
-    { time: '10:00', cpu: 55, memory: 80, requests: 280 },
-    { time: '11:00', cpu: 50, memory: 77, requests: 240 }
+const AdminSystemMonitoring = () => {
+  const lastUpdated = new Date().toLocaleTimeString();
+  
+  const servers = [
+    {
+      name: 'Web Server 1',
+      status: 'Healthy',
+      uptime: '42d 18h 13m',
+      cpu: 28,
+      memory: 45,
+      disk: 36,
+    },
+    {
+      name: 'Web Server 2',
+      status: 'Healthy',
+      uptime: '12d 9h 54m',
+      cpu: 32,
+      memory: 57,
+      disk: 41,
+    },
+    {
+      name: 'API Server',
+      status: 'Warning',
+      uptime: '5d 12h 20m',
+      cpu: 68,
+      memory: 77,
+      disk: 32,
+      alert: 'High CPU Usage',
+    },
+    {
+      name: 'Database Server',
+      status: 'Healthy',
+      uptime: '21d 6h 42m',
+      cpu: 24,
+      memory: 62,
+      disk: 56,
+    },
   ];
-
-  const responseTimeData = [
-    { endpoint: '/api/recipes', avgTime: 145, requests: 1250 },
-    { endpoint: '/api/users', avgTime: 89, requests: 890 },
-    { endpoint: '/api/pantry', avgTime: 67, requests: 670 },
-    { endpoint: '/api/auth', avgTime: 234, requests: 345 },
-    { endpoint: '/api/search', avgTime: 178, requests: 567 },
-    { endpoint: '/api/analytics', avgTime: 98, requests: 234 }
+  
+  const databases = [
+    {
+      name: 'Main PostgreSQL',
+      connections: '24/100',
+      queryTime: '95ms',
+      replication: 'Healthy',
+      lastBackup: '2h ago',
+    },
+    {
+      name: 'Redis Cache',
+      connections: '86/500',
+      queryTime: '2ms',
+      replication: 'N/A',
+      lastBackup: 'N/A',
+    },
+    {
+      name: 'Analytics Database',
+      connections: '5/25',
+      queryTime: '152ms',
+      replication: 'Healthy',
+      lastBackup: '12h ago',
+    },
   ];
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-      case 'good':
-        return 'text-green-600 bg-green-100';
-      case 'warning':
-      case 'degraded':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'critical':
-      case 'down':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy':
-      case 'good':
-        return <CheckCircle2 className="h-4 w-4" />;
-      case 'warning':
-      case 'degraded':
-        return <AlertTriangle className="h-4 w-4" />;
-      case 'critical':
-      case 'down':
-        return <AlertTriangle className="h-4 w-4" />;
-      default:
-        return <Monitor className="h-4 w-4" />;
-    }
-  };
+  
+  const serviceStatuses = [
+    { name: 'OpenAI API', status: 'Operational', latency: '320ms' },
+    { name: 'Stripe', status: 'Operational', latency: '186ms' },
+    { name: 'Email Delivery', status: 'Operational', latency: '243ms' },
+    { name: 'Firebase', status: 'Operational', latency: '110ms' },
+    { name: 'Push Notifications', status: 'Degraded', latency: '2.1s', issue: 'Experiencing delays' },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold flex items-center">
-            <Monitor className="mr-2 h-6 w-6" /> System Monitoring
-          </h1>
-          <p className="text-muted-foreground">Monitor system health, performance, and service status</p>
+          <h1 className="text-2xl font-semibold">System Monitoring</h1>
+          <p className="text-muted-foreground">Monitor server health and infrastructure status.</p>
         </div>
-
-        <Button onClick={handleRefresh} disabled={refreshing}>
-          {refreshing ? (
-            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="mr-2 h-4 w-4" />
-          )}
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Data
+          </Button>
+          <Button variant="outline">
+            <Clock className="h-4 w-4 mr-2" />
+            View Logs
+          </Button>
+        </div>
       </div>
-
-      <Tabs defaultValue="overview">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">System Overview</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="logs">System Logs</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          <div className="space-y-6">
-            {/* System Health Metrics */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {systemMetrics.map((metric) => (
-                <Card key={metric.name}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-                    <div className="flex items-center space-x-1">
-                      {getStatusIcon(metric.status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {metric.value}{metric.unit}
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="secondary" className={getStatusColor(metric.status)}>
-                        {metric.status.toUpperCase()}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {metric.trend === 'up' ? '↗' : metric.trend === 'down' ? '↘' : '→'} 
-                        {metric.trend}
-                      </span>
-                    </div>
-                    {metric.name.includes('Usage') && (
-                      <Progress value={metric.value} className="mt-2 h-2" />
-                    )}
-                  </CardContent>
-                </Card>
+      
+      <div className="flex items-center gap-2">
+        <p className="text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
+      </div>
+      
+      <div className="space-y-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Server className="h-5 w-5 mr-2" /> 
+              Servers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-2">Server</th>
+                    <th className="text-left py-2 px-2">Status</th>
+                    <th className="text-left py-2 px-2">Uptime</th>
+                    <th className="text-left py-2 px-2">CPU</th>
+                    <th className="text-left py-2 px-2">Memory</th>
+                    <th className="text-left py-2 px-2">Disk</th>
+                    <th className="text-left py-2 px-2">Issues</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {servers.map((server, index) => (
+                    <tr key={index} className="border-b hover:bg-muted/50">
+                      <td className="py-3 px-2 font-medium">{server.name}</td>
+                      <td className="py-3 px-2">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          server.status === 'Healthy' 
+                            ? 'bg-green-100 text-green-800' 
+                            : server.status === 'Warning'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                        }`}>
+                          {server.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2">{server.uptime}</td>
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
+                            <div className={`h-2 rounded-full ${
+                              server.cpu < 50 
+                                ? 'bg-green-500' 
+                                : server.cpu < 80 
+                                  ? 'bg-yellow-500' 
+                                  : 'bg-red-500'
+                            }`} style={{ width: `${server.cpu}%` }}></div>
+                          </div>
+                          <span className="text-xs">{server.cpu}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
+                            <div className={`h-2 rounded-full ${
+                              server.memory < 50 
+                                ? 'bg-green-500' 
+                                : server.memory < 80 
+                                  ? 'bg-yellow-500' 
+                                  : 'bg-red-500'
+                            }`} style={{ width: `${server.memory}%` }}></div>
+                          </div>
+                          <span className="text-xs">{server.memory}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
+                            <div className={`h-2 rounded-full ${
+                              server.disk < 50 
+                                ? 'bg-green-500' 
+                                : server.disk < 80 
+                                  ? 'bg-yellow-500' 
+                                  : 'bg-red-500'
+                            }`} style={{ width: `${server.disk}%` }}></div>
+                          </div>
+                          <span className="text-xs">{server.disk}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        {server.alert ? (
+                          <div className="flex items-center text-yellow-600 text-sm">
+                            <AlertTriangle className="h-4 w-4 mr-1" />
+                            {server.alert}
+                          </div>
+                        ) : (
+                          <span className="text-green-600 text-sm">None</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Database className="h-5 w-5 mr-2" /> 
+              Databases
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-2">Database</th>
+                    <th className="text-left py-2 px-2">Connections</th>
+                    <th className="text-left py-2 px-2">Avg. Query Time</th>
+                    <th className="text-left py-2 px-2">Replication</th>
+                    <th className="text-left py-2 px-2">Last Backup</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {databases.map((db, index) => (
+                    <tr key={index} className="border-b hover:bg-muted/50">
+                      <td className="py-3 px-2 font-medium">{db.name}</td>
+                      <td className="py-3 px-2">{db.connections}</td>
+                      <td className="py-3 px-2">{db.queryTime}</td>
+                      <td className="py-3 px-2">
+                        {db.replication === 'Healthy' ? (
+                          <span className="text-green-600">{db.replication}</span>
+                        ) : (
+                          <span>{db.replication}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-2">{db.lastBackup}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">External Services Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {serviceStatuses.map((service, index) => (
+                <div key={index} className="border rounded-md p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">{service.name}</h3>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      service.status === 'Operational' 
+                        ? 'bg-green-100 text-green-800' 
+                        : service.status === 'Degraded'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                    }`}>
+                      {service.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Response time: {service.latency}</p>
+                  {service.issue && (
+                    <p className="text-sm text-yellow-600 mt-2 flex items-center">
+                      <AlertTriangle className="h-3 w-3 mr-1" /> {service.issue}
+                    </p>
+                  )}
+                </div>
               ))}
             </div>
-
-            {/* Quick Status Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Activity className="mr-2 h-5 w-5" />
-                  System Status Overview
-                </CardTitle>
-                <CardDescription>Real-time status of critical system components</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Infrastructure</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <Server className="mr-2 h-4 w-4" />
-                          Web Servers (3)
-                        </div>
-                        <Badge className="bg-green-100 text-green-800">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Healthy
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <Database className="mr-2 h-4 w-4" />
-                          Database Cluster
-                        </div>
-                        <Badge className="bg-green-100 text-green-800">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Healthy
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <Zap className="mr-2 h-4 w-4" />
-                          Load Balancer
-                        </div>
-                        <Badge className="bg-green-100 text-green-800">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Healthy
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-medium">External Services</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <Network className="mr-2 h-4 w-4" />
-                          CDN Status
-                        </div>
-                        <Badge className="bg-green-100 text-green-800">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Operational
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <Cpu className="mr-2 h-4 w-4" />
-                          OpenAI API
-                        </div>
-                        <Badge className="bg-green-100 text-green-800">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Connected
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center">
-                          <HardDrive className="mr-2 h-4 w-4" />
-                          File Storage
-                        </div>
-                        <Badge className="bg-yellow-100 text-yellow-800">
-                          <AlertTriangle className="mr-1 h-3 w-3" />
-                          Slow
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <div className="space-y-6">
-            {/* Performance Charts */}
-            <Card>
-              <CardHeader>
-                <CardTitle>System Performance (Last 12 Hours)</CardTitle>
-                <CardDescription>CPU, Memory usage, and request volume over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={performanceData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="time" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="cpu" stroke="#8884d8" name="CPU %" />
-                      <Line type="monotone" dataKey="memory" stroke="#82ca9d" name="Memory %" />
-                      <Line type="monotone" dataKey="requests" stroke="#ffc658" name="Requests/min" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* API Response Times */}
-            <Card>
-              <CardHeader>
-                <CardTitle>API Endpoint Performance</CardTitle>
-                <CardDescription>Average response times and request volumes by endpoint</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={responseTimeData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="endpoint" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="avgTime" fill="#8884d8" name="Avg Response Time (ms)" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="services">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Service Health Status</CardTitle>
-                <CardDescription>Status and performance metrics for all system services</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {services.map((service) => (
-                    <div key={service.name} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-2 rounded-full ${getStatusColor(service.status)}`}>
-                            {getStatusIcon(service.status)}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{service.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Last checked: {service.lastCheck}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="text-right">
-                          <Badge className={getStatusColor(service.status)}>
-                            {service.status.toUpperCase()}
-                          </Badge>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Uptime: {service.uptime}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-3 mt-4 pt-4 border-t">
-                        <div>
-                          <div className="text-sm font-medium">Response Time</div>
-                          <div className="text-lg font-bold">{service.responseTime}ms</div>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">Uptime</div>
-                          <div className="text-lg font-bold">{service.uptime}</div>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">Status</div>
-                          <div className="text-lg font-bold capitalize">{service.status}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="logs">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="mr-2 h-5 w-5" />
-                System Logs
-              </CardTitle>
-              <CardDescription>Recent system events and error logs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {[
-                  { time: '2025-01-30 14:32:15', level: 'info', message: 'User authentication successful for user ID: 12345' },
-                  { time: '2025-01-30 14:31:45', level: 'warning', message: 'High memory usage detected: 78%' },
-                  { time: '2025-01-30 14:30:22', level: 'info', message: 'Database backup completed successfully' },
-                  { time: '2025-01-30 14:29:18', level: 'error', message: 'API rate limit exceeded for endpoint /api/search' },
-                  { time: '2025-01-30 14:28:55', level: 'info', message: 'New recipe created by user ID: 67890' },
-                  { time: '2025-01-30 14:27:33', level: 'warning', message: 'Slow query detected: SELECT * FROM recipes (2.3s)' },
-                  { time: '2025-01-30 14:26:41', level: 'info', message: 'Cache cleared for user preferences' },
-                  { time: '2025-01-30 14:25:12', level: 'info', message: 'Email notification sent successfully' }
-                ].map((log, index) => (
-                  <div key={index} className="flex items-start space-x-3 p-2 text-sm border-b">
-                    <span className="text-muted-foreground font-mono">{log.time}</span>
-                    <Badge 
-                      variant="secondary" 
-                      className={
-                        log.level === 'error' ? 'bg-red-100 text-red-800' :
-                        log.level === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }
-                    >
-                      {log.level.toUpperCase()}
-                    </Badge>
-                    <span className="flex-1">{log.message}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default AdminSystemMonitoring;
