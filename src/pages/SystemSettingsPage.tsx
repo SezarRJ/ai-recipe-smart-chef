@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -66,6 +67,12 @@ const SystemSettingsPage = () => {
       items: [
         { id: 'help', icon: <HelpCircle className="h-6 w-6 text-orange-500" />, label: t("Help & Support", "المساعدة والدعم", "Yardım ve Destek"), path: "/help" },
       ]
+    },
+    {
+      title: t("Account Management", "إدارة الحساب", "Hesap Yönetimi"),
+      items: [
+        { id: 'delete-account', icon: <UserX className="h-6 w-6 text-red-500" />, label: t("Delete Account", "حذف الحساب", "Hesabı Sil"), path: "/delete-account" },
+      ]
     }
   ];
 
@@ -78,13 +85,6 @@ const SystemSettingsPage = () => {
       ]
     });
   }
-
-  settingGroups.push({
-    title: t("Account Management", "إدارة الحساب", "Hesap Yönetimi"),
-    items: [
-      { id: 'delete-account', icon: <UserX className="h-6 w-6 text-red-500" />, label: t("Delete Account", "حذف الحساب", "Hesabı Sil"), path: "/delete-account" },
-    ]
-  });
 
   return (
     <PageContainer header={{ title: t("Settings", "الإعدادات", "Ayarlar"), showBackButton: true }}>

@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Search, Plus, Send, Bell, Mail, Smartphone } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Bell, Send, Users, Settings, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -17,49 +19,41 @@ import {
 
 const mockNotifications = [
   {
-    id: 'NOT-001',
-    title: 'Welcome to WasfahAI Premium',
-    type: 'email',
+    id: 'NOTIF-001',
+    title: 'New Recipe Weekly Digest',
+    type: 'promotional',
     status: 'sent',
-    recipients: 156,
-    clickRate: 12.5,
-    sentAt: '2024-01-15 10:30',
-    campaign: 'Premium Onboarding'
+    recipients: 1250,
+    sentDate: '2024-01-15 10:00:00',
+    openRate: '24.5%'
   },
   {
-    id: 'NOT-002',
-    title: 'New Recipe Alert: Italian Pasta',
-    type: 'push',
+    id: 'NOTIF-002',
+    title: 'System Maintenance Alert',
+    type: 'system',
     status: 'scheduled',
     recipients: 2340,
-    clickRate: 0,
-    sentAt: '2024-01-16 14:00',
-    campaign: 'Recipe Updates'
+    sentDate: '2024-01-16 09:00:00',
+    openRate: 'N/A'
   },
   {
-    id: 'NOT-003',
-    title: 'Weekly Recipe Digest',
-    type: 'email',
-    status: 'draft',
-    recipients: 0,
-    clickRate: 0,
-    sentAt: 'Not sent',
-    campaign: 'Weekly Digest'
+    id: 'NOTIF-003',
+    title: 'Welcome to Premium',
+    type: 'transactional',
+    status: 'sent',
+    recipients: 45,
+    sentDate: '2024-01-14 15:30:00',
+    openRate: '67.8%'
   }
 ];
 
 const AdminNotificationsPage = () => {
   const [notifications] = useState(mockNotifications);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'email': return <Mail className="h-4 w-4 text-blue-500" />;
-      case 'push': return <Smartphone className="h-4 w-4 text-green-500" />;
-      case 'sms': return <Bell className="h-4 w-4 text-purple-500" />;
-      default: return <Bell className="h-4 w-4 text-gray-500" />;
-    }
-  };
+  const [newNotification, setNewNotification] = useState({
+    title: '',
+    message: '',
+    type: 'promotional'
+  });
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -71,144 +65,163 @@ const AdminNotificationsPage = () => {
     return <Badge className={variants[status as keyof typeof variants]}>{status}</Badge>;
   };
 
-  const filteredNotifications = notifications.filter(notification =>
-    notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    notification.campaign.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getTypeBadge = (type: string) => {
+    const variants = {
+      promotional: 'bg-purple-100 text-purple-800',
+      system: 'bg-orange-100 text-orange-800',
+      transactional: 'bg-blue-100 text-blue-800'
+    };
+    return <Badge variant="outline" className={variants[type as keyof typeof variants]}>{type}</Badge>;
+  };
 
   return (
     <AdminPageWrapper title="Notifications">
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Notifications Management</h1>
-            <p className="text-muted-foreground">Create and manage email campaigns, push notifications, and user communications.</p>
+            <h1 className="text-2xl font-semibold">Notifications</h1>
+            <p className="text-muted-foreground">Manage push notifications, emails, and system alerts.</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Send className="h-4 w-4 mr-2" />
-              Send Test
-            </Button>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Campaign
-            </Button>
-          </div>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Notification
+          </Button>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Sent</CardTitle>
-              <Send className="h-4 w-4 text-blue-500" />
+              <Send className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {notifications.filter(n => n.status === 'sent').reduce((sum, n) => sum + n.recipients, 0)}
+              <div className="text-2xl font-bold">
+                {notifications.reduce((sum, n) => sum + (n.status === 'sent' ? n.recipients : 0), 0)}
               </div>
-              <p className="text-xs text-muted-foreground">This month</p>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-500">+12%</span> from last month
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Click Rate</CardTitle>
-              <Bell className="h-4 w-4 text-green-500" />
+              <CardTitle className="text-sm font-medium">Open Rate</CardTitle>
+              <Bell className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {(notifications.filter(n => n.status === 'sent').reduce((sum, n) => sum + n.clickRate, 0) / 
-                  notifications.filter(n => n.status === 'sent').length || 0).toFixed(1)}%
-              </div>
-              <p className="text-xs text-muted-foreground">Last 30 days</p>
+              <div className="text-2xl font-bold">28.4%</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-500">+2.1%</span> from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">2,340</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-500">+5.4%</span> from last month
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-              <Bell className="h-4 w-4 text-yellow-500" />
+              <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold">
                 {notifications.filter(n => n.status === 'scheduled').length}
               </div>
-              <p className="text-xs text-muted-foreground">Upcoming campaigns</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-              <Mail className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-600">
-                {notifications.filter(n => n.status === 'draft').length}
-              </div>
-              <p className="text-xs text-muted-foreground">Pending campaigns</p>
+              <p className="text-xs text-muted-foreground">Next: Tomorrow 9 AM</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search campaigns..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <Tabs defaultValue="notifications">
+          <TabsList>
+            <TabsTrigger value="notifications">All Notifications</TabsTrigger>
+            <TabsTrigger value="compose">Compose</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Campaign</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Recipients</TableHead>
-                <TableHead>Click Rate</TableHead>
-                <TableHead>Sent At</TableHead>
-                <TableHead className="w-[120px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredNotifications.map((notification) => (
-                <TableRow key={notification.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{notification.title}</div>
-                      <div className="text-sm text-gray-500">{notification.campaign}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getTypeIcon(notification.type)}
-                      <span className="capitalize">{notification.type}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(notification.status)}</TableCell>
-                  <TableCell>{notification.recipients > 0 ? notification.recipients.toLocaleString() : '-'}</TableCell>
-                  <TableCell>{notification.clickRate > 0 ? `${notification.clickRate}%` : '-'}</TableCell>
-                  <TableCell>{notification.sentAt}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        Edit
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        View
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Recipients</TableHead>
+                      <TableHead>Open Rate</TableHead>
+                      <TableHead>Sent Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {notifications.map((notification) => (
+                      <TableRow key={notification.id}>
+                        <TableCell className="font-medium">{notification.title}</TableCell>
+                        <TableCell>{getTypeBadge(notification.type)}</TableCell>
+                        <TableCell>{getStatusBadge(notification.status)}</TableCell>
+                        <TableCell>{notification.recipients.toLocaleString()}</TableCell>
+                        <TableCell>{notification.openRate}</TableCell>
+                        <TableCell className="text-sm text-gray-500">{notification.sentDate}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="compose">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create New Notification</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  placeholder="Notification title"
+                  value={newNotification.title}
+                  onChange={(e) => setNewNotification(prev => ({ ...prev, title: e.target.value }))}
+                />
+                <Textarea
+                  placeholder="Notification message"
+                  value={newNotification.message}
+                  onChange={(e) => setNewNotification(prev => ({ ...prev, message: e.target.value }))}
+                  rows={4}
+                />
+                <div className="flex gap-2">
+                  <Button>Send Now</Button>
+                  <Button variant="outline">Schedule</Button>
+                  <Button variant="outline">Save Draft</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Notification settings and preferences coming soon...</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminPageWrapper>
   );

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
 import { Search, MessageCircle, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -16,49 +15,40 @@ import {
 
 const mockTickets = [
   {
-    id: 'TKT-001',
-    subject: 'Cannot access premium recipes',
-    user: 'Sarah Johnson',
-    priority: 'high',
-    status: 'open',
-    category: 'subscription',
-    createdAt: '2024-01-15 10:30',
-    lastUpdate: '2024-01-15 14:20'
-  },
-  {
-    id: 'TKT-002',
-    subject: 'Recipe upload failing',
+    id: 'TICK-001',
+    subject: 'Cannot access premium features',
     user: 'Ahmed Hassan',
-    priority: 'medium',
-    status: 'in_progress',
-    category: 'technical',
-    createdAt: '2024-01-14 16:45',
-    lastUpdate: '2024-01-15 09:15'
+    email: 'ahmed@example.com',
+    status: 'open',
+    priority: 'high',
+    created: '2024-01-15 14:30:00',
+    category: 'billing'
   },
   {
-    id: 'TKT-003',
-    subject: 'Request for recipe deletion',
-    user: 'Maria Garcia',
-    priority: 'low',
+    id: 'TICK-002',
+    subject: 'Recipe not loading properly',
+    user: 'Fatima Ali',
+    email: 'fatima@example.com',
+    status: 'in_progress',
+    priority: 'medium',
+    created: '2024-01-15 13:15:00',
+    category: 'technical'
+  },
+  {
+    id: 'TICK-003',
+    subject: 'Feature request: Dark mode',
+    user: 'Omar Khaled',
+    email: 'omar@example.com',
     status: 'resolved',
-    category: 'content',
-    createdAt: '2024-01-13 11:20',
-    lastUpdate: '2024-01-14 13:30'
+    priority: 'low',
+    created: '2024-01-14 16:45:00',
+    category: 'feature'
   }
 ];
 
 const AdminSupportTicketsPage = () => {
   const [tickets] = useState(mockTickets);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const getPriorityBadge = (priority: string) => {
-    const variants = {
-      high: 'bg-red-100 text-red-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-blue-100 text-blue-800'
-    };
-    return <Badge className={variants[priority as keyof typeof variants]}>{priority}</Badge>;
-  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -70,14 +60,13 @@ const AdminSupportTicketsPage = () => {
     return <Badge className={variants[status as keyof typeof variants]}>{status.replace('_', ' ')}</Badge>;
   };
 
-  const getCategoryBadge = (category: string) => {
+  const getPriorityBadge = (priority: string) => {
     const variants = {
-      technical: 'bg-purple-100 text-purple-800',
-      subscription: 'bg-blue-100 text-blue-800',
-      content: 'bg-green-100 text-green-800',
-      general: 'bg-gray-100 text-gray-800'
+      high: 'bg-red-100 text-red-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      low: 'bg-green-100 text-green-800'
     };
-    return <Badge className={variants[category as keyof typeof variants]}>{category}</Badge>;
+    return <Badge variant="outline" className={variants[priority as keyof typeof variants]}>{priority}</Badge>;
   };
 
   const filteredTickets = tickets.filter(ticket =>
@@ -106,31 +95,16 @@ const AdminSupportTicketsPage = () => {
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              <div>
-                <div className="text-2xl font-bold text-red-600">{tickets.filter(t => t.status === 'open').length}</div>
-                <div className="text-sm text-gray-600">Open</div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-red-600">{tickets.filter(t => t.status === 'open').length}</div>
+            <div className="text-sm text-gray-600">Open</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-yellow-500" />
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">{tickets.filter(t => t.status === 'in_progress').length}</div>
-                <div className="text-sm text-gray-600">In Progress</div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-yellow-600">{tickets.filter(t => t.status === 'in_progress').length}</div>
+            <div className="text-sm text-gray-600">In Progress</div>
           </div>
           <div className="bg-white p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div>
-                <div className="text-2xl font-bold text-green-600">{tickets.filter(t => t.status === 'resolved').length}</div>
-                <div className="text-sm text-gray-600">Resolved</div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-green-600">{tickets.filter(t => t.status === 'resolved').length}</div>
+            <div className="text-sm text-gray-600">Resolved</div>
           </div>
         </div>
 
@@ -151,24 +125,25 @@ const AdminSupportTicketsPage = () => {
                 <TableHead>Ticket ID</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>User</TableHead>
-                <TableHead>Priority</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Category</TableHead>
+                <TableHead>Priority</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Last Update</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredTickets.map((ticket) => (
-                <TableRow key={ticket.id} className="cursor-pointer hover:bg-gray-50">
-                  <TableCell className="font-medium">{ticket.id}</TableCell>
+                <TableRow key={ticket.id}>
+                  <TableCell className="font-mono">{ticket.id}</TableCell>
                   <TableCell>{ticket.subject}</TableCell>
-                  <TableCell>{ticket.user}</TableCell>
-                  <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{ticket.user}</div>
+                      <div className="text-sm text-gray-500">{ticket.email}</div>
+                    </div>
+                  </TableCell>
                   <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell>{getCategoryBadge(ticket.category)}</TableCell>
-                  <TableCell>{ticket.createdAt}</TableCell>
-                  <TableCell>{ticket.lastUpdate}</TableCell>
+                  <TableCell>{getPriorityBadge(ticket.priority)}</TableCell>
+                  <TableCell className="text-sm text-gray-500">{ticket.created}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
