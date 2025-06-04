@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,10 +21,27 @@ import {
   Info, 
   FileText, 
   LogOut,
-  Moon, // Added for Dark Mode
-  Fingerprint, // Added for Biometric Authentication
-  Palette // Added for Theme Customization
+  Moon,
+  Fingerprint,
+  Palette
 } from "lucide-react";
+
+interface SettingItem {
+  icon: any;
+  label: string;
+  value?: string | boolean;
+  onClick?: () => void;
+  hasArrow?: boolean;
+  hasSwitch?: boolean;
+  onToggle?: () => void;
+  dangerous?: boolean;
+  isAdmin?: boolean;
+}
+
+interface SettingSection {
+  title: string;
+  items: SettingItem[];
+}
 
 const Settings = () => {
   const { t, language, setLanguage, availableLanguages } = useLanguage();
@@ -35,12 +53,11 @@ const Settings = () => {
     sounds: true,
     darkMode: false,
     autoSync: true,
-    biometricAuth: false, // New setting for biometric authentication
+    biometricAuth: false,
   });
 
-  const toggleSetting = (key) => {
+  const toggleSetting = (key: keyof typeof settings) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));
-    // Future implementation for dark mode:
     if (key === 'darkMode') {
       document.documentElement.classList.toggle('dark', !settings.darkMode);
     }
@@ -55,7 +72,7 @@ const Settings = () => {
     }
   };
 
-  const settingSections = [
+  const settingSections: SettingSection[] = [
     {
       title: "App Preferences",
       items: [
@@ -81,14 +98,14 @@ const Settings = () => {
           onToggle: () => toggleSetting("sounds")
         },
         {
-          icon: Moon, // Dark Mode Toggle
+          icon: Moon,
           label: "Dark Mode",
           hasSwitch: true,
           value: settings.darkMode,
           onToggle: () => toggleSetting("darkMode")
         },
         {
-          icon: Palette, // Theme Customization
+          icon: Palette,
           label: "Theme Customization",
           onClick: () => navigate("/theme-customization"),
           hasArrow: true
@@ -118,13 +135,13 @@ const Settings = () => {
         },
         {
           icon: Database,
-          label: "Account Backup & Sync", // Updated label
-          hasSwitch: true, // Added switch for sync
+          label: "Account Backup & Sync",
+          hasSwitch: true,
           value: settings.autoSync,
           onToggle: () => toggleSetting("autoSync"),
         },
         {
-          icon: Fingerprint, // Biometric Authentication Toggle
+          icon: Fingerprint,
           label: "Biometric Authentication",
           hasSwitch: true,
           value: settings.biometricAuth,
@@ -215,11 +232,11 @@ const Settings = () => {
                     <div className="flex items-center gap-2">
                       {item.hasSwitch && (
                         <Switch
-                          checked={item.value}
+                          checked={Boolean(item.value)}
                           onCheckedChange={item.onToggle}
                         />
                       )}
-                      {item.value && !item.hasSwitch && (
+                      {item.value && !item.hasSwitch && typeof item.value === 'string' && (
                         <span className="text-gray-500 text-sm">{item.value}</span>
                       )}
                       {item.hasArrow && (
