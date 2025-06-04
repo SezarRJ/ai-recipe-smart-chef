@@ -19,12 +19,14 @@ import {
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const SettingsPage = () => {
   const { t, direction } = useRTL();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { lang } = useParams();
+  const currentLang = lang || 'en';
 
   const quickSettings = [
     {
@@ -55,7 +57,7 @@ const SettingsPage = () => {
   return (
     <PageContainer
       header={{
-        title: t("Settings", "الإعدادات"),
+        title: t("Quick Settings", "الإعدادات السريعة"),
         showBackButton: true
       }}
       className="pb-24"
@@ -138,7 +140,7 @@ const SettingsPage = () => {
             <Button 
               variant="default" 
               className="w-full flex items-center justify-between bg-wasfah-bright-teal hover:bg-wasfah-teal"
-              onClick={() => navigate('/system-settings')}
+              onClick={() => navigate(`/${currentLang}/settings`)}
             >
               <div className="flex items-center gap-2">
                 <SettingsIcon className="h-5 w-5" />
@@ -151,28 +153,28 @@ const SettingsPage = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/profile')}>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/profile`)}>
             <CardContent className="p-4 text-center">
               <User className="h-8 w-8 mx-auto mb-2 text-wasfah-bright-teal" />
               <h3 className="font-medium">{t("Profile", "الملف الشخصي")}</h3>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/privacy')}>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/privacy`)}>
             <CardContent className="p-4 text-center">
               <Shield className="h-8 w-8 mx-auto mb-2 text-green-600" />
               <h3 className="font-medium">{t("Privacy", "الخصوصية")}</h3>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/subscription')}>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/subscription`)}>
             <CardContent className="p-4 text-center">
               <CreditCard className="h-8 w-8 mx-auto mb-2 text-blue-600" />
               <h3 className="font-medium">{t("Subscription", "الاشتراك")}</h3>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/help')}>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/help`)}>
             <CardContent className="p-4 text-center">
               <LogOut className="h-8 w-8 mx-auto mb-2 text-red-500" />
               <h3 className="font-medium">{t("Help", "المساعدة")}</h3>

@@ -44,7 +44,7 @@ const BottomToolbar = () => {
     },
     {
       icon: Sparkles,
-      label: 'AI Features',
+      label: 'AI Kitchen',
       href: `/${currentLang}/ai-features`,
       isActive: pathname.includes('/ai-features')
     },

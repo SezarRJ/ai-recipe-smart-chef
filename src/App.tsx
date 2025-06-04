@@ -22,6 +22,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import MenuPage from "@/pages/MenuPage";
 import SettingsPage from "@/pages/SettingsPage";
 import SystemSettingsPage from "@/pages/SystemSettingsPage";
+import MainSettingsPage from "@/pages/MainSettingsPage";
 
 // Feature Pages
 import GlobalCuisinePage from "@/pages/GlobalCuisinePage";
@@ -86,7 +87,8 @@ function App() {
                     <Route path="/:lang/recipe/:id" element={<RecipeDetailPage />} />
                     <Route path="/:lang/profile" element={<ProfilePage />} />
                     <Route path="/:lang/menu" element={<MenuPage />} />
-                    <Route path="/:lang/settings" element={<SettingsPage />} />
+                    <Route path="/:lang/settings" element={<MainSettingsPage />} />
+                    <Route path="/:lang/quick-settings" element={<SettingsPage />} />
                     <Route path="/:lang/system-settings" element={<SystemSettingsPage />} />
                     <Route path="/:lang/global-cuisine" element={<GlobalCuisinePage />} />
                     <Route path="/:lang/ai-features" element={<AIFeaturesPage />} />
@@ -102,7 +104,8 @@ function App() {
                     <Route path="/recipe/:id" element={<RecipeDetailPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/menu" element={<MenuPage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/settings" element={<MainSettingsPage />} />
+                    <Route path="/quick-settings" element={<SettingsPage />} />
                     <Route path="/system-settings" element={<SystemSettingsPage />} />
                     <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
                     <Route path="/ai-features" element={<AIFeaturesPage />} />
@@ -111,17 +114,35 @@ function App() {
                     <Route path="/create-recipe" element={<CreateRecipePage />} />
                     
                     {/* System Settings Routes */}
+                    <Route path="/:lang/subscription" element={<div className="p-8 text-center">Subscription page coming soon...</div>} />
+                    <Route path="/:lang/loyalty-program" element={<div className="p-8 text-center">Loyalty Program page coming soon...</div>} />
+                    <Route path="/:lang/favorites" element={<div className="p-8 text-center">Favorites page coming soon...</div>} />
+                    <Route path="/:lang/my-recipes" element={<div className="p-8 text-center">My Recipes page coming soon...</div>} />
+                    <Route path="/:lang/preferences" element={<div className="p-8 text-center">Preferences page coming soon...</div>} />
+                    <Route path="/:lang/dietary-preferences" element={<div className="p-8 text-center">Dietary Preferences page coming soon...</div>} />
+                    <Route path="/:lang/body-information" element={<div className="p-8 text-center">Body Information page coming soon...</div>} />
+                    <Route path="/:lang/connected-devices" element={<div className="p-8 text-center">Connected Devices page coming soon...</div>} />
+                    <Route path="/:lang/privacy" element={<div className="p-8 text-center">Privacy & Data page coming soon...</div>} />
+                    <Route path="/:lang/payment-methods" element={<div className="p-8 text-center">Payment Methods page coming soon...</div>} />
+                    <Route path="/:lang/help" element={<div className="p-8 text-center">Help & Support page coming soon...</div>} />
+                    <Route path="/:lang/notifications" element={<div className="p-8 text-center">Notifications page coming soon...</div>} />
+                    <Route path="/:lang/appearance" element={<div className="p-8 text-center">Appearance page coming soon...</div>} />
+                    <Route path="/:lang/delete-account" element={<div className="p-8 text-center">Delete Account page coming soon...</div>} />
+                    
+                    {/* Non-language system routes */}
                     <Route path="/subscription" element={<div className="p-8 text-center">Subscription page coming soon...</div>} />
                     <Route path="/loyalty-program" element={<div className="p-8 text-center">Loyalty Program page coming soon...</div>} />
                     <Route path="/favorites" element={<div className="p-8 text-center">Favorites page coming soon...</div>} />
                     <Route path="/my-recipes" element={<div className="p-8 text-center">My Recipes page coming soon...</div>} />
                     <Route path="/preferences" element={<div className="p-8 text-center">Preferences page coming soon...</div>} />
+                    <Route path="/dietary-preferences" element={<div className="p-8 text-center">Dietary Preferences page coming soon...</div>} />
                     <Route path="/body-information" element={<div className="p-8 text-center">Body Information page coming soon...</div>} />
                     <Route path="/connected-devices" element={<div className="p-8 text-center">Connected Devices page coming soon...</div>} />
                     <Route path="/privacy" element={<div className="p-8 text-center">Privacy & Data page coming soon...</div>} />
                     <Route path="/payment-methods" element={<div className="p-8 text-center">Payment Methods page coming soon...</div>} />
                     <Route path="/help" element={<div className="p-8 text-center">Help & Support page coming soon...</div>} />
                     <Route path="/notifications" element={<div className="p-8 text-center">Notifications page coming soon...</div>} />
+                    <Route path="/appearance" element={<div className="p-8 text-center">Appearance page coming soon...</div>} />
                     <Route path="/delete-account" element={<div className="p-8 text-center">Delete Account page coming soon...</div>} />
                     
                     {/* Admin Routes */}
