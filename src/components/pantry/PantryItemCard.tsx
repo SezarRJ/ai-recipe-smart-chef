@@ -1,74 +1,61 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Package, Calendar, AlertTriangle, Trash2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { PantryItem } from '@/types/index';
+import { isAfter, parseISO, format, differenceInDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface PantryItemCardProps {
   item: PantryItem;
-  onDelete?: (id: string) => void;
 }
 
-export const PantryItemCard: React.FC<PantryItemCardProps> = ({ item, onDelete }) => {
-  const isExpiringSoon = (expiryDate?: string) => {
-    if (!expiryDate) return false;
+export const PantryItemCard: React.FC<PantryItemCardProps> = ({ item }) => {
+  const getExpiryText = () => {
+    if (!item.expiryDate) return 'No expiry date';
+    
+    const expiryDate = parseISO(item.expiryDate);
     const today = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 3 && diffDays >= 0;
+    
+    if (isAfter(today, expiryDate)) {
+      return 'Expired';
+    }
+    
+    const daysLeft = differenceInDays(expiryDate, today);
+    
+    if (daysLeft === 0) {
+      return 'Expires today';
+    } else if (daysLeft === 1) {
+      return 'Expires tomorrow';
+    } else {
+      return `Expires in ${daysLeft} days`;
+    }
   };
-
-  const isExpired = (expiryDate?: string) => {
-    if (!expiryDate) return false;
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    return expiry < today;
-  };
-
+  
+  const expiryText = getExpiryText();
+  const isExpired = expiryText === 'Expired';
+  const isExpiringSoon = expiryText === 'Expires today' || expiryText === 'Expires tomorrow';
+  
   return (
-    <Card className="relative">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{item.name}</CardTitle>
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(item.id)}
-              className="h-8 w-8 text-red-500 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4 text-gray-500" />
-          <span className="text-sm text-gray-600">
-            {item.quantity} {item.unit}
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {item.expiryDate && (
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <span className={`text-sm ${
-              isExpired(item.expiryDate) ? 'text-red-600' :
-              isExpiringSoon(item.expiryDate) ? 'text-orange-600' : 'text-gray-600'
-            }`}>
-              {isExpired(item.expiryDate) ? 'Expired' :
-               isExpiringSoon(item.expiryDate) ? 'Expiring soon' : 'Fresh'}
-            </span>
-            {(isExpired(item.expiryDate) || isExpiringSoon(item.expiryDate)) && (
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-            )}
+    <Card className={cn(
+      'mb-2',
+      isExpired && 'border-wasfah-coral-red',
+      isExpiringSoon && 'border-amber-400'
+    )}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-semibold text-wasfah-deep-teal">{item.name}</h3>
+            <p className={cn(
+              'text-sm',
+              isExpired ? 'text-wasfah-coral-red' : isExpiringSoon ? 'text-amber-500' : 'text-gray-500'
+            )}>
+              {expiryText}
+            </p>
           </div>
-        )}
-
-        <Badge variant="secondary">{item.category}</Badge>
+          <div className="text-right">
+            <p className="font-medium">{item.quantity} {item.unit}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
