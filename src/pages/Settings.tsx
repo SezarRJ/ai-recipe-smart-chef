@@ -1,5 +1,4 @@
 
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +23,8 @@ import {
   LogOut,
   Moon,
   Fingerprint,
-  Palette
+  Palette,
+  Settings as SettingsIcon
 } from "lucide-react";
 
 interface SettingItem {
@@ -180,6 +180,18 @@ const Settings = () => {
       ]
     },
     {
+      title: "Administration",
+      items: [
+        {
+          icon: SettingsIcon,
+          label: "Admin Panel",
+          onClick: () => navigate("/admin"),
+          hasArrow: true,
+          isAdmin: true
+        }
+      ]
+    },
+    {
       title: "Danger Zone",
       items: [
         {
@@ -212,7 +224,9 @@ const Settings = () => {
                 <CardTitle className="text-lg">{section.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
-                {section.items.map((item, itemIndex) => (
+                {section.items
+                  .filter(item => !item.isAdmin || (item.isAdmin && true)) // Show admin items if needed
+                  .map((item, itemIndex) => (
                   <div
                     key={itemIndex}
                     className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
@@ -278,4 +292,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
