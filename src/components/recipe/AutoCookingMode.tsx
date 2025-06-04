@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -281,7 +280,7 @@ export const AutoCookingMode: React.FC<AutoCookingModeProps> = ({
             <h1 className="text-xl font-bold mb-2">{recipe.title}</h1>
             <div className="flex gap-4 text-sm text-gray-300">
               <span>{t("Prep", "تحضير")}: {recipe.prep_time}m</span>
-              <span>{t("Cook", "طبخ")}: {recipe.cooking_time}m</span>
+              <span>{t("Cook", "طبخ")}: {recipe.cook_time}m</span>
               <span>{t("Serves", "يخدم")}: {recipe.servings}</span>
             </div>
           </CardContent>
