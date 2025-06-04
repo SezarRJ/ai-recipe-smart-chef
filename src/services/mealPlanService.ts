@@ -1,141 +1,157 @@
-import { mockRecipes } from '@/data/mockData';
-import { MealPlan, Meal, Recipe } from '@/types/index';
 
-export const mealPlanService = {
-  getMealPlan: async (date: string): Promise<MealPlan | null> => {
-    console.log('Fetching meal plan for date:', date);
-    
-    const mockMeals: Meal[] = [
-      {
-        id: 'meal-1',
-        type: 'Breakfast',
-        recipe: mockRecipes[0],
-        scheduled_for: date,
-        notes: 'Morning meal'
-      },
-      {
-        id: 'meal-2', 
-        type: 'Lunch',
-        recipe: mockRecipes[1],
-        scheduled_for: date,
-        notes: 'Afternoon meal'
+import { supabase } from '@/integrations/supabase/client';
+import { Recipe } from '@/types/index';
+import recipeService from './recipeService';
+
+export interface MealPlan {
+  id: string;
+  date: string;
+  breakfast?: Recipe;
+  lunch?: Recipe;
+  dinner?: Recipe;
+  snack?: Recipe;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+class MealPlanService {
+  async getMealPlan(date: string, userId: string): Promise<MealPlan | null> {
+    try {
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', date)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (!data) return null;
+
+      // Since the current schema has recipe_id, meal_type structure
+      // We need to query all meals for this date and group them
+      const { data: meals, error: mealsError } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', date);
+
+      if (mealsError) throw mealsError;
+
+      const mealPlan: MealPlan = {
+        id: data.id,
+        date: data.date,
+        user_id: data.user_id,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+
+      // Group meals by type
+      if (meals) {
+        for (const meal of meals) {
+          if (meal.recipe_id && meal.meal_type) {
+            const recipe = await this.getRecipeById(meal.recipe_id);
+            if (recipe) {
+              switch (meal.meal_type) {
+                case 'breakfast':
+                  mealPlan.breakfast = recipe;
+                  break;
+                case 'lunch':
+                  mealPlan.lunch = recipe;
+                  break;
+                case 'dinner':
+                  mealPlan.dinner = recipe;
+                  break;
+                case 'snack':
+                  mealPlan.snack = recipe;
+                  break;
+              }
+            }
+          }
+        }
       }
-    ];
 
-    // Mock meal plan data
-    const mealPlan: MealPlan = {
-      id: `meal-plan-${date}`,
-      user_id: 'mock-user-id',
-      date: date,
-      meals: mockMeals,
-      total_calories: mockMeals.reduce((sum, meal) => sum + meal.recipe.calories, 0),
-      total_protein: mockMeals.reduce((sum, meal) => sum + meal.recipe.protein, 0),
-      total_carbs: mockMeals.reduce((sum, meal) => sum + meal.recipe.carbs, 0),
-      total_fat: mockMeals.reduce((sum, meal) => sum + meal.recipe.fat, 0)
-    };
-
-    return mealPlan;
-  },
-
-  addMealToPlan: async (date: string, mealType: string, recipeId: string): Promise<boolean> => {
-    console.log('Adding meal to plan:', { date, mealType, recipeId });
-    return true;
-  },
-
-  removeMealFromPlan: async (mealId: string): Promise<boolean> => {
-    console.log('Removing meal from plan:', mealId);
-    return true;
-  },
-
-  generateMealPlan: async (startDate: string, days: number, preferences: any): Promise<MealPlan[]> => {
-    console.log('Generating meal plan:', { startDate, days, preferences });
-    
-    const plans: MealPlan[] = [];
-    for (let i = 0; i < days; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const mockMeals: Meal[] = [
-        {
-          id: `meal-${i}-1`,
-          type: 'Breakfast',
-          recipe: {
-            ...mockRecipes[i % mockRecipes.length],
-            prep_time: 10,
-            cooking_time: 15
-          },
-          scheduled_for: dateStr
-        }
-      ];
-      
-      plans.push({
-        id: `plan-${i}`,
-        user_id: 'mock-user-id',
-        date: dateStr,
-        meals: mockMeals,
-        total_calories: mockMeals.reduce((sum, meal) => sum + meal.recipe.calories, 0),
-        total_protein: mockMeals.reduce((sum, meal) => sum + meal.recipe.protein, 0),
-        total_carbs: mockMeals.reduce((sum, meal) => sum + meal.recipe.carbs, 0),
-        total_fat: mockMeals.reduce((sum, meal) => sum + meal.recipe.fat, 0)
-      });
+      return mealPlan;
+    } catch (error) {
+      console.error('Error fetching meal plan:', error);
+      return null;
     }
-    
-    return plans;
-  },
-
-  getRecipeSuggestions: async (ingredients: string[]): Promise<Recipe[]> => {
-    console.log('Fetching recipe suggestions for ingredients:', ingredients);
-    return mockRecipes;
-  },
-
-  savePreferences: async (preferences: any): Promise<boolean> => {
-    console.log('Saving preferences:', preferences);
-    return true;
-  },
-
-  getPreferences: async (): Promise<any> => {
-    console.log('Fetching preferences');
-    return {
-      dietaryRestrictions: ['Vegetarian'],
-      cuisinePreferences: ['Italian', 'Mexican']
-    };
-  },
-
-  getWeeklyMealPlan: async (startDate: string): Promise<MealPlan[]> => {
-    console.log('Fetching weekly meal plan starting:', startDate);
-    
-    const plans: MealPlan[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      
-      const mockMeals: Meal[] = [
-        {
-          id: `weekly-meal-${i}-1`,
-          type: 'Lunch',
-          recipe: {
-            ...mockRecipes[i % mockRecipes.length],
-            prep_time: 15,
-            cooking_time: 20
-          },
-          scheduled_for: dateStr
-        }
-      ];
-      
-      plans.push({
-        id: `weekly-plan-${i}`,
-        user_id: 'mock-user-id', 
-        date: dateStr,
-        meals: mockMeals,
-        total_calories: mockMeals.reduce((sum, meal) => sum + meal.recipe.calories, 0),
-        total_protein: mockMeals.reduce((sum, meal) => sum + meal.recipe.protein, 0),
-        total_carbs: mockMeals.reduce((sum, meal) => sum + meal.recipe.carbs, 0),
-        total_fat: mockMeals.reduce((sum, meal) => sum + meal.recipe.fat, 0)
-      });
-    }
-    
-    return plans;
   }
-};
+
+  private async getRecipeById(recipeId: string): Promise<Recipe | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('id', recipeId)
+        .single();
+
+      if (error) throw error;
+
+      // Convert Json[] to string[] for instructions
+      const instructionsArray = Array.isArray(data.instructions) 
+        ? data.instructions.map(instruction => String(instruction))
+        : [];
+
+      return {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        image: data.image_url,
+        image_url: data.image_url,
+        prepTime: data.prep_time || 0,
+        prep_time: data.prep_time || 0,
+        cookTime: data.cooking_time || 0,
+        cook_time: data.cooking_time || 0,
+        servings: data.servings,
+        difficulty: data.difficulty as 'Easy' | 'Medium' | 'Hard',
+        calories: data.calories,
+        rating: 4.5,
+        ratingCount: 89,
+        cuisineType: data.cuisine_type,
+        cuisine_type: data.cuisine_type,
+        categories: [], // Database doesn't have categories field, so use empty array
+        tags: [], // Database doesn't have tags field, so use empty array
+        ingredients: [],
+        instructions: instructionsArray,
+        isFavorite: false,
+        status: 'published' as const,
+        author_id: data.user_id,
+        is_verified: true,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      };
+    } catch (error) {
+      console.error('Error fetching recipe:', error);
+      return undefined;
+    }
+  }
+
+  async updateMealPlan(
+    date: string,
+    userId: string,
+    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+    recipeId: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('meal_plans')
+        .upsert({
+          user_id: userId,
+          date,
+          meal_type: mealType,
+          recipe_id: recipeId,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error updating meal plan:', error);
+      return false;
+    }
+  }
+}
+
+export const mealPlanService = new MealPlanService();
