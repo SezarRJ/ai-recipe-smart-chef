@@ -1,57 +1,129 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Recipe } from '@/types/index';
-import { recipeService } from '@/services/recipeService';
+import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Recipe, RecipeFilters } from '@/types/recipe';
+import {
+  fetchRecipesFromDB,
+  createRecipeInDB,
+  updateRecipeInDB,
+  deleteRecipeFromDB,
+  toggleFavoriteInDB
+} from '@/services/recipeService';
 
-export const useRecipes = (filters?: any) => {
-  return useQuery({
-    queryKey: ['recipes', filters],
-    queryFn: () => recipeService.fetchRecipesFromDB(filters),
-  });
-};
+export const useRecipes = () => {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-export const useCreateRecipe = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (recipeData: Partial<Recipe>) => recipeService.createRecipeInDB(recipeData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipes'] });
-    },
-  });
-};
+  const fetchRecipes = async (filters?: RecipeFilters) => {
+    setLoading(true);
+    setError(null);
 
-export const useUpdateRecipe = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Recipe> }) =>
-      recipeService.updateRecipeInDB(id, updates),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipes'] });
-    },
-  });
-};
+    try {
+      const formattedRecipes = await fetchRecipesFromDB(filters);
+      setRecipes(formattedRecipes);
+    } catch (err: any) {
+      setError(err.message);
+      toast({
+        title: 'Error fetching recipes',
+        description: err.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export const useDeleteRecipe = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => recipeService.deleteRecipeFromDB(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipes'] });
-    },
-  });
-};
+  const createRecipe = async (recipeData: Partial<Recipe>) => {
+    try {
+      const data = await createRecipeInDB(recipeData);
+      
+      toast({
+        title: 'Recipe created successfully',
+        description: 'Your recipe has been saved as a draft.'
+      });
 
-export const useToggleFavorite = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (recipeId: string) => recipeService.toggleFavoriteInDB(recipeId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipes'] });
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-    },
-  });
+      return data;
+    } catch (err: any) {
+      toast({
+        title: 'Error creating recipe',
+        description: err.message,
+        variant: 'destructive'
+      });
+      throw err;
+    }
+  };
+
+  const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
+    try {
+      const data = await updateRecipeInDB(id, updates);
+
+      toast({
+        title: 'Recipe updated successfully'
+      });
+
+      return data;
+    } catch (err: any) {
+      toast({
+        title: 'Error updating recipe',
+        description: err.message,
+        variant: 'destructive'
+      });
+      throw err;
+    }
+  };
+
+  const deleteRecipe = async (id: string) => {
+    try {
+      await deleteRecipeFromDB(id);
+
+      toast({
+        title: 'Recipe deleted successfully'
+      });
+
+      setRecipes(prev => prev.filter(recipe => recipe.id !== id));
+    } catch (err: any) {
+      toast({
+        title: 'Error deleting recipe',
+        description: err.message,
+        variant: 'destructive'
+      });
+      throw err;
+    }
+  };
+
+  const toggleFavorite = async (recipeId: string) => {
+    try {
+      const isFavorited = await toggleFavoriteInDB(recipeId);
+      
+      toast({
+        title: isFavorited ? 'Added to favorites' : 'Removed from favorites'
+      });
+
+      // Refresh recipes to update favorite status
+      fetchRecipes();
+    } catch (err: any) {
+      toast({
+        title: 'Error updating favorites',
+        description: err.message,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
+
+  return {
+    recipes,
+    loading,
+    error,
+    fetchRecipes,
+    createRecipe,
+    updateRecipe,
+    deleteRecipe,
+    toggleFavorite
+  };
 };

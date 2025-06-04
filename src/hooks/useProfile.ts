@@ -7,7 +7,10 @@ export interface Profile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
-  user_id: string;
+  bio: string | null;
+  dietary_preferences: string[] | null;
+  cuisine_preferences: string[] | null;
+  allergies: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,7 +32,7 @@ export const useProfile = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (error) throw error;
@@ -50,11 +53,8 @@ export const useProfile = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          full_name: updates.full_name,
-          avatar_url: updates.avatar_url
-        })
-        .eq('user_id', user.id)
+        .update(updates)
+        .eq('id', user.id)
         .select()
         .single();
 

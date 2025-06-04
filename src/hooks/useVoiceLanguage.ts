@@ -1,88 +1,112 @@
 
 import { useState, useEffect } from 'react';
-import { VoiceLanguage } from '@/types/index';
 
-const supportedVoices: VoiceLanguage[] = [
-  { code: 'en', name: 'English', voice: 'en-US', rtl: false },
-  { code: 'ar', name: 'العربية', voice: 'ar-SA', rtl: true },
-  { code: 'tr', name: 'Türkçe', voice: 'tr-TR', rtl: false },
-  { code: 'es', name: 'Español', voice: 'es-ES', rtl: false },
-  { code: 'fr', name: 'Français', voice: 'fr-FR', rtl: false },
-  { code: 'zh', name: '中文', voice: 'zh-CN', rtl: false },
-];
+interface VoiceLanguageConfig {
+  code: string;
+  name: string;
+  speechSynthesisLang: string;
+  speechRecognitionLang: string;
+}
 
 export const useVoiceLanguage = () => {
-  const [currentVoice, setCurrentVoice] = useState<VoiceLanguage>(supportedVoices[0]);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [deviceLanguage, setDeviceLanguage] = useState('en');
+  const [voiceConfig, setVoiceConfig] = useState<VoiceLanguageConfig | null>(null);
+
+  const supportedLanguages: Record<string, VoiceLanguageConfig> = {
+    'en': {
+      code: 'en',
+      name: 'English',
+      speechSynthesisLang: 'en-US',
+      speechRecognitionLang: 'en-US'
+    },
+    'ar': {
+      code: 'ar',
+      name: 'Arabic',
+      speechSynthesisLang: 'ar-SA',
+      speechRecognitionLang: 'ar-SA'
+    },
+    'fr': {
+      code: 'fr',
+      name: 'French',
+      speechSynthesisLang: 'fr-FR',
+      speechRecognitionLang: 'fr-FR'
+    },
+    'es': {
+      code: 'es',
+      name: 'Spanish',
+      speechSynthesisLang: 'es-ES',
+      speechRecognitionLang: 'es-ES'
+    },
+    'de': {
+      code: 'de',
+      name: 'German',
+      speechSynthesisLang: 'de-DE',
+      speechRecognitionLang: 'de-DE'
+    },
+    'it': {
+      code: 'it',
+      name: 'Italian',
+      speechSynthesisLang: 'it-IT',
+      speechRecognitionLang: 'it-IT'
+    }
+  };
 
   useEffect(() => {
     // Detect device language
-    const deviceLanguage = navigator.language || navigator.languages?.[0] || 'en';
-    const languageCode = deviceLanguage.split('-')[0];
+    const detectedLanguage = navigator.language.split('-')[0];
+    setDeviceLanguage(detectedLanguage);
     
-    const matchedVoice = supportedVoices.find(voice => voice.code === languageCode);
-    if (matchedVoice) {
-      setCurrentVoice(matchedVoice);
-    }
-
-    // Load available voices
-    const loadVoices = () => {
-      const voices = speechSynthesis.getVoices();
-      setAvailableVoices(voices);
-    };
-
-    loadVoices();
-    speechSynthesis.onvoiceschanged = loadVoices;
-
-    return () => {
-      speechSynthesis.onvoiceschanged = null;
-    };
+    // Set voice configuration based on detected language
+    const config = supportedLanguages[detectedLanguage] || supportedLanguages['en'];
+    setVoiceConfig(config);
   }, []);
 
-  const speak = (text: string, voiceCode?: string) => {
+  const speak = (text: string, language?: string) => {
     if ('speechSynthesis' in window) {
-      speechSynthesis.cancel(); // Stop any ongoing speech
-      
       const utterance = new SpeechSynthesisUtterance(text);
-      const targetVoice = voiceCode ? supportedVoices.find(v => v.code === voiceCode) : currentVoice;
+      const langConfig = language ? supportedLanguages[language] : voiceConfig;
       
-      if (targetVoice) {
-        const systemVoice = availableVoices.find(voice => 
-          voice.lang.startsWith(targetVoice.voice.split('-')[0])
-        );
-        
-        if (systemVoice) {
-          utterance.voice = systemVoice;
-        }
-        utterance.lang = targetVoice.voice;
+      if (langConfig) {
+        utterance.lang = langConfig.speechSynthesisLang;
       }
       
-      utterance.rate = 0.9;
+      utterance.rate = 0.8;
       utterance.pitch = 1;
       utterance.volume = 1;
       
       speechSynthesis.speak(utterance);
+    }
+  };
+
+  const startListening = (onResult: (text: string) => void, language?: string) => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
       
-      return utterance;
+      const langConfig = language ? supportedLanguages[language] : voiceConfig;
+      if (langConfig) {
+        recognition.lang = langConfig.speechRecognitionLang;
+      }
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        onResult(transcript);
+      };
+      
+      recognition.start();
+      return recognition;
     }
     return null;
   };
 
-  const stop = () => {
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-    }
-  };
-
-  const isSupported = 'speechSynthesis' in window;
-
   return {
-    currentVoice,
-    setCurrentVoice,
-    supportedVoices,
-    availableVoices,
+    deviceLanguage,
+    voiceConfig,
     speak,
-    stop,
-    isSupported
+    startListening,
+    supportedLanguages
   };
 };

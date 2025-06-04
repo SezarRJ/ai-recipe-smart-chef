@@ -1,79 +1,68 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { pantryService } from '@/services/pantryService';
 import { PantryItem } from '@/types/index';
-import { useAuth } from '@/hooks/useAuth';
+import { pantryService } from '@/services/pantryService';
+import { useAuth } from './useAuth';
 
 export const usePantry = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const {
-    data: pantryItems = [],
-    isLoading: loading,
-    error
-  } = useQuery({
-    queryKey: ['pantryItems', user?.id],
-    queryFn: () => user ? pantryService.getPantryItems(user.id) : Promise.resolve([]),
-    enabled: !!user,
-  });
-
-  const addPantryItemMutation = useMutation({
-    mutationFn: (item: Omit<PantryItem, 'id'>) => {
-      if (!user) throw new Error('User not authenticated');
-      return pantryService.addPantryItem(user.id, item);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pantryItems', user?.id] });
-    },
-    onError: (error) => {
-      console.error('Error adding pantry item:', error);
+  const fetchPantryItems = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await pantryService.getPantryItems(user.id);
+      setPantryItems(data);
+    } catch (err) {
+      setError('Failed to fetch pantry items');
+      console.error('Error fetching pantry items:', err);
+    } finally {
+      setLoading(false);
     }
-  });
-
-  const deletePantryItemMutation = useMutation({
-    mutationFn: (itemId: string) => pantryService.deletePantryItem(itemId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pantryItems', user?.id] });
-    },
-    onError: (error) => {
-      console.error('Error deleting pantry item:', error);
-    }
-  });
-
-  const updatePantryItemMutation = useMutation({
-    mutationFn: ({ itemId, updates }: { itemId: string; updates: Partial<PantryItem> }) => 
-      pantryService.updatePantryItem(itemId, updates),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pantryItems', user?.id] });
-    },
-    onError: (error) => {
-      console.error('Error updating pantry item:', error);
-    }
-  });
-
-  const addPantryItem = async (item: Omit<PantryItem, 'id'>) => {
-    return addPantryItemMutation.mutateAsync(item);
   };
 
-  const deletePantryItem = async (itemId: string) => {
-    return deletePantryItemMutation.mutateAsync(itemId);
+  const addPantryItem = async (item: Omit<PantryItem, 'id'>) => {
+    if (!user?.id) return null;
+    
+    const newItem = await pantryService.addPantryItem(user.id, item);
+    if (newItem) {
+      await fetchPantryItems();
+    }
+    return newItem;
   };
 
   const updatePantryItem = async (itemId: string, updates: Partial<PantryItem>) => {
-    return updatePantryItemMutation.mutateAsync({ itemId, updates });
+    const updatedItem = await pantryService.updatePantryItem(itemId, updates);
+    if (updatedItem) {
+      await fetchPantryItems();
+    }
+    return updatedItem;
   };
+
+  const deletePantryItem = async (itemId: string) => {
+    const success = await pantryService.deletePantryItem(itemId);
+    if (success) {
+      await fetchPantryItems();
+    }
+    return success;
+  };
+
+  useEffect(() => {
+    fetchPantryItems();
+  }, [user?.id]);
 
   return {
     pantryItems,
     loading,
     error,
+    refetch: fetchPantryItems,
     addPantryItem,
-    deletePantryItem,
     updatePantryItem,
-    isAdding: addPantryItemMutation.isPending,
-    isDeleting: deletePantryItemMutation.isPending,
-    isUpdating: updatePantryItemMutation.isPending,
+    deletePantryItem
   };
 };

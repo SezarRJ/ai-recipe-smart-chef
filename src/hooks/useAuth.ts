@@ -1,73 +1,88 @@
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@supabase/supabase-js';
 
-interface AuthContextType {
+type UserRole = 'user' | 'admin' | 'super_admin';
+
+interface AuthState {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  role: UserRole | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    loading: true,
+    isAuthenticated: false,
+    role: null,
+  });
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const role = await getUserRole(session.user.id);
+        setAuthState({
+          user: session.user,
+          loading: false,
+          isAuthenticated: true,
+          role,
+        });
+      } else {
+        setAuthState({
+          user: null,
+          loading: false,
+          isAuthenticated: false,
+          role: null,
+        });
+      }
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
+        if (session?.user) {
+          const role = await getUserRole(session.user.id);
+          setAuthState({
+            user: session.user,
+            loading: false,
+            isAuthenticated: true,
+            role,
+          });
+        } else {
+          setAuthState({
+            user: null,
+            loading: false,
+            isAuthenticated: false,
+            role: null,
+          });
+        }
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
+  const getUserRole = async (userId: string): Promise<UserRole> => {
+    try {
+      const { data, error } = await supabase.rpc('get_user_role', {
+        user_id: userId
+      });
+
+      if (error) throw error;
+      return (data as UserRole) || 'user';
+    } catch (error) {
+      console.error('Error getting user role:', error);
+      return 'user';
+    }
   };
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-    if (error) throw error;
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  };
-
-  return {
-    user,
-    loading,
-    isAuthenticated: !!user,
-    signIn,
-    signUp,
-    signOut,
-  };
+  return authState;
 };
