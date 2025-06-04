@@ -15,7 +15,12 @@ import { useUserHealth } from '@/hooks/useUserHealth';
 
 export default function HealthTrackingHomePage() {
     const { t } = useRTL();
-    const userHealthHook = useUserHealth();
+    const {
+        userWeight,
+        userHeight,
+        userTargetWeight,
+        updateHealthGoals
+    } = useUserHealth();
 
     const [dailyNutritionData, setDailyNutritionData] = useState([]);
     const [currentNutritionSummary, setCurrentNutritionSummary] = useState({
@@ -173,7 +178,12 @@ export default function HealthTrackingHomePage() {
                     type="ai"
                 />
 
-                <BMICalculator />
+                <BMICalculator 
+                    weight={userWeight}
+                    height={userHeight}
+                    targetWeight={userTargetWeight}
+                    onUpdateGoals={updateHealthGoals}
+                />
 
                 <DailyChallengesManager />
 
