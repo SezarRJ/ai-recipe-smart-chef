@@ -1,5 +1,5 @@
 
-# Mobile Build Instructions for WasfahAI Kitchen Pal
+# Mobile Build Instructions for Wasfah AI Kitchen Pal
 
 ## Prerequisites
 
@@ -15,11 +15,11 @@ Before building for mobile platforms, ensure you have:
 - Java Development Kit (JDK) 11 or higher
 - Android SDK and build tools
 
-## Build Commands
+## Initial Setup
 
-1. **Install dependencies:**
+1. **Install Capacitor dependencies:**
 ```bash
-npm install
+npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
 ```
 
 2. **Build the web application:**
@@ -27,12 +27,7 @@ npm install
 npm run build
 ```
 
-3. **Sync with Capacitor:**
-```bash
-npx cap sync
-```
-
-4. **Add platforms (if not already added):**
+3. **Add mobile platforms:**
 ```bash
 # Add iOS platform
 npx cap add ios
@@ -41,75 +36,74 @@ npx cap add ios
 npx cap add android
 ```
 
-5. **Open in native IDE:**
+4. **Sync project with native platforms:**
 ```bash
-# For iOS (opens Xcode)
+npx cap sync
+```
+
+## Building and Running
+
+### For iOS:
+```bash
+# Open iOS project in Xcode
 npx cap open ios
 
-# For Android (opens Android Studio)
+# Or run directly
+npx cap run ios
+```
+
+### For Android:
+```bash
+# Open Android project in Android Studio
 npx cap open android
+
+# Or run directly
+npx cap run android
 ```
 
 ## Production Build Steps
 
-### Android APK:
-1. Open Android Studio
-2. Navigate to Build > Generate Signed Bundle/APK
-3. Choose APK or Android App Bundle
-4. Follow the signing wizard
-5. Build release version
-
-### iOS App Store:
-1. Open Xcode
-2. Set up proper signing certificates
+### iOS Production:
+1. Open the project in Xcode: `npx cap open ios`
+2. Set up signing certificates and provisioning profiles
 3. Archive the application (Product > Archive)
 4. Upload to App Store Connect
 
-## App Configuration
+### Android Production:
+1. Generate signed APK or AAB in Android Studio
+2. Build > Generate Signed Bundle/APK
+3. Upload to Google Play Console
 
-### Features Included:
-- ✅ Authentication system with Supabase
-- ✅ Recipe management (create, view, edit)
-- ✅ AI Chef assistant
-- ✅ Ingredient scanning
-- ✅ Meal planning
-- ✅ Health tracking
-- ✅ Community features
-- ✅ Admin panel
-- ✅ Multi-language support (RTL)
-- ✅ Dark/light theme
-- ✅ Offline capabilities
-- ✅ Push notifications
-- ✅ Camera integration
-- ✅ Native sharing
+## Configuration Files
 
-### App Store Information:
-- **App Name:** WasfahAI Kitchen Pal
-- **Bundle ID:** com.wasfah.app
-- **Version:** 1.0.0
-- **Category:** Food & Drink
-- **Target SDK:** Android 34, iOS 16+
+- **capacitor.config.ts**: Main Capacitor configuration
+- **android/**: Android-specific files and resources
+- **ios/**: iOS-specific files and resources
 
-## Deployment Checklist
+## Important Notes
 
-- [x] All routes configured and working
-- [x] Authentication integrated
-- [x] Error handling implemented
-- [x] Responsive design for all screen sizes
-- [x] Capacitor plugins configured
-- [x] App icons and splash screens
-- [x] Permissions properly configured
-- [x] Production build optimized
-- [x] Security best practices applied
-- [x] Performance optimization completed
+- Run `npx cap sync` after any changes to web assets
+- Update native dependencies with `npx cap update`
+- Test on physical devices for best results
+- Ensure all required permissions are configured in native configs
 
-## Final Steps
+## App Store Requirements
 
-1. Test thoroughly on physical devices
-2. Ensure all features work offline
-3. Verify push notifications
-4. Check camera and file access permissions
-5. Test app signing and installation
-6. Submit to app stores with proper metadata
+### iOS:
+- App icons: 1024x1024 for App Store, various sizes for device
+- Launch screens configured
+- Privacy policy URL (if using personal data)
+- App description and keywords
 
-Your app is now ready for production deployment! 🚀
+### Android:
+- App icons: 512x512 for Play Store, various densities for devices
+- Feature graphic: 1024x500
+- Privacy policy (required for apps requesting permissions)
+- App description and store listing
+
+## Troubleshooting
+
+- If build fails, try cleaning: `npx cap clean`
+- Update Capacitor: `npm update @capacitor/core @capacitor/cli`
+- Check platform-specific logs in Xcode/Android Studio
+- Ensure web build is successful before syncing

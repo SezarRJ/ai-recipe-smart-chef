@@ -3,14 +3,14 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.wasfah.app',
-  appName: 'WasfahAI Kitchen Pal',
+  appName: 'Wasfah AI Kitchen Pal',
   webDir: 'dist',
   server: {
     androidScheme: 'https'
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 2000,
       backgroundColor: "#009594",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
@@ -26,13 +26,9 @@ const config: CapacitorConfig = {
       style: 'dark',
       resizeOnFullScreen: true
     },
-    LocalNotifications: {
-      smallIcon: "ic_stat_icon_config_sample",
-      iconColor: "#009594",
-    },
-    PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"],
-    },
+    App: {
+      appendUserAgent: 'WasfahAI'
+    }
   },
   ios: {
     contentInset: 'automatic',
