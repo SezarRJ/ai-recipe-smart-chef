@@ -17,18 +17,20 @@ import {
   ArrowLeft,
   Timer as TimerIcon,
   Video,
-  Crown
+  Crown,
+  Square,
+  SkipForward
 } from 'lucide-react';
 import { Recipe } from '@/types/index';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
 
-interface EnhancedCookingModeProps {
+interface AutoCookingModeProps {
   recipe: Recipe;
   onClose: () => void;
 }
 
-export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({ 
+export const AutoCookingMode: React.FC<AutoCookingModeProps> = ({ 
   recipe, 
   onClose 
 }) => {
@@ -40,10 +42,13 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  const [isAutoMode, setIsAutoMode] = useState(false);
+  const [autoStepDelay, setAutoStepDelay] = useState(10); // seconds
+  const [isMuted, setIsMuted] = useState(false);
   
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
+  const autoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const totalSteps = recipe.instructions.length;
   const progress = Math.round((currentStep / (totalSteps - 1)) * 100);
@@ -83,8 +88,26 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      if (autoTimeoutRef.current) {
+        clearTimeout(autoTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Auto-step progression
+  useEffect(() => {
+    if (isAutoMode && currentStep < totalSteps - 1) {
+      autoTimeoutRef.current = setTimeout(() => {
+        nextStep();
+      }, autoStepDelay * 1000);
+    }
+
+    return () => {
+      if (autoTimeoutRef.current) {
+        clearTimeout(autoTimeoutRef.current);
+      }
+    };
+  }, [currentStep, isAutoMode, autoStepDelay]);
 
   // Timer effect
   useEffect(() => {
@@ -111,6 +134,8 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
     const repeatCommands = ['repeat', 'again', 'إعادة'];
     const startCommands = ['start', 'begin', 'ابدأ'];
     const pauseCommands = ['stop', 'pause', 'توقف'];
+    const autoCommands = ['auto', 'automatic', 'تلقائي'];
+    const muteCommands = ['mute', 'silent', 'صامت'];
     
     if (nextCommands.some(cmd => command.includes(cmd))) {
       nextStep();
@@ -123,6 +148,11 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
       speakCurrentStep();
     } else if (pauseCommands.some(cmd => command.includes(cmd))) {
       stopSpeaking();
+      setIsAutoMode(false);
+    } else if (autoCommands.some(cmd => command.includes(cmd))) {
+      setIsAutoMode(!isAutoMode);
+    } else if (muteCommands.some(cmd => command.includes(cmd))) {
+      setIsMuted(!isMuted);
     }
   };
 
@@ -144,13 +174,13 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
       setIsListening(true);
       toast({
         title: t("Voice assistant activated", "تم تفعيل المساعد الصوتي"),
-        description: t("Say 'next', 'previous', 'repeat', or 'start'", "قل 'التالي'، 'السابق'، 'إعادة'، أو 'ابدأ'")
+        description: t("Say 'next', 'previous', 'repeat', 'auto', 'mute', or 'stop'", "قل 'التالي'، 'السابق'، 'إعادة'، 'تلقائي'، 'صامت'، أو 'توقف'")
       });
     }
   };
 
   const speakCurrentStep = () => {
-    if (!synthRef.current || !isVoiceEnabled) return;
+    if (!synthRef.current || !isVoiceEnabled || isMuted) return;
 
     synthRef.current.cancel();
     
@@ -174,10 +204,11 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
-      if (isVoiceEnabled) {
+      if (isVoiceEnabled && !isMuted) {
         setTimeout(() => speakCurrentStep(), 500);
       }
     } else {
+      setIsAutoMode(false);
       toast({
         title: t("Cooking Complete!", "اكتمل الطبخ!"),
         description: t("You've completed all the steps. Enjoy your meal!", "لقد أكملت جميع الخطوات. استمتع بوجبتك!"),
@@ -188,30 +219,44 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      if (isVoiceEnabled) {
+      if (isVoiceEnabled && !isMuted) {
         setTimeout(() => speakCurrentStep(), 500);
       }
     }
   };
-  
-  const toggleTimer = () => {
-    setIsTimerRunning(!isTimerRunning);
-  };
-  
-  const resetTimer = () => {
-    setTimer(300); // 5 minutes default
-    setIsTimerRunning(false);
+
+  const toggleAutoMode = () => {
+    setIsAutoMode(!isAutoMode);
+    if (!isAutoMode) {
+      toast({
+        title: t("Auto Mode Started", "تم تشغيل الوضع التلقائي"),
+        description: t(`Steps will advance every ${autoStepDelay} seconds`, `ستتقدم الخطوات كل ${autoStepDelay} ثانية`),
+      });
+    }
   };
 
-  const startStepTimer = (minutes: number) => {
-    setTimer(minutes * 60);
-    setIsTimerRunning(true);
+  const stopAutoMode = () => {
+    setIsAutoMode(false);
+    if (autoTimeoutRef.current) {
+      clearTimeout(autoTimeoutRef.current);
+    }
     toast({
-      title: t("Timer Started", "تم بدء المؤقت"),
-      description: t(`Timer set for ${minutes} minutes`, `تم ضبط المؤقت لـ ${minutes} دقيقة`),
+      title: t("Auto Mode Stopped", "تم إيقاف الوضع التلقائي"),
+      description: t("Manual control restored", "تم استعادة التحكم اليدوي"),
     });
   };
   
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) {
+      stopSpeaking();
+    }
+    toast({
+      title: isMuted ? t("Sound On", "تم تشغيل الصوت") : t("Sound Muted", "تم كتم الصوت"),
+      description: isMuted ? t("Voice guidance enabled", "تم تمكين الإرشاد الصوتي") : t("Voice guidance muted", "تم كتم الإرشاد الصوتي"),
+    });
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -227,15 +272,22 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
             <ArrowLeft size={24} className={direction === 'rtl' ? 'rotate-180' : ''} />
           </Button>
           <h2 className="text-xl font-bold text-wasfah-deep-teal">
-            {t("Cooking Mode", "وضع الطبخ")}
+            {t("Auto Cooking Mode", "وضع الطبخ التلقائي")}
           </h2>
           <div className={`flex items-center space-x-2 ${direction === 'rtl' ? 'space-x-reverse' : ''}`}>
             <Button
-              variant={isVoiceEnabled ? "default" : "outline"}
+              variant={isMuted ? "destructive" : "default"}
               size="sm"
-              onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
+              onClick={toggleMute}
             >
-              {isVoiceEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant={isAutoMode ? "destructive" : "default"}
+              size="sm"
+              onClick={isAutoMode ? stopAutoMode : toggleAutoMode}
+            >
+              {isAutoMode ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
             <Button
               variant={isListening ? "destructive" : "default"}
@@ -256,7 +308,19 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
             <span className="text-sm font-medium">
               {t(`Step ${currentStep + 1} of ${totalSteps}`, `الخطوة ${currentStep + 1} من ${totalSteps}`)}
             </span>
-            <span className="text-sm font-medium">{progress}%</span>
+            <div className="flex items-center gap-2">
+              {isAutoMode && (
+                <Badge className="bg-green-100 text-green-800">
+                  {t("Auto Mode", "وضع تلقائي")}
+                </Badge>
+              )}
+              {isMuted && (
+                <Badge className="bg-red-100 text-red-800">
+                  {t("Muted", "صامت")}
+                </Badge>
+              )}
+              <span className="text-sm font-medium">{progress}%</span>
+            </div>
           </div>
           <Progress value={progress} className="h-2" />
         </div>
@@ -281,39 +345,18 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
                   <h3 className="font-semibold text-lg mb-2">
                     {t(`Step ${currentStep + 1}`, `الخطوة ${currentStep + 1}`)}
                   </h3>
+                  {isAutoMode && (
+                    <div className="text-sm text-gray-500">
+                      {t(`Auto-advancing in ${autoStepDelay}s`, `التقدم التلقائي خلال ${autoStepDelay} ثانية`)}
+                    </div>
+                  )}
                 </div>
               </div>
               <p className="text-lg leading-relaxed mb-4">{recipe.instructions[currentStep]}</p>
               
               {/* Step Actions */}
               <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={() => startStepTimer(5)}
-                  variant="outline"
-                  size="sm"
-                >
-                  <TimerIcon className="mr-2 h-4 w-4" />
-                  5 min
-                </Button>
-                <Button
-                  onClick={() => startStepTimer(10)}
-                  variant="outline"
-                  size="sm"
-                >
-                  <TimerIcon className="mr-2 h-4 w-4" />
-                  10 min
-                </Button>
-                <Button
-                  onClick={() => setShowVideo(true)}
-                  variant="outline"
-                  size="sm"
-                  className="relative"
-                >
-                  <Video className="mr-2 h-4 w-4" />
-                  {t('Video', 'فيديو')}
-                  <Crown className="h-3 w-3 text-yellow-500 ml-1" />
-                </Button>
-                {isVoiceEnabled && (
+                {isVoiceEnabled && !isMuted && (
                   <Button
                     onClick={speakCurrentStep}
                     variant="outline"
@@ -324,42 +367,18 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
                     {isSpeaking ? t('Speaking...', 'يتحدث...') : t('Read Step', 'اقرأ الخطوة')}
                   </Button>
                 )}
+                <Button
+                  onClick={toggleAutoMode}
+                  variant={isAutoMode ? "destructive" : "default"}
+                  size="sm"
+                >
+                  {isAutoMode ? <Square className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                  {isAutoMode ? t('Stop Auto', 'إيقاف التلقائي') : t('Start Auto', 'بدء التلقائي')}
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
-        
-        {/* Timer */}
-        {timer > 0 && (
-          <Card className="bg-wasfah-bright-teal/10 border-wasfah-bright-teal/20 shadow-lg">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <TimerIcon className="mx-auto mb-2 text-wasfah-bright-teal" size={24} />
-                <div className="text-3xl font-bold text-wasfah-bright-teal mb-2">
-                  {formatTime(timer)}
-                </div>
-                <div className="flex gap-2 justify-center">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={toggleTimer}
-                    className="border-wasfah-bright-teal text-wasfah-bright-teal"
-                  >
-                    {isTimerRunning ? <Pause size={16} /> : <Play size={16} />}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={resetTimer}
-                    className="border-wasfah-bright-teal text-wasfah-bright-teal"
-                  >
-                    <RefreshCw size={16} />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Voice Status */}
         {(isListening || isSpeaking) && (
@@ -416,62 +435,7 @@ export const EnhancedCookingMode: React.FC<EnhancedCookingModeProps> = ({
             </Button>
           )}
         </div>
-
-        {/* Step Overview */}
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-3">{t('All Steps', 'جميع الخطوات')}</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {recipe.instructions.map((instruction, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                    index === currentStep ? 'bg-wasfah-bright-teal/10 border border-wasfah-bright-teal/20' : 
-                    index < currentStep ? 'bg-green-50' : 'bg-gray-50'
-                  }`}
-                  onClick={() => setCurrentStep(index)}
-                >
-                  <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
-                    index === currentStep ? 'bg-wasfah-bright-teal text-white' :
-                    index < currentStep ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <span className={`text-sm flex-1 ${
-                    index === currentStep ? 'font-medium text-wasfah-deep-teal' : 
-                    index < currentStep ? 'text-gray-600 line-through' : 'text-gray-600'
-                  }`}>
-                    {instruction.substring(0, 60)}...
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      {/* Video Modal (Premium Feature) */}
-      {showVideo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 m-4 max-w-md w-full">
-            <div className="text-center">
-              <Crown className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">{t('Premium Feature', 'ميزة مميزة')}</h3>
-              <p className="text-gray-600 mb-4">
-                {t('Video instructions are available in the premium version', 'تعليمات الفيديو متوفرة في النسخة المميزة')}
-              </p>
-              <div className="flex gap-3">
-                <Button onClick={() => setShowVideo(false)} variant="outline" className="flex-1">
-                  {t('Cancel', 'إلغاء')}
-                </Button>
-                <Button className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600">
-                  {t('Upgrade', 'ترقية')}
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
