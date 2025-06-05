@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -173,18 +174,18 @@ export const AutoCookingMode: React.FC<AutoCookingModeProps> = ({
       setIsListening(true);
       toast({
         title: t("Voice assistant activated", "تم تفعيل المساعد الصوتي"),
-        description: t("Say commands like 'next', 'previous', 'auto', 'mute'", "قل أوامر مثل 'التالي'، 'السابق'، 'تلقائي'، 'صامت'")
+        description: t("Say 'next', 'previous', 'repeat', 'auto', 'mute', or 'stop'", "قل 'التالي'، 'السابق'، 'إعادة'، 'تلقائي'، 'صامت'، أو 'توقف'")
       });
     }
   };
 
   const speakCurrentStep = () => {
-    if (!synthRef.current || isMuted) return;
+    if (!synthRef.current || !isVoiceEnabled || isMuted) return;
 
     synthRef.current.cancel();
-    const utterance = new SpeechSynthesisUtterance(
-      `Step ${currentStep + 1}: ${recipe.instructions[currentStep]}`
-    );
+    
+    const stepText = `Step ${currentStep + 1}: ${recipe.instructions[currentStep]}`;
+    const utterance = new SpeechSynthesisUtterance(stepText);
     
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -199,24 +200,26 @@ export const AutoCookingMode: React.FC<AutoCookingModeProps> = ({
       setIsSpeaking(false);
     }
   };
-
+  
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {
-      const newStep = currentStep + 1;
-      setCurrentStep(newStep);
-      if (!isMuted) {
+      setCurrentStep(currentStep + 1);
+      if (isVoiceEnabled && !isMuted) {
         setTimeout(() => speakCurrentStep(), 500);
       }
     } else {
       setIsAutoMode(false);
+      toast({
+        title: t("Cooking Complete!", "اكتمل الطبخ!"),
+        description: t("You've completed all the steps. Enjoy your meal!", "لقد أكملت جميع الخطوات. استمتع بوجبتك!"),
+      });
     }
   };
-
+  
   const prevStep = () => {
     if (currentStep > 0) {
-      const newStep = currentStep - 1;
-      setCurrentStep(newStep);
-      if (!isMuted) {
+      setCurrentStep(currentStep - 1);
+      if (isVoiceEnabled && !isMuted) {
         setTimeout(() => speakCurrentStep(), 500);
       }
     }
@@ -224,9 +227,34 @@ export const AutoCookingMode: React.FC<AutoCookingModeProps> = ({
 
   const toggleAutoMode = () => {
     setIsAutoMode(!isAutoMode);
-    if (!isAutoMode && !isMuted) {
-      speakCurrentStep();
+    if (!isAutoMode) {
+      toast({
+        title: t("Auto Mode Started", "تم تشغيل الوضع التلقائي"),
+        description: t(`Steps will advance every ${autoStepDelay} seconds`, `ستتقدم الخطوات كل ${autoStepDelay} ثانية`),
+      });
     }
+  };
+
+  const stopAutoMode = () => {
+    setIsAutoMode(false);
+    if (autoTimeoutRef.current) {
+      clearTimeout(autoTimeoutRef.current);
+    }
+    toast({
+      title: t("Auto Mode Stopped", "تم إيقاف الوضع التلقائي"),
+      description: t("Manual control restored", "تم استعادة التحكم اليدوي"),
+    });
+  };
+  
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) {
+      stopSpeaking();
+    }
+    toast({
+      title: isMuted ? t("Sound On", "تم تشغيل الصوت") : t("Sound Muted", "تم كتم الصوت"),
+      description: isMuted ? t("Voice guidance enabled", "تم تمكين الإرشاد الصوتي") : t("Voice guidance muted", "تم كتم الإرشاد الصوتي"),
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -234,186 +262,178 @@ export const AutoCookingMode: React.FC<AutoCookingModeProps> = ({
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="text-white hover:bg-white/20"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          {t("Exit", "خروج")}
-        </Button>
+      <div className={`sticky top-0 z-10 bg-white border-b border-gray-200 p-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className={`flex items-center justify-between ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <ArrowLeft size={24} className={direction === 'rtl' ? 'rotate-180' : ''} />
+          </Button>
+          <h2 className="text-xl font-bold text-wasfah-deep-teal">
+            {t("Auto Cooking Mode", "وضع الطبخ التلقائي")}
+          </h2>
+          <div className={`flex items-center space-x-2 ${direction === 'rtl' ? 'space-x-reverse' : ''}`}>
+            <Button
+              variant={isMuted ? "destructive" : "default"}
+              size="sm"
+              onClick={toggleMute}
+            >
+              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant={isAutoMode ? "destructive" : "default"}
+              size="sm"
+              onClick={isAutoMode ? stopAutoMode : toggleAutoMode}
+            >
+              {isAutoMode ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant={isListening ? "destructive" : "default"}
+              size="sm"
+              onClick={toggleListening}
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Content */}
+      <div className="flex-grow overflow-auto p-4 space-y-6">
+        {/* Progress */}
+        <div className="mb-4">
+          <div className={`flex justify-between items-center mb-2 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+            <span className="text-sm font-medium">
+              {t(`Step ${currentStep + 1} of ${totalSteps}`, `الخطوة ${currentStep + 1} من ${totalSteps}`)}
+            </span>
+            <div className="flex items-center gap-2">
+              {isAutoMode && (
+                <Badge className="bg-green-100 text-green-800">
+                  {t("Auto Mode", "وضع تلقائي")}
+                </Badge>
+              )}
+              {isMuted && (
+                <Badge className="bg-red-100 text-red-800">
+                  {t("Muted", "صامت")}
+                </Badge>
+              )}
+              <span className="text-sm font-medium">{progress}%</span>
+            </div>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
         
-        <div className="flex items-center gap-2">
-          {isAutoMode && (
-            <Badge className="bg-green-500 text-white animate-pulse">
-              {t("Auto Mode", "الوضع التلقائي")}
-            </Badge>
-          )}
-          {isMuted && (
-            <Badge className="bg-red-500 text-white">
-              {t("Muted", "صامت")}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="px-4 py-2">
-        <div className="flex justify-between text-sm mb-2">
-          <span>{t("Step", "خطوة")} {currentStep + 1} {t("of", "من")} {totalSteps}</span>
-          <span>{progress}% {t("Complete", "مكتمل")}</span>
-        </div>
-        <Progress value={progress} className="h-2 bg-gray-700" />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 p-4 space-y-6">
-        {/* Recipe Info */}
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-          <CardContent className="p-4">
-            <h1 className="text-xl font-bold mb-2">{recipe.title}</h1>
-            <div className="flex gap-4 text-sm text-gray-300">
-              <span>{t("Prep", "تحضير")}: {recipe.prep_time}m</span>
-              <span>{t("Cook", "طبخ")}: {recipe.cook_time}m</span>
-              <span>{t("Serves", "يخدم")}: {recipe.servings}</span>
+        {/* Recipe Image */}
+        {recipe.image && (
+          <div 
+            className="w-full h-48 mb-4 bg-cover bg-center rounded-lg shadow-md"
+            style={{ backgroundImage: `url(${recipe.image})` }}
+          />
+        )}
+        
+        {/* Current Step */}
+        <Card className="shadow-lg">
+          <CardContent className="p-6">
+            <div className={`mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+              <div className="flex items-center mb-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-wasfah-bright-teal text-white rounded-full flex items-center justify-center font-bold mr-4">
+                  {currentStep + 1}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2">
+                    {t(`Step ${currentStep + 1}`, `الخطوة ${currentStep + 1}`)}
+                  </h3>
+                  {isAutoMode && (
+                    <div className="text-sm text-gray-500">
+                      {t(`Auto-advancing in ${autoStepDelay}s`, `التقدم التلقائي خلال ${autoStepDelay} ثانية`)}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <p className="text-lg leading-relaxed mb-4">{recipe.instructions[currentStep]}</p>
+              
+              {/* Step Actions */}
+              <div className="flex flex-wrap gap-2">
+                {isVoiceEnabled && !isMuted && (
+                  <Button
+                    onClick={speakCurrentStep}
+                    variant="outline"
+                    size="sm"
+                    disabled={isSpeaking}
+                  >
+                    <Volume2 className="mr-2 h-4 w-4" />
+                    {isSpeaking ? t('Speaking...', 'يتحدث...') : t('Read Step', 'اقرأ الخطوة')}
+                  </Button>
+                )}
+                <Button
+                  onClick={toggleAutoMode}
+                  variant={isAutoMode ? "destructive" : "default"}
+                  size="sm"
+                >
+                  {isAutoMode ? <Square className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+                  {isAutoMode ? t('Stop Auto', 'إيقاف التلقائي') : t('Start Auto', 'بدء التلقائي')}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Current Step */}
-        <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border-blue-500/30">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4 text-blue-200">
-              {t("Step", "خطوة")} {currentStep + 1}
-            </h2>
-            <p className="text-lg leading-relaxed">
-              {recipe.instructions[currentStep]}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Timer */}
-        {timer > 0 && (
-          <Card className="bg-orange-600/20 backdrop-blur-sm border-orange-500/30">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-mono text-orange-200">
-                {formatTime(timer)}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Voice Status */}
         {(isListening || isSpeaking) && (
-          <Card className="bg-green-600/20 backdrop-blur-sm border-green-500/30">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-center gap-2">
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className={`flex items-center justify-center space-x-2 ${direction === 'rtl' ? 'space-x-reverse text-right' : 'text-left'}`}>
                 {isListening && (
                   <>
-                    <Mic className="h-4 w-4 animate-pulse" />
-                    <span>{t("Listening for commands...", "الاستماع للأوامر...")}</span>
+                    <Mic className="h-4 w-4 text-blue-600 animate-pulse" />
+                    <span className="text-sm text-blue-600">
+                      {t("Listening for voice commands...", "الاستماع للأوامر الصوتية...")}
+                    </span>
                   </>
                 )}
                 {isSpeaking && (
                   <>
-                    <Volume2 className="h-4 w-4 animate-pulse" />
-                    <span>{t("Speaking instructions...", "قراءة التعليمات...")}</span>
+                    <Volume2 className="h-4 w-4 text-blue-600 animate-pulse" />
+                    <span className="text-sm text-blue-600">
+                      {t("Reading step instructions...", "قراءة تعليمات الخطوة...")}
+                    </span>
                   </>
                 )}
               </div>
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Controls */}
-      <div className="p-4 space-y-4 bg-black/50 backdrop-blur-sm">
-        {/* Navigation Controls */}
-        <div className="flex justify-center gap-4">
+        {/* Navigation */}
+        <div className="flex gap-3">
           <Button
-            variant="outline"
-            size="lg"
             onClick={prevStep}
             disabled={currentStep === 0}
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          
-          <Button
             variant="outline"
-            size="lg"
-            onClick={speakCurrentStep}
-            disabled={isMuted || isSpeaking}
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+            className="flex-1"
           >
-            <Volume2 className="h-5 w-5" />
+            <ChevronLeft className={`mr-2 h-4 w-4 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
+            {t('Previous', 'السابق')}
           </Button>
           
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={nextStep}
-            disabled={currentStep === totalSteps - 1}
-            className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Voice & Auto Controls */}
-        <div className="flex justify-center gap-2">
-          <Button
-            variant={isListening ? "destructive" : "secondary"}
-            size="sm"
-            onClick={toggleListening}
-            className="flex items-center gap-2"
-          >
-            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-            {t("Voice", "صوت")}
-          </Button>
-          
-          <Button
-            variant={isAutoMode ? "default" : "secondary"}
-            size="sm"
-            onClick={toggleAutoMode}
-            className="flex items-center gap-2"
-          >
-            {isAutoMode ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {t("Auto", "تلقائي")}
-          </Button>
-          
-          <Button
-            variant={isMuted ? "destructive" : "secondary"}
-            size="sm"
-            onClick={() => setIsMuted(!isMuted)}
-            className="flex items-center gap-2"
-          >
-            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            {t("Sound", "صوت")}
-          </Button>
-          
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={stopSpeaking}
-            className="flex items-center gap-2"
-          >
-            <Square className="h-4 w-4" />
-            {t("Stop", "توقف")}
-          </Button>
-        </div>
-
-        {/* Voice Commands Help */}
-        <div className="text-center text-xs text-gray-400">
-          {t("Voice commands: 'next', 'previous', 'repeat', 'auto', 'mute', 'stop'", 
-             "أوامر صوتية: 'التالي'، 'السابق'، 'إعادة'، 'تلقائي'، 'صامت'، 'توقف'")}
+          {currentStep === totalSteps - 1 ? (
+            <Button
+              onClick={onClose}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+            >
+              {t('Finish Cooking', 'إنهاء الطبخ')}
+            </Button>
+          ) : (
+            <Button
+              onClick={nextStep}
+              className="flex-1 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal"
+            >
+              {t('Next', 'التالي')}
+              <ChevronRight className={`ml-2 h-4 w-4 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
+            </Button>
+          )}
         </div>
       </div>
     </div>
