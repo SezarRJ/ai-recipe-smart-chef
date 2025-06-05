@@ -1,3 +1,4 @@
+// src/pages/AIFeaturesPage.tsx
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,11 +7,13 @@ import {
   Camera,
   Sparkles,
   Brain,
-  MessageSquare, // For AI Chatbot/Assistant
-  BookOpen,      // For Recipe Personalization
-  Lightbulb,     // For Meal Planning/Recommendations
-  Leaf,          // For Dietary AI
-  Dumbbell       // For Fitness AI
+  MessageSquare, // For AI Cooking Assistant
+  BookOpen,      // For Recipe Personalizer
+  Lightbulb,     // For Smart Meal Planner
+  Leaf,          // For Dietary AI Advisor
+  Dumbbell,      // For Fitness & Nutrition Coach
+  Smile,         // For Mood-Based Recipes
+  Mic            // For Voice Recipe Assistant
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { Link } from 'react-router-dom';
@@ -23,13 +26,13 @@ export default function AIFeaturesPage() {
       icon: <Camera className="h-8 w-8 text-green-500" />,
       title: t('Dish Scanner', 'ماسح الأطباق'),
       description: t('Identify dishes from photos and get nutrition facts', 'تحديد الأطباق من الصور والحصول على الحقائق الغذائية'),
-      path: '/ai/scan-dish', // Changed to '/ai/' prefix for consistency
+      path: '/ai/scan-dish',
     },
     {
       icon: <Brain className="h-8 w-8 text-purple-500" />,
       title: t('AI Recipe Finder', 'باحث الوصفات الذكي'),
       description: t('Find recipes based on ingredients you have, dietary needs, or preferences', 'البحث عن الوصفات بناءً على المكونات المتوفرة لديك، أو الاحتياجات الغذائية، أو التفضيلات'),
-      path: '/ai/recipe-finder', // Changed path for consistency
+      path: '/ai/recipe-finder',
     },
     {
       icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
@@ -60,6 +63,25 @@ export default function AIFeaturesPage() {
       title: t('Fitness & Nutrition Coach', 'مدرب اللياقة والتغذية'),
       description: t('AI guidance for fitness goals, calorie tracking, and macros', 'توجيهات الذكاء الاصطناعي لأهداف اللياقة البدنية، تتبع السعرات الحرارية، والمغذيات الكبرى'),
       path: '/ai/fitness-coach',
+    },
+    // --- NEW AI Features ---
+    {
+      icon: <Smile className="h-8 w-8 text-pink-500" />,
+      title: t('Mood-Based Recipes', 'وصفات حسب الحالة المزاجية'),
+      description: t('Get recipe suggestions tailored to your current mood.', 'احصل على اقتراحات وصفات مصممة خصيصًا لحالتك المزاجية الحالية.'),
+      path: '/ai/mood-recipes',
+    },
+    {
+      icon: <Brain className="h-8 w-8 text-indigo-500" />, // Reusing Brain, or find another relevant icon
+      title: t('Smart Recipe Adaptation', 'التكيف الذكي للوصفات'),
+      description: t('Adapt recipes for allergies, equipment, or ingredient substitutions.', 'تكييف الوصفات للحساسية، المعدات، أو بدائل المكونات.'),
+      path: '/ai/smart-adaptation',
+    },
+    {
+      icon: <Mic className="h-8 w-8 text-cyan-500" />,
+      title: t('Voice Recipe Assistant', 'مساعد الوصفات الصوتي'),
+      description: t('Hands-free cooking with voice-controlled instructions and tips.', 'الطبخ بدون استخدام اليدين مع تعليمات ونصائح يتم التحكم فيها بالصوت.'),
+      path: '/ai/voice-assistant',
     },
   ];
 
