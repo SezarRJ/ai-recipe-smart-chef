@@ -70,19 +70,14 @@ export const AdminSidebar = () => {
     { icon: ShoppingBag, label: 'Ingredients', href: '/admin/ingredients' },
     { icon: Image, label: 'Ingredient Images', href: '/admin/ingredient-images' },
     { icon: Globe, label: 'Translations', href: '/admin/translations' },
-    { icon: Languages, label: 'Languages', href: '/admin/languages' },
     { icon: CreditCard, label: 'Subscriptions', href: '/admin/subscriptions' },
     { icon: DollarSign, label: 'Accounting', href: '/admin/accounting', requireSuperAdmin: true },
     { icon: Award, label: 'Rewards', href: '/admin/rewards' },
+    { icon: Languages, label: 'Languages', href: '/admin/languages' },
     { icon: Cpu, label: 'Integrations', href: '/admin/integrations', requireSuperAdmin: true },
     { icon: Server, label: 'System', href: '/admin/system', requireSuperAdmin: true },
     { icon: BarChart, label: 'Analytics', href: '/admin/analytics' },
     { icon: Bell, label: 'Communications', href: '/admin/communications' },
-    { icon: Bell, label: 'Support Tickets', href: '/admin/support' },
-    { icon: Users, label: 'Community', href: '/admin/community' },
-    { icon: Bell, label: 'Notifications', href: '/admin/notifications' },
-    { icon: Image, label: 'Content Library', href: '/admin/content-library' },
-    { icon: Image, label: 'Icons Manager', href: '/admin/icons-manager' },
     { icon: Shield, label: 'Security', href: '/admin/security', requireSuperAdmin: true },
     { icon: Wrench, label: 'Maintenance', href: '/admin/maintenance', requireSuperAdmin: true },
     { icon: Settings, label: 'Settings', href: '/admin/settings', requireSuperAdmin: true },
@@ -142,16 +137,6 @@ export const AdminSidebar = () => {
               requireSuperAdmin={item.requireSuperAdmin}
             />
           ))}
-          {mainItems.slice(18, 20).map((item) => (
-            <SidebarItem
-              key={item.href}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
-              requireSuperAdmin={item.requireSuperAdmin}
-            />
-          ))}
         </div>
 
         {/* Business */}
@@ -171,29 +156,12 @@ export const AdminSidebar = () => {
           ))}
         </div>
 
-        {/* Communications */}
-        <div className="space-y-1 pt-4">
-          <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Communications
-          </div>
-          {mainItems.slice(14, 18).map((item) => (
-            <SidebarItem
-              key={item.href}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
-              requireSuperAdmin={item.requireSuperAdmin}
-            />
-          ))}
-        </div>
-
         {/* System */}
         <div className="space-y-1 pt-4">
           <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
             System
           </div>
-          {[mainItems[13], ...mainItems.slice(20)].map((item) => (
+          {mainItems.slice(13).map((item) => (
             <SidebarItem
               key={item.href}
               icon={item.icon}
