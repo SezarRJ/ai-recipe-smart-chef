@@ -1,387 +1,156 @@
-
-import React, { useState, useEffect } from 'react';
+// src/pages/ai/SmartRecipeAdaptation.tsx
+import React, { useState } from 'react';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Wand2, Clock, Users, ChefHat, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAIChef } from '@/hooks/useAIChef';
+import { Sparkles, Loader2, Lightbulb, Utensils } from 'lucide-react';
+import { useRTL } from '@/contexts/RTLContext';
+import { toast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
-interface SmartRecipeAdaptationProps {
-  recipe: {
-    id: string;
-    title: string;
-    ingredients: Array<{
-      id: string;
-      name: string;
-      amount: number;
-      unit: string;
-    }>;
-    instructions: string[];
-    difficulty: 'Easy' | 'Medium' | 'Hard';
-    servings: number;
-    prep_time: number;
-    cook_time: number;
-  };
-  pantryItems?: string[];
-  dietaryRestrictions?: string[];
-  onAdaptedRecipe?: (adaptedRecipe: any) => void;
-}
+const SmartRecipeAdaptation = () => {
+  const { t, direction } = useRTL();
+  const [originalRecipe, setOriginalRecipe] = useState(
+    "Classic Chocolate Chip Cookies (yields 24 cookies)\n\nIngredients:\n1 cup (2 sticks) unsalted butter, softened\n0.75 cup granulated sugar\n0.75 cup packed light brown sugar\n2 large eggs\n1 tsp vanilla extract\n2.25 cups all-purpose flour\n1 tsp baking soda\n0.5 tsp salt\n1 cup chocolate chips\n\nInstructions:\n1. Preheat oven to 375°F (190°C). Line baking sheets with parchment paper.\n2. Cream butter and sugars until light and fluffy.\n3. Beat in eggs one at a time, then stir in vanilla.\n4. In a separate bowl, whisk together flour, baking soda, and salt.\n5. Gradually add dry ingredients to wet ingredients, mixing until just combined.\n6. Stir in chocolate chips.\n7. Drop rounded tablespoons of dough onto prepared baking sheets.\n8. Bake for 9-11 minutes, or until edges are golden brown and centers are still soft.\n9. Let cool on baking sheets for a few minutes before transferring to a wire rack."
+  );
+  const [adaptationRequest, setAdaptationRequest] = useState('');
+  const [adaptedRecipe, setAdaptedRecipe] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-export const SmartRecipeAdaptation: React.FC<SmartRecipeAdaptationProps> = ({
-  recipe,
-  pantryItems = [],
-  dietaryRestrictions = [],
-  onAdaptedRecipe
-}) => {
-  const [adaptations, setAdaptations] = useState<any>(null);
-  const [isAdapting, setIsAdapting] = useState(false);
-  const [selectedAdaptations, setSelectedAdaptations] = useState({
-    dietary: true,
-    pantry: true,
-    skillLevel: false,
-    timeConstraint: false,
-    servingSize: false
-  });
-  const [customConstraints, setCustomConstraints] = useState({
-    targetTime: 30,
-    targetServings: 4,
-    skillLevel: 'Beginner'
-  });
+  const mockAIAdaptation = async (recipe: string, request: string): Promise<string> => {
+    // Simulate AI processing time
+    await new Promise(resolve => setTimeout(Math.random() * 2000 + 1500, resolve)); // 1.5 to 3.5 seconds
 
-  const { askAIChef } = useAIChef();
-  const { toast } = useToast();
+    let response = t("Here is your recipe, adapted based on your request:\n\n", "إليك وصفتك، معدلة بناءً على طلبك:\n\n");
 
-  const analyzeIngredients = () => {
-    const missing = recipe.ingredients.filter(
-      ingredient => !pantryItems.some(item => 
-        item.toLowerCase().includes(ingredient.name.toLowerCase())
-      )
-    );
-    const available = recipe.ingredients.filter(
-      ingredient => pantryItems.some(item => 
-        item.toLowerCase().includes(ingredient.name.toLowerCase())
-      )
-    );
+    const lowerRequest = request.toLowerCase();
 
-    return { missing, available };
+    if (lowerRequest.includes('no dairy') || lowerRequest.includes('dairy-free')) {
+      response += recipe.replace(/butter/g, 'dairy-free butter alternative').replace(/milk/g, 'plant-based milk');
+      response += t("\n\nNote: Dairy-free alternatives may alter texture slightly. Ensure all other ingredients are dairy-free.", "\n\nملاحظة: قد تغير بدائل الألبان القوام قليلاً. تأكد من أن جميع المكونات الأخرى خالية من الألبان.");
+    } else if (lowerRequest.includes('instant pot') || lowerRequest.includes('pressure cooker')) {
+      response += t("Adaptation for Instant Pot:\n", "تكيف لطنجرة الضغط:\n") + recipe.replace(/\nInstructions:\n(.|\n)*/, "\nInstructions:\n1. Sauté as needed in Instant Pot on SAUTE mode.\n2. Add liquids and main ingredients, scrape bottom of pot.\n3. Pressure cook according to ingredient type (e.g., chicken for 10-15 min, beans 20-30 min).\n4. Use natural or quick release as per recipe.\n");
+      response += t("\n\n(This is a generic Instant Pot adaptation. Specific times will vary.)", "\n\n(هذا تكيف عام لطنجرة الضغط. تختلف الأوقات المحددة.)");
+    } else if (lowerRequest.includes('only chicken and potatoes')) {
+      response = t("Here's a simpler recipe using only chicken and potatoes, inspired by your original:\n\n", "إليك وصفة أبسط باستخدام الدجاج والبطاطس فقط، مستوحاة من وصفتك الأصلية:\n\n");
+      response += t("Simple Roasted Chicken and Potatoes (yields 4 servings)\n\nIngredients:\n4 chicken thighs or breasts\n2 large potatoes, cut into wedges\n2 tbsp olive oil\n1 tsp dried rosemary\n0.5 tsp garlic powder\nSalt and pepper to taste\n\nInstructions:\n1. Preheat oven to 400°F (200°C).\n2. In a large bowl, toss chicken and potatoes with olive oil, rosemary, garlic powder, salt, and pepper.\n3. Spread in a single layer on a baking sheet.\n4. Bake for 30-40 minutes, or until chicken is cooked through and potatoes are tender and golden.\n", "دجاج وبطاطس مشوية بسيطة (تكفي 4 وجبات)\n\nالمكونات:\n4 أفخاذ دجاج أو صدور\n2 بطاطس كبيرة، مقطعة إلى شرائح\n2 ملعقة كبيرة زيت زيتون\n1 ملعقة صغيرة روزماري مجفف\n0.5 ملعقة صغيرة مسحوق ثوم\nملح وفلفل حسب الرغبة\n\nالتعليمات:\n1. سخن الفرن إلى 400 درجة فهرنهايت (200 درجة مئوية).\n2. في وعاء كبير، اخلط الدجاج والبطاطس بزيت الزيتون والروزماري ومسحوق الثوم والملح والفلفل.\n3. وزعها في طبقة واحدة على صينية خبز.\n4. اخبز لمدة 30-40 دقيقة، أو حتى ينضج الدجاج وتصبح البطاطس طرية وذهبية.");
+    }
+    else {
+      response += t("I've made some general adaptations to your recipe. For best results, be specific about the dietary restrictions, equipment, or ingredients you want to adapt for!", "لقد أجريت بعض التعديلات العامة على وصفتك. للحصول على أفضل النتائج، كن محددًا بشأن القيود الغذائية، المعدات، أو المكونات التي تريد التكيف معها!");
+      response += "\n\n" + recipe; // Fallback to original
+    }
+    return response;
   };
 
-  const adaptRecipe = async () => {
-    setIsAdapting(true);
-    
-    try {
-      const { missing, available } = analyzeIngredients();
-      
-      const adaptationPrompt = `
-        Please adapt this recipe based on the following constraints:
-        
-        Original Recipe: ${recipe.title}
-        Ingredients: ${recipe.ingredients.map(i => `${i.amount} ${i.unit} ${i.name}`).join(', ')}
-        Instructions: ${recipe.instructions.join(' ')}
-        
-        Available ingredients: ${available.map(i => i.name).join(', ')}
-        Missing ingredients: ${missing.map(i => i.name).join(', ')}
-        Dietary restrictions: ${dietaryRestrictions.join(', ')}
-        
-        Adaptations requested:
-        ${selectedAdaptations.dietary ? '- Accommodate dietary restrictions' : ''}
-        ${selectedAdaptations.pantry ? '- Suggest substitutions for missing ingredients' : ''}
-        ${selectedAdaptations.skillLevel ? `- Adjust for ${customConstraints.skillLevel} skill level` : ''}
-        ${selectedAdaptations.timeConstraint ? `- Reduce cooking time to ${customConstraints.targetTime} minutes` : ''}
-        ${selectedAdaptations.servingSize ? `- Adjust servings to ${customConstraints.targetServings}` : ''}
-        
-        Please provide:
-        1. Adapted ingredient list with substitutions
-        2. Modified instructions
-        3. Explanation of changes made
-        4. Tips for success with adaptations
-      `;
-
-      const response = await askAIChef(adaptationPrompt);
-      
-      // Parse the AI response (in a real implementation, you'd want more structured parsing)
-      const adaptedData = {
-        explanation: response.response,
-        changes: missing.length > 0 ? missing.map(i => ({
-          original: i.name,
-          substitution: `Suggested substitute for ${i.name}`,
-          reason: 'Not available in pantry'
-        })) : [],
-        dietaryChanges: dietaryRestrictions.length > 0 ? dietaryRestrictions.map(r => ({
-          restriction: r,
-          modifications: `Recipe modified for ${r}`
-        })) : [],
-        timeAdjustments: selectedAdaptations.timeConstraint ? {
-          original: recipe.prep_time + recipe.cook_time,
-          adapted: customConstraints.targetTime,
-          changes: 'Cooking methods optimized for speed'
-        } : null
-      };
-
-      setAdaptations(adaptedData);
-      onAdaptedRecipe?.(adaptedData);
-      
+  const handleAdaptRecipe = async () => {
+    if (!originalRecipe.trim() || !adaptationRequest.trim()) {
       toast({
-        title: "Recipe adapted successfully!",
-        description: "Review the suggested changes below."
+        title: t("Missing Information", "معلومات مفقودة"),
+        description: t("Please provide both the original recipe and your adaptation request.", "الرجاء توفير الوصفة الأصلية وطلب التكيف الخاص بك."),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setAdaptedRecipe(''); // Clear previous results
+
+    try {
+      const result = await mockAIAdaptation(originalRecipe, adaptationRequest);
+      setAdaptedRecipe(result);
+      toast({
+        title: t("Recipe Adapted!", "تم تكييف الوصفة!"),
+        description: t("Your recipe has been successfully adapted.", "تم تعديل وصفتك بنجاح."),
       });
     } catch (error) {
+      console.error('Recipe adaptation error:', error);
       toast({
-        title: "Adaptation failed",
-        description: "Please try again later.",
-        variant: "destructive"
+        title: t("Error", "خطأ"),
+        description: t("An error occurred during adaptation.", "حدث خطأ أثناء التكيف."),
+        variant: "destructive",
       });
     } finally {
-      setIsAdapting(false);
+      setIsLoading(false);
     }
   };
 
-  const { missing, available } = analyzeIngredients();
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wand2 className="h-5 w-5 text-wasfah-bright-teal" />
-            Smart Recipe Adaptation
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Ingredient Analysis */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <h4 className="font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Available ({available.length})
-              </h4>
-              <div className="flex flex-wrap gap-1">
-                {available.map((ingredient) => (
-                  <Badge key={ingredient.id} variant="secondary" className="bg-green-100 text-green-800">
-                    {ingredient.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <h4 className="font-medium text-orange-700 dark:text-orange-400 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                Missing ({missing.length})
-              </h4>
-              <div className="flex flex-wrap gap-1">
-                {missing.map((ingredient) => (
-                  <Badge key={ingredient.id} variant="destructive" className="bg-orange-100 text-orange-800">
-                    {ingredient.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
+    <PageContainer header={{ title: t('Smart Recipe Adaptation', 'التكيف الذكي للوصفات'), showBackButton: true }}>
+      <div className={`p-4 pb-20 space-y-6 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-lg text-white text-center mb-6">
+          <Lightbulb className="h-12 w-12 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">{t('Smartly Adapt Any Recipe', 'كيف بذكاء أي وصفة')}</h1>
+          <p className="opacity-90">{t('Modify recipes to fit dietary restrictions, available equipment, or specific ingredients.', 'عدّل الوصفات لتناسب القيود الغذائية، المعدات المتاحة، أو المكونات المحددة.')}</p>
+        </div>
 
-          <Separator />
-
-          {/* Adaptation Options */}
-          <div className="space-y-4">
-            <h4 className="font-medium">Adaptation Options</h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Dietary Adaptations</label>
-                  <Switch
-                    checked={selectedAdaptations.dietary}
-                    onCheckedChange={(checked) => 
-                      setSelectedAdaptations(prev => ({ ...prev, dietary: checked }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Pantry Substitutions</label>
-                  <Switch
-                    checked={selectedAdaptations.pantry}
-                    onCheckedChange={(checked) => 
-                      setSelectedAdaptations(prev => ({ ...prev, pantry: checked }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Skill Level Adjustment</label>
-                  <Switch
-                    checked={selectedAdaptations.skillLevel}
-                    onCheckedChange={(checked) => 
-                      setSelectedAdaptations(prev => ({ ...prev, skillLevel: checked }))
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Time Optimization</label>
-                  <Switch
-                    checked={selectedAdaptations.timeConstraint}
-                    onCheckedChange={(checked) => 
-                      setSelectedAdaptations(prev => ({ ...prev, timeConstraint: checked }))
-                    }
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Serving Adjustment</label>
-                  <Switch
-                    checked={selectedAdaptations.servingSize}
-                    onCheckedChange={(checked) => 
-                      setSelectedAdaptations(prev => ({ ...prev, servingSize: checked }))
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Custom Constraints */}
-          {(selectedAdaptations.timeConstraint || selectedAdaptations.servingSize || selectedAdaptations.skillLevel) && (
-            <>
-              <Separator />
-              <div className="space-y-4">
-                <h4 className="font-medium">Custom Constraints</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {selectedAdaptations.timeConstraint && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        Target Time (minutes)
-                      </label>
-                      <input
-                        type="number"
-                        value={customConstraints.targetTime}
-                        onChange={(e) => setCustomConstraints(prev => ({
-                          ...prev,
-                          targetTime: parseInt(e.target.value) || 30
-                        }))}
-                        className="w-full px-3 py-2 border rounded-md"
-                        min="10"
-                        max="120"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedAdaptations.servingSize && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Target Servings
-                      </label>
-                      <input
-                        type="number"
-                        value={customConstraints.targetServings}
-                        onChange={(e) => setCustomConstraints(prev => ({
-                          ...prev,
-                          targetServings: parseInt(e.target.value) || 4
-                        }))}
-                        className="w-full px-3 py-2 border rounded-md"
-                        min="1"
-                        max="20"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedAdaptations.skillLevel && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <ChefHat className="h-4 w-4" />
-                        Skill Level
-                      </label>
-                      <select
-                        value={customConstraints.skillLevel}
-                        onChange={(e) => setCustomConstraints(prev => ({
-                          ...prev,
-                          skillLevel: e.target.value
-                        }))}
-                        className="w-full px-3 py-2 border rounded-md"
-                      >
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-
-          <Button
-            onClick={adaptRecipe}
-            disabled={isAdapting || (!selectedAdaptations.dietary && !selectedAdaptations.pantry && !selectedAdaptations.skillLevel && !selectedAdaptations.timeConstraint && !selectedAdaptations.servingSize)}
-            className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
-          >
-            {isAdapting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adapting Recipe...
-              </>
-            ) : (
-              <>
-                <Wand2 className="mr-2 h-4 w-4" />
-                Adapt Recipe
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Adaptation Results */}
-      {adaptations && (
         <Card>
-          <CardHeader>
-            <CardTitle>Adaptation Results</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="prose dark:prose-invert max-w-none">
-              <p className="text-gray-700 dark:text-gray-300">{adaptations.explanation}</p>
+          <CardContent className="p-4 space-y-4">
+            <div>
+              <label htmlFor="original-recipe" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('Original Recipe Text', 'نص الوصفة الأصلي')}
+              </label>
+              <Textarea
+                id="original-recipe"
+                placeholder={t('Paste your recipe here...', 'الصق وصفتك هنا...')}
+                value={originalRecipe}
+                onChange={(e) => setOriginalRecipe(e.target.value)}
+                rows={10}
+                className="bg-white dark:bg-gray-700 dark:text-white"
+                disabled={isLoading}
+              />
             </div>
-            
-            {adaptations.changes.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Ingredient Substitutions:</h4>
-                {adaptations.changes.map((change: any, index: number) => (
-                  <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="font-medium text-blue-900 dark:text-blue-100">
-                      {change.original} → {change.substitution}
-                    </div>
-                    <div className="text-sm text-blue-700 dark:text-blue-300">
-                      {change.reason}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {adaptations.dietaryChanges.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Dietary Modifications:</h4>
-                {adaptations.dietaryChanges.map((change: any, index: number) => (
-                  <div key={index} className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="font-medium text-green-900 dark:text-green-100">
-                      {change.restriction}
-                    </div>
-                    <div className="text-sm text-green-700 dark:text-green-300">
-                      {change.modifications}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div>
+              <label htmlFor="adaptation-request" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('How do you want to adapt it?', 'كيف تريد تكييفها؟')}
+              </label>
+              <Input
+                id="adaptation-request"
+                placeholder={t('e.g., "Make it dairy-free", "Use instant pot", "Only chicken and potatoes"', 'مثال: "اجعلها خالية من الألبان"، "استخدم طنجرة الضغط"، "فقط دجاج وبطاطس"')}
+                value={adaptationRequest}
+                onChange={(e) => setAdaptationRequest(e.target.value)}
+                className="bg-white dark:bg-gray-700 dark:text-white"
+                disabled={isLoading}
+              />
+            </div>
+            <Button
+              onClick={handleAdaptRecipe}
+              disabled={isLoading || !originalRecipe.trim() || !adaptationRequest.trim()}
+              className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5 animate-spin`} />
+                  {t('Adapting...', 'جاري التكييف...')}
+                </>
+              ) : (
+                <>
+                  <Sparkles className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5`} />
+                  {t('Adapt Recipe', 'تكييف الوصفة')}
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
-      )}
-    </div>
+
+        {adaptedRecipe && (
+          <Card>
+            <CardHeader className={`px-4 pt-4 pb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+              <CardTitle className="text-xl font-bold text-wasfah-deep-teal flex items-center">
+                <Utensils className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
+                {t('Your Adapted Recipe', 'وصفتك المعدلة')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <pre className="whitespace-pre-wrap font-sans text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
+                {adaptedRecipe}
+              </pre>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </PageContainer>
   );
 };
+
+export default SmartRecipeAdaptation;
