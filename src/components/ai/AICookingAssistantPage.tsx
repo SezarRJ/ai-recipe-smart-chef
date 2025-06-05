@@ -1,140 +1,143 @@
-// src/pages/ai/AICookingAssistantPage.tsx
+// src/components/ai/AICookingAssistantPage.tsx
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Send, Loader2, Bot, User } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Bot, User, Send, Loader2 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { toast } from '@/hooks/use-toast';
 
-interface ChatMessage {
-  id: string;
-  sender: 'user' | 'ai';
-  text: string;
+interface Message {
+  type: 'user' | 'ai';
+  content: string;
 }
 
 const AICookingAssistantPage = () => {
-  const { t, direction } = useRTL();
   const [inputMessage, setInputMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  const mockAIAssistantResponse = async (userMessage: string): Promise<string> => {
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(Math.random() * 1500 + 1000, resolve)); // 1 to 2.5 seconds
-
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
-      return t("Hello! How can I assist you with your cooking today?", "مرحبًا! كيف يمكنني مساعدتك في طهيك اليوم؟");
-    } else if (lowerMessage.includes('recipe for')) {
-      const dish = userMessage.split('recipe for')[1]?.trim() || t('something delicious', 'شيء لذيذ');
-      return t(`I can help you with a recipe for ${dish}. What kind of ingredients do you have?`, `يمكنني مساعدتك بوصفة لـ ${dish}. ما نوع المكونات المتوفرة لديك؟`);
-    } else if (lowerMessage.includes('troubleshoot') || lowerMessage.includes('problem')) {
-      return t("Tell me more about the issue you're facing. What recipe are you making and what's going wrong?", "أخبرني المزيد عن المشكلة التي تواجهها. ما هي الوصفة التي تعدها وما الخطأ الذي يحدث؟");
-    } else if (lowerMessage.includes('tips')) {
-      return t("Sure! Are you looking for tips on a specific cuisine, technique, or ingredient?", "بالتأكيد! هل تبحث عن نصائح حول مطبخ معين، أو تقنية، أو مكون؟");
-    } else if (lowerMessage.includes('thanks') || lowerMessage.includes('thank you')) {
-      return t("You're most welcome! Happy cooking!", "على الرحب والسعة! طبخ سعيد!");
-    } else {
-      return t("I'm an AI Cooking Assistant. I can help with recipes, cooking tips, substitutions, and troubleshooting. What's on your mind?", "أنا مساعد طبخ بالذكاء الاصطناعي. يمكنني المساعدة في الوصفات، نصائح الطبخ، البدائل، واستكشاف الأخطاء. ما الذي يدور في ذهنك؟");
-    }
-  };
+  const { t, direction } = useRTL();
 
   const handleSendMessage = async () => {
-    const trimmedMessage = inputMessage.trim();
-    if (!trimmedMessage) return;
+    if (!inputMessage.trim()) return;
 
-    const newUserMessage: ChatMessage = { id: `user-${Date.now()}`, sender: 'user', text: trimmedMessage };
-    setChatHistory(prev => [...prev, newUserMessage]);
+    const userMessage = inputMessage.trim();
     setInputMessage('');
+    setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
     setIsLoading(true);
 
+    // Simulate AI processing
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
     try {
-      const aiResponseText = await mockAIAssistantResponse(trimmedMessage);
-      const newAIMessage: ChatMessage = { id: `ai-${Date.now()}`, sender: 'ai', text: aiResponseText };
-      setChatHistory(prev => [...prev, newAIMessage]);
+      // Mock AI response
+      const mockAIResponse = (userMessage: string) => {
+        const lowerMessage = userMessage.toLowerCase();
+        if (lowerMessage.includes('vegetarian')) {
+          return t('Okay, I will provide you with vegetarian recipes.', 'حسنًا، سأقدم لك وصفات نباتية.');
+        } else if (lowerMessage.includes('healthy')) {
+          return t('Sure, let us focus on healthy options.', 'بالتأكيد، دعنا نركز على الخيارات الصحية.');
+        } else {
+          return t('Understood. How can I assist you further?', 'فهمت. كيف يمكنني مساعدتك أيضًا؟');
+        }
+      };
+
+      const aiResponse = mockAIResponse(userMessage);
+      setMessages(prev => [...prev, { type: 'ai', content: aiResponse }]);
     } catch (error) {
-      console.error('AI assistant error:', error);
+      console.error('AI Cooking Assistant error:', error);
       toast({
-        title: t("Error", "خطأ"),
-        description: t("Failed to get response from AI assistant.", "فشل الحصول على رد من مساعد الذكاء الاصطناعي."),
-        variant: "destructive",
+        title: t('Error', 'خطأ'),
+        description: t('An error occurred while processing your request.', 'حدث خطأ أثناء معالجة طلبك.'),
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // Prevent new line
-      handleSendMessage();
-    }
-  };
-
   return (
     <PageContainer header={{ title: t('AI Cooking Assistant', 'مساعد الطبخ بالذكاء الاصطناعي'), showBackButton: true }}>
-      <div className={`p-4 pb-20 space-y-6 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-6 rounded-lg text-white text-center mb-6">
-          <MessageSquare className="h-12 w-12 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">{t('Your Smart Kitchen Companion', 'رفيق مطبخك الذكي')}</h1>
-          <p className="opacity-90">{t('Ask me anything about cooking, recipes, or ingredients!', 'اسألني أي شيء عن الطهي أو الوصفات أو المكونات!')}</p>
+      <div className={`flex flex-col h-full p-4 pb-20 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        <div className="flex-grow space-y-4">
+          <Card className="bg-gradient-to-br from-blue-100 to-purple-50 dark:from-gray-800 dark:to-gray-700 text-center">
+            <CardContent className="p-6">
+              <Bot className="h-10 w-10 mx-auto mb-4 text-blue-500 dark:text-blue-400" />
+              <h1 className="text-xl font-bold text-gray-800 dark:text-white">{t('Your Personal Cooking Assistant', 'مساعدك الشخصي في الطبخ')}</h1>
+              <p className="text-gray-600 dark:text-gray-400">{t('Ask me anything about cooking, recipes, or ingredients!', 'اسألني أي شيء عن الطبخ أو الوصفات أو المكونات!')}</p>
+            </CardContent>
+          </Card>
+
+          <div className="flex-grow overflow-y-auto">
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-4 p-4">
+                {messages.map((message, index) => (
+                  <div key={index} className={`flex items-start ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {message.type === 'ai' && (
+                      <Avatar className="w-8 h-8 mr-3">
+                        <AvatarImage>
+                          <Bot className="w-5 h-5" />
+                        </AvatarImage>
+                        <AvatarFallback>AI</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className={`rounded-lg p-3 w-fit max-w-[80%] ${message.type === 'user' ? 'bg-wasfah-light-teal text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                      {message.content}
+                    </div>
+                    {message.type === 'user' && (
+                      <Avatar className="w-8 h-8 ml-3">
+                        <AvatarImage>
+                          <User className="w-5 h-5" />
+                        </AvatarImage>
+                        <AvatarFallback>You</AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-start justify-start">
+                    <Avatar className="w-8 h-8 mr-3">
+                      <AvatarImage>
+                        <Bot className="w-5 h-5" />
+                      </AvatarImage>
+                      <AvatarFallback>AI</AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-lg p-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
 
-        <Card className="flex flex-col h-[50vh]">
-          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-            {chatHistory.length === 0 && (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                <p>{t("Start a conversation! Ask me about a recipe, a cooking tip, or troubleshoot a dish.", "ابدأ محادثة! اسألني عن وصفة، نصيحة طهي، أو استكشاف الأخطاء في طبق.")}</p>
-              </div>
-            )}
-            {chatHistory.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender === 'user' ? (direction === 'rtl' ? 'justify-start' : 'justify-end') : (direction === 'rtl' ? 'justify-end' : 'justify-start')}`}
-              >
-                <div
-                  className={`max-w-[70%] p-3 rounded-lg shadow-md flex items-start space-x-2 rtl:space-x-reverse ${
-                    message.sender === 'user'
-                      ? 'bg-wasfah-bright-teal text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                  }`}
-                >
-                  {message.sender === 'ai' && <Bot size={20} className="flex-shrink-0" />}
-                  <p>{message.text}</p>
-                  {message.sender === 'user' && <User size={20} className="flex-shrink-0" />}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className={`flex ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}>
-                <div className="max-w-[70%] p-3 rounded-lg shadow-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 flex items-center space-x-2 rtl:space-x-reverse">
-                  <Bot size={20} className="animate-pulse" />
-                  <span>{t('AI is thinking...', 'الذكاء الاصطناعي يفكر...')}</span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardHeader className="p-4 border-t dark:border-gray-700 flex flex-row items-center">
-            <Textarea
-              placeholder={t('Type your message...', 'اكتب رسالتك...')}
+        <div className="mt-4">
+          <div className="flex items-center space-x-3">
+            <Input
+              type="text"
+              placeholder={t('Ask me anything...', 'اسألني أي شيء...')}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1 resize-none h-12 pr-12 dark:bg-gray-700 dark:text-white"
-              disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage();
+                }
+              }}
+              className="flex-grow bg-white dark:bg-gray-700 dark:text-white"
             />
-            <Button
-              onClick={handleSendMessage}
-              disabled={isLoading || !inputMessage.trim()}
-              className={`absolute bottom-6 ${direction === 'rtl' ? 'left-6' : 'right-6'} bg-wasfah-bright-teal hover:bg-wasfah-teal`}
-            >
-              <Send size={20} />
+            <Button onClick={handleSendMessage} disabled={isLoading} className="bg-wasfah-bright-teal hover:bg-wasfah-teal text-white">
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
       </div>
     </PageContainer>
   );

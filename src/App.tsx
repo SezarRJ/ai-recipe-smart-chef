@@ -61,19 +61,19 @@ import GlobalCuisinePage from './pages/GlobalCuisinePage';
 import AIFeaturesPage from './pages/AIFeaturesPage'; // AI Features Hub
 import ToolsPage from './pages/ToolsPage'; // Tools Hub
 
-// AI Feature Pages
-import AICookingAssistantPage from './pages/ai/AICookingAssistantPage';
-import RecipePersonalizerPage from './pages/ai/RecipePersonalizerPage';
-import SmartMealPlannerPage from './pages/ai/SmartMealPlannerPage';
-import DietaryAIAdvisorPage from './pages/ai/DietaryAIAdvisorPage';
-import FitnessNutritionCoachPage from './pages/ai/FitnessNutritionCoachPage';
-import MoodBasedRecipes from './pages/ai/MoodBasedRecipes'; // NEW
-import SmartRecipeAdaptation from './pages/ai/SmartRecipeAdaptation'; // NEW
-import VoiceRecipeAssistant from './pages/ai/VoiceRecipeAssistant'; // NEW
+// AI Feature Pages - Using existing components from the components directory
+import AICookingAssistantPage from './components/ai/AICookingAssistantPage';
+import RecipePersonalizerPage from './components/ai/RecipePersonalizerPage';
+import SmartMealPlannerPage from './components/ai/SmartMealPlannerPage';
+import DietaryAIAdvisorPage from './components/ai/DietaryAIAdvisorPage';
+import FitnessNutritionCoachPage from './components/ai/FitnessNutritionCoachPage';
+import MoodBasedRecipes from './components/ai/MoodBasedRecipes'; // NEW
+import SmartRecipeAdaptation from './components/ai/SmartRecipeAdaptation'; // NEW
+import VoiceRecipeAssistant from './components/ai/VoiceRecipeAssistant'; // NEW
 
-// Tool Pages
-import NutritionCalculatorPage from './pages/NutritionCalculatorPage';
-import RecipeScalerPage from './pages/RecipeScalerPage';
+// Tool Pages - Create placeholder pages for now
+const NutritionCalculatorPage = () => <div>Nutrition Calculator Page (Coming Soon!)</div>;
+const RecipeScalerPage = () => <div>Recipe Scaler Page (Coming Soon!)</div>;
 
 // Placeholder Components for other tools (from ToolsPage.tsx) - keep if you don't have real files
 const CookingTimerPage = () => <div>Cooking Timer Page (Coming Soon!)</div>;
@@ -90,7 +90,7 @@ import HealthTrackingHomePage from './pages/HealthTrackingHomePage';
 import PantryPage from './pages/PantryPage';
 import FavoritesPage from './pages/FavoritesPage';
 import BodyInformationPage from './pages/BodyInformationPage';
-import MicronutrientTracker from './pages/MicronutrientTracker'; // NEW
+import MicronutrientTracker from './components/ai/MicronutrientTracker'; // NEW
 
 
 // User Settings Sub-pages (from SettingsPage.tsx)
@@ -119,7 +119,7 @@ const App = () => {
 
   useEffect(() => {
     const simulateLoadingAndAdminInit = async () => {
-      await new Promise(resolve => setTimeout(1000, resolve));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setLoading(false);
       initializeAdminDemo();
     };

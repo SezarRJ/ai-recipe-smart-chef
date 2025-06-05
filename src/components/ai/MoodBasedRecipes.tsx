@@ -71,7 +71,7 @@ const MoodBasedRecipes = () => {
     setIsLoading(true);
     setHasSearched(true);
     setSuggestedRecipes([]); // Clear previous results
-    await new Promise(resolve => setTimeout(1200, resolve)); // Simulate AI processing
+    await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate AI processing
 
     try {
       const recipes = mockMoodRecipes[selectedMood] || mockMoodRecipes["default"];

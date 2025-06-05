@@ -1,247 +1,334 @@
-// src/pages/MicronutrientTracker.tsx
+// src/components/ai/MicronutrientTracker.tsx
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Target, Loader2, PlusCircle, PieChart, FlaskConical } from 'lucide-react';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { Loader2, Utensils, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { toast } from '@/hooks/use-toast';
 
-interface LoggedFood {
+interface FoodEntry {
   id: string;
   name: string;
-  quantity: number;
-  unit: string;
-  micronutrients: { [key: string]: { amount: number; unit: string } };
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
 }
 
-const mockMicronutrientData: { [food: string]: LoggedFood['micronutrients'] } = {
-  "apple": {
-    "Vitamin C": { amount: 8.4, unit: "mg" },
-    "Potassium": { amount: 195, unit: "mg" },
-    "Fiber": { amount: 2.4, unit: "g" },
-  },
-  "spinach (cooked)": {
-    "Vitamin K": { amount: 483, unit: "mcg" },
-    "Vitamin A": { amount: 5626, unit: "IU" },
-    "Folate": { amount: 131, unit: "mcg" },
-    "Iron": { amount: 3.6, unit: "mg" },
-  },
-  "chicken breast": {
-    "Niacin (B3)": { amount: 11.4, unit: "mg" },
-    "Vitamin B6": { amount: 0.6, unit: "mg" },
-    "Selenium": { amount: 30, unit: "mcg" },
-    "Phosphorus": { amount: 246, unit: "mg" },
-  },
-  "almonds": {
-    "Vitamin E": { amount: 7.3, unit: "mg" },
-    "Magnesium": { amount: 76, unit: "mg" },
-    "Manganese": { amount: 0.6, unit: "mg" },
-  },
-  "milk": {
-    "Calcium": { amount: 300, unit: "mg" },
-    "Vitamin D": { amount: 100, unit: "IU" },
-    "Vitamin B12": { amount: 1.2, unit: "mcg" },
-  }
-};
+interface NutrientRecommendation {
+  nutrient: string;
+  recommendedAmount: string;
+  actualAmount: number;
+  status: 'met' | 'low' | 'high';
+}
 
 const MicronutrientTracker = () => {
+  const [foodName, setFoodName] = useState('');
+  const [calories, setCalories] = useState<number | ''>('');
+  const [protein, setProtein] = useState<number | ''>('');
+  const [carbs, setCarbs] = useState<number | ''>('');
+  const [fat, setFat] = useState<number | ''>('');
+  const [currentEntries, setCurrentEntries] = useState<FoodEntry[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [recommendations, setRecommendations] = useState<NutrientRecommendation[]>([]);
   const { t, direction } = useRTL();
-  const [foodItem, setFoodItem] = useState('');
-  const [quantity, setQuantity] = useState<number | ''>(100);
-  const [unit, setUnit] = useState('grams');
-  const [loggedFoods, setLoggedFoods] = useState<LoggedFood[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const units = [
-    { value: 'grams', label: t('Grams', 'جرام') },
-    { value: 'ml', label: t('ml', 'مل') },
-    { value: 'cups', label: t('Cups', 'كوب') },
-    { value: 'units', label: t('Units', 'وحدات') },
-  ];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-  const handleAddFood = async () => {
-    if (!foodItem.trim() || quantity === '' || quantity <= 0) {
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  const handleAddFood = () => {
+    if (!foodName.trim() || calories === '' || protein === '' || carbs === '' || fat === '') {
       toast({
         title: t('Missing Information', 'معلومات مفقودة'),
-        description: t('Please enter a valid food item and quantity.', 'الرجاء إدخال عنصر غذائي وكمية صالحة.'),
+        description: t('Please fill in all fields.', 'الرجاء ملء جميع الحقول.'),
         variant: 'destructive',
       });
       return;
     }
 
-    setIsLoading(true);
-    // Simulate API call for nutrition data
-    await new Promise(resolve => setTimeout(800, resolve));
-
-    const lowerFoodItem = foodItem.toLowerCase();
-    const mockDataKey = Object.keys(mockMicronutrientData).find(key => lowerFoodItem.includes(key));
-    const micronutrients = mockDataKey ? mockMicronutrientData[mockDataKey] : {};
-
-    if (!mockDataKey) {
-        toast({
-            title: t('No detailed data', 'لا توجد بيانات تفصيلية'),
-            description: t('Could not find detailed micronutrient data for this item in mock.', 'لم يتم العثور على بيانات المغذيات الدقيقة التفصيلية لهذا العنصر في البيانات الوهمية.'),
-            variant: 'default',
-        });
-    }
-
-    const newLoggedFood: LoggedFood = {
+    const newEntry: FoodEntry = {
       id: Date.now().toString(),
-      name: foodItem,
-      quantity: Number(quantity),
-      unit: unit,
-      micronutrients: Object.fromEntries(
-        Object.entries(micronutrients).map(([key, val]) => [
-          key,
-          { amount: val.amount * (Number(quantity) / 100), unit: val.unit } // Scale for 100g base
-        ])
-      )
+      name: foodName,
+      calories: Number(calories),
+      protein: Number(protein),
+      carbs: Number(carbs),
+      fat: Number(fat),
     };
 
-    setLoggedFoods(prev => [...prev, newLoggedFood]);
-    setFoodItem('');
-    setQuantity(100);
-    setUnit('grams');
-    setIsLoading(false);
-
-    toast({
-      title: t('Food Added', 'تمت إضافة الطعام'),
-      description: t(`${newLoggedFood.name} added to your log.`, `تمت إضافة ${newLoggedFood.name} إلى سجلك.`),
-    });
+    setCurrentEntries(prev => [...prev, newEntry]);
+    setFoodName('');
+    setCalories('');
+    setProtein('');
+    setCarbs('');
+    setFat('');
   };
 
-  const calculateTotalMicronutrients = () => {
-    const totals: { [key: string]: { amount: number; unit: string } } = {};
-    loggedFoods.forEach(food => {
-      Object.entries(food.micronutrients).forEach(([nutrientName, data]) => {
-        if (!totals[nutrientName]) {
-          totals[nutrientName] = { amount: 0, unit: data.unit };
-        }
-        totals[nutrientName].amount += data.amount;
+  const handleRemoveFood = (id: string) => {
+    setCurrentEntries(prev => prev.filter(entry => entry.id !== id));
+    setRecommendations([]);
+    setHasAnalyzed(false);
+  };
+
+  const handleAnalyzeNutrition = async () => {
+    if (currentEntries.length === 0) {
+      toast({
+        title: t('No entries found', 'لا توجد إدخالات'),
+        description: t('Please add some foods to analyze.', 'الرجاء إضافة بعض الأطعمة للتحليل.'),
+        variant: 'destructive',
       });
-    });
-    return totals;
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setHasAnalyzed(true);
+
+    // Simulate AI analysis
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Mock AI-driven analysis and recommendations
+    const totalProtein = currentEntries.reduce((sum, entry) => sum + entry.protein, 0);
+    const totalCarbs = currentEntries.reduce((sum, entry) => sum + entry.carbs, 0);
+    const totalFat = currentEntries.reduce((sum, entry) => sum + entry.fat, 0);
+
+    const mockRecommendations: NutrientRecommendation[] = [
+      {
+        nutrient: t('Protein', 'بروتين'),
+        recommendedAmount: '50-60g',
+        actualAmount: totalProtein,
+        status: totalProtein >= 50 && totalProtein <= 60 ? 'met' : totalProtein < 50 ? 'low' : 'high',
+      },
+      {
+        nutrient: t('Carbohydrates', 'الكربوهيدرات'),
+        recommendedAmount: '225-325g',
+        actualAmount: totalCarbs,
+        status: totalCarbs >= 225 && totalCarbs <= 325 ? 'met' : totalCarbs < 225 ? 'low' : 'high',
+      },
+      {
+        nutrient: t('Fat', 'الدهون'),
+        recommendedAmount: '44-78g',
+        actualAmount: totalFat,
+        status: totalFat >= 44 && totalFat <= 78 ? 'met' : totalFat < 44 ? 'low' : 'high',
+      },
+    ];
+
+    setRecommendations(mockRecommendations);
+    setIsAnalyzing(false);
   };
 
-  const totalMicronutrients = calculateTotalMicronutrients();
+  const pieChartData = [
+    { name: t('Protein', 'بروتين'), value: recommendations.length > 0 ? recommendations[0].actualAmount : 0 },
+    { name: t('Carbs', 'الكربوهيدرات'), value: recommendations.length > 0 ? recommendations[1].actualAmount : 0 },
+    { name: t('Fat', 'الدهون'), value: recommendations.length > 0 ? recommendations[2].actualAmount : 0 },
+  ];
 
   return (
     <PageContainer header={{ title: t('Micronutrient Tracker', 'متتبع المغذيات الدقيقة'), showBackButton: true }}>
       <div className={`p-4 pb-20 space-y-6 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 p-6 rounded-lg text-white text-center mb-6">
-          <FlaskConical className="h-12 w-12 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">{t('Track Your Vitamins & Minerals', 'تتبع فيتاميناتك ومعادنك')}</h1>
-          <p className="opacity-90">{t('Monitor your daily intake of essential micronutrients.', 'راقب تناولك اليومي من المغذيات الدقيقة الأساسية.')}</p>
+        <div className="bg-gradient-to-br from-green-500 to-teal-600 p-6 rounded-lg text-white text-center mb-6">
+          <Utensils className="h-12 w-12 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">{t('Track Your Daily Nutrition', 'تتبع تغذيتك اليومية')}</h1>
+          <p className="opacity-90">{t('Log your meals and get instant analysis of your micronutrient intake.', 'سجل وجباتك واحصل على تحليل فوري لتناول المغذيات الدقيقة.')}</p>
         </div>
 
         <Card>
-          <CardHeader className={`px-0 pt-0 pb-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+          <CardHeader className={`px-4 pt-4 pb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
             <CardTitle className="text-xl font-bold text-wasfah-deep-teal flex items-center">
-              <PlusCircle className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
-              {t('Log a Food Item', 'سجل عنصرًا غذائيًا')}
+              <Utensils className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
+              {t('Add Food Entry', 'إضافة وجبة')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-0 space-y-4">
-            <div>
-              <label htmlFor="food-item" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('Food Item', 'عنصر غذائي')}
-              </label>
+          <CardContent className="p-4 space-y-4">
+            <Input
+              type="text"
+              placeholder={t('Food Name', 'اسم الوجبة')}
+              value={foodName}
+              onChange={(e) => setFoodName(e.target.value)}
+              className="bg-white dark:bg-gray-700 dark:text-white"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input
-                id="food-item"
-                placeholder={t('e.g., Apple, Cooked Spinach, Chicken Breast', 'مثال: تفاح، سبانخ مطبوخة، صدر دجاج')}
-                value={foodItem}
-                onChange={(e) => setFoodItem(e.target.value)}
+                type="number"
+                placeholder={t('Calories', 'السعرات الحرارية')}
+                value={calories}
+                onChange={(e) => setCalories(e.target.value)}
                 className="bg-white dark:bg-gray-700 dark:text-white"
-                disabled={isLoading}
               />
-            </div>
-            <div className="flex items-end space-x-2 rtl:space-x-reverse">
-              <div className="flex-1">
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('Quantity', 'الكمية')}
-                </label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  placeholder="100"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                  className="bg-white dark:bg-gray-700 dark:text-white"
-                  min="1"
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="w-1/2">
-                <label htmlFor="unit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('Unit', 'الوحدة')}
-                </label>
-                <Select value={unit} onValueChange={setUnit} disabled={isLoading}>
-                  <SelectTrigger id="unit" className="bg-white dark:bg-gray-700 dark:text-white">
-                    <SelectValue placeholder={t('Select unit', 'اختر الوحدة')} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800">
-                      {units.map((u) => (
-                          <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Input
+                type="number"
+                placeholder={t('Protein (g)', 'بروتين (غ)')}
+                value={protein}
+                onChange={(e) => setProtein(e.target.value)}
+                className="bg-white dark:bg-gray-700 dark:text-white"
+              />
+              <Input
+                type="number"
+                placeholder={t('Carbs (g)', 'الكربوهيدرات (غ)')}
+                value={carbs}
+                onChange={(e) => setCarbs(e.target.value)}
+                className="bg-white dark:bg-gray-700 dark:text-white"
+              />
+              <Input
+                type="number"
+                placeholder={t('Fat (g)', 'الدهون (غ)')}
+                value={fat}
+                onChange={(e) => setFat(e.target.value)}
+                className="bg-white dark:bg-gray-700 dark:text-white"
+              />
             </div>
             <Button
               onClick={handleAddFood}
-              disabled={isLoading || !foodItem.trim() || quantity === ''}
               className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5 animate-spin`} />
-                  {t('Adding...', 'جاري الإضافة...')}
-                </>
-              ) : (
-                <>
-                  <PlusCircle className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5`} />
-                  {t('Add to Log', 'أضف إلى السجل')}
-                </>
-              )}
+              {t('Add Food', 'أضف وجبة')}
             </Button>
           </CardContent>
         </Card>
 
-        {loggedFoods.length > 0 && (
+        {currentEntries.length > 0 && (
           <Card>
             <CardHeader className={`px-4 pt-4 pb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
               <CardTitle className="text-xl font-bold text-wasfah-deep-teal flex items-center">
-                <PieChart className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
-                {t('Today\'s Micronutrient Summary', 'ملخص المغذيات الدقيقة لليوم')}
+                <Utensils className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
+                {t('Current Food Entries', 'قائمة الوجبات الحالية')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-3">{t('Logged Foods:', 'الأطعمة المسجلة:')}</h3>
-              <ul className="list-disc list-inside space-y-1 mb-4 text-gray-700 dark:text-gray-300">
-                {loggedFoods.map(food => (
-                  <li key={food.id}>{food.name} ({food.quantity} {food.unit})</li>
-                ))}
-              </ul>
-
-              <h3 className="text-lg font-semibold mb-3">{t('Total Micronutrients:', 'إجمالي المغذيات الدقيقة:')}</h3>
-              {Object.keys(totalMicronutrients).length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400">
-                  {t('No detailed micronutrient data for logged items yet.', 'لا توجد بيانات تفصيلية للمغذيات الدقيقة للعناصر المسجلة بعد.')}
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 dark:text-gray-300">
-                  {Object.entries(totalMicronutrients).map(([nutrientName, data]) => (
-                    <div key={nutrientName} className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-2 rounded-md">
-                      <span className="font-medium">{nutrientName}:</span>
-                      <span>{data.amount.toFixed(2)} {data.unit}</span>
-                    </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px]">{t('Food', 'اسم الوجبة')}</TableHead>
+                    <TableHead>{t('Calories', 'السعرات الحرارية')}</TableHead>
+                    <TableHead>{t('Protein', 'بروتين')}</TableHead>
+                    <TableHead>{t('Carbs', 'الكربوهيدرات')}</TableHead>
+                    <TableHead>{t('Fat', 'الدهون')}</TableHead>
+                    <TableHead className="text-right">{t('Actions', 'إجراءات')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentEntries.map(entry => (
+                    <TableRow key={entry.id}>
+                      <TableCell className="font-medium">{entry.name}</TableCell>
+                      <TableCell>{entry.calories}</TableCell>
+                      <TableCell>{entry.protein}</TableCell>
+                      <TableCell>{entry.carbs}</TableCell>
+                      <TableCell>{entry.fat}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => handleRemoveFood(entry.id)}>
+                          {t('Remove', 'إزالة')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </div>
-              )}
+                </TableBody>
+              </Table>
+              <Button
+                onClick={handleAnalyzeNutrition}
+                disabled={isAnalyzing}
+                className="w-full mt-4 bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5 animate-spin`} />
+                    {t('Analyzing...', 'جاري التحليل...')}
+                  </>
+                ) : (
+                  t('Analyze Nutrition', 'تحليل التغذية')
+                )}
+              </Button>
             </CardContent>
+          </Card>
+        )}
+
+        {hasAnalyzed && recommendations.length > 0 && (
+          <Card>
+            <CardHeader className={`px-4 pt-4 pb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+              <CardTitle className="text-xl font-bold text-wasfah-deep-teal flex items-center">
+                <Utensils className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
+                {t('Nutrition Analysis', 'تحليل التغذية')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">{t('Macronutrient Breakdown', 'تحليل المغذيات الكبيرة')}</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      outerRadius={120}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">{t('Recommendations', 'التوصيات')}</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('Nutrient', 'المغذيات')}</TableHead>
+                      <TableHead>{t('Recommended', 'الموصى بها')}</TableHead>
+                      <TableHead>{t('Actual', 'الكمية الفعلية')}</TableHead>
+                      <TableHead className="text-center">{t('Status', 'الحالة')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recommendations.map(item => (
+                      <TableRow key={item.nutrient}>
+                        <TableCell>{item.nutrient}</TableCell>
+                        <TableCell>{item.recommendedAmount}</TableCell>
+                        <TableCell>{item.actualAmount}g</TableCell>
+                        <TableCell className="text-center">
+                          {item.status === 'met' && (
+                            <CheckCircle className="h-5 w-5 text-green-500 mx-auto" title={t('Met', 'تمت')} />
+                          )}
+                          {item.status === 'low' && (
+                            <AlertTriangle className="h-5 w-5 text-yellow-500 mx-auto" title={t('Low', 'منخفضة')} />
+                          )}
+                          {item.status === 'high' && (
+                            <AlertTriangle className="h-5 w-5 text-red-500 mx-auto" title={t('High', 'عالية')} />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {hasAnalyzed && currentEntries.length === 0 && (
+          <Card className="p-4 text-center text-gray-500 dark:text-gray-400">
+            <p>{t('No food entries to analyze.', 'لا توجد وجبات لتحليلها.')}</p>
+            <p className="mt-2 text-sm">{t('Add some food entries to get started.', 'أضف بعض الوجبات لتبدأ.')}</p>
           </Card>
         )}
       </div>

@@ -15,6 +15,7 @@ const DietaryAIAdvisorPage = () => {
   const [question, setQuestion] = useState('');
   const [advice, setAdvice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const mockAIDietaryAdvisor = async (diet: string, userQuestion: string): Promise<string> => {
     // Simulate AI processing time
@@ -58,7 +59,9 @@ const DietaryAIAdvisorPage = () => {
     }
 
     setIsLoading(true);
+    setHasSearched(true);
     setAdvice(''); // Clear previous results
+    await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate AI processing
 
     try {
       const result = await mockAIDietaryAdvisor(dietType, question);

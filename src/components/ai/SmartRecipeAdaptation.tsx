@@ -20,7 +20,7 @@ const SmartRecipeAdaptation = () => {
 
   const mockAIAdaptation = async (recipe: string, request: string): Promise<string> => {
     // Simulate AI processing time
-    await new Promise(resolve => setTimeout(Math.random() * 2000 + 1500, resolve)); // 1.5 to 3.5 seconds
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1500)); // 1.5 to 3.5 seconds
 
     let response = t("Here is your recipe, adapted based on your request:\n\n", "إليك وصفتك، معدلة بناءً على طلبك:\n\n");
 

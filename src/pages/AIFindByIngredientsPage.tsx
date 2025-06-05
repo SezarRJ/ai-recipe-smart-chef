@@ -49,6 +49,15 @@ interface PantryItem {
   icon?: ElementType;
 }
 
+// Local DrinkOptions interface that matches the component
+interface LocalDrinkOptions {
+  type: string;
+  strength: string; // Changed from number to string to match the component
+  flavor: string;
+  temperature: string;
+  themes?: string[];
+}
+
 export default function FindByIngredients() {
   const { toast } = useToast();
   const { t } = useRTL();
@@ -134,7 +143,7 @@ export default function FindByIngredients() {
     cuisine: '',
   });
   const [addedIngredients, setAddedIngredients] = useState<Ingredient[]>([]);
-  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkOptions | null>(null);
+  const [customDrinkOptions, setCustomDrinkOptions] = useState<LocalDrinkOptions | null>(null);
   const [searchResults, setSearchResults] = useState<Recipe[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -225,7 +234,15 @@ export default function FindByIngredients() {
   };
 
   const handleGenerateCustomDrink = (options: DrinkOptions) => {
-    setCustomDrinkOptions(options);
+    // Convert DrinkOptions to LocalDrinkOptions
+    const localOptions: LocalDrinkOptions = {
+      type: options.type,
+      strength: options.strength.toString(), // Convert number to string
+      flavor: options.flavor,
+      temperature: options.temperature,
+      themes: options.themes,
+    };
+    setCustomDrinkOptions(localOptions);
     setCurrentStep(4);
   };
 

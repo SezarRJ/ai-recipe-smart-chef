@@ -2,84 +2,58 @@
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, Loader2, Calendar, Utensils, Zap, PlusCircle } from 'lucide-react';
+import { Sparkles, Loader2, Calendar, Utensils } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { toast } from '@/hooks/use-toast';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 const SmartMealPlannerPage = () => {
   const { t, direction } = useRTL();
-  const [dietType, setDietType] = useState('');
-  const [calorieGoal, setCalorieGoal] = useState<number | ''>('');
-  const [numDays, setNumDays] = useState<number | ''>(7);
-  const [dislikedIngredients, setDislikedIngredients] = useState('');
-  const [mealPlan, setMealPlan] = useState<string[]>([]);
+  const [dietaryPreferences, setDietaryPreferences] = useState('');
+  const [calorieGoals, setCalorieGoals] = useState('');
+  const [mealPlan, setMealPlan] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
 
-  const mockAIMealPlanner = async (options: { diet: string, calories: number, days: number, disliked: string }): Promise<string[]> => {
+  const mockAIMealPlan = async (preferences: string, calories: string): Promise<string> => {
     // Simulate AI processing time
-    await new Promise(resolve => setTimeout(Math.random() * 2500 + 2000, resolve)); // 2 to 4.5 seconds
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1500)); // 1.5 to 3.5 seconds
 
-    const plans: string[] = [];
-    const baseMeals = [
-      { name: "Scrambled Eggs with Spinach & Toast", type: "Breakfast", calories: 350 },
-      { name: "Grilled Chicken Salad with Quinoa", type: "Lunch", calories: 450 },
-      { name: "Baked Salmon with Roasted Vegetables", type: "Dinner", calories: 600 },
-    ];
+    let response = t("Here is your personalized meal plan:\n\n", "إليك خطة وجباتك المخصصة:\n\n");
 
-    for (let i = 1; i <= options.days; i++) {
-      let dayPlan = `--- ${t("Day", "اليوم")} ${i} ---\n`;
-      baseMeals.forEach(meal => {
-        let mealName = meal.name;
-        if (options.diet === 'vegan') {
-          if (meal.name.includes("Eggs")) mealName = "Tofu Scramble with Spinach & Toast";
-          if (meal.name.includes("Chicken")) mealName = "Lentil Salad with Roasted Vegetables";
-          if (meal.name.includes("Salmon")) mealName = "Chickpea Curry with Rice";
-        } else if (options.diet === 'keto') {
-            if (meal.name.includes("Toast")) mealName = "Scrambled Eggs with Spinach & Avocado";
-            if (meal.name.includes("Quinoa")) mealName = "Grilled Chicken Salad with Extra Avocado";
-            if (meal.name.includes("Rice")) mealName = "Baked Salmon with Broccoli Puree";
-        }
-
-        if (options.disliked.toLowerCase().split(',').some(d => mealName.toLowerCase().includes(d.trim()))) {
-            mealName = `${mealName} (${t("Substitute Recommended", "يوصى ببديل")})`;
-        }
-
-        dayPlan += `${t(meal.type, meal.type)}: ${mealName} (~${(meal.calories * (options.calories / 1400)).toFixed(0)} kcal)\n`; // Adjust calories proportional to goal
-      });
-      plans.push(dayPlan);
+    if (preferences.toLowerCase().includes('vegetarian')) {
+      response += t("Monday:\nBreakfast: Oatmeal with berries and nuts\nLunch: Quinoa salad with chickpeas and vegetables\nDinner: Lentil soup with whole grain bread\n\n", "الاثنين:\nالإفطار: دقيق الشوفان مع التوت والمكسرات\nالغداء: سلطة الكينوا مع الحمص والخضروات\nالعشاء: حساء العدس مع خبز الحبوب الكاملة\n\n");
+    } else {
+      response += t("Monday:\nBreakfast: Scrambled eggs with whole wheat toast\nLunch: Chicken salad sandwich on whole grain bread\nDinner: Baked salmon with roasted vegetables\n\n", "الاثنين:\nالإفطار: بيض مخفوق مع خبز القمح الكامل المحمص\nالغداء: ساندويتش سلطة الدجاج على خبز الحبوب الكاملة\nالعشاء: سمك السلمون المخبوز مع الخضار المشوية\n\n");
     }
 
-    return plans;
+    response += t("This meal plan is designed to meet your calorie goals and dietary preferences. Adjust portions as needed.", "تم تصميم خطة الوجبات هذه لتلبية أهداف السعرات الحرارية والتفضيلات الغذائية الخاصة بك. عدّل الحصص حسب الحاجة.");
+    return response;
   };
 
-  const handleGeneratePlan = async () => {
-    if (!dietType || calorieGoal === '' || calorieGoal <= 0 || numDays === '' || numDays <= 0) {
+  const handleGenerateMealPlan = async () => {
+    if (!dietaryPreferences.trim() || !calorieGoals.trim()) {
       toast({
         title: t("Missing Information", "معلومات مفقودة"),
-        description: t("Please fill in all required fields for meal planning.", "الرجاء ملء جميع الحقول المطلوبة لتخطيط الوجبات."),
+        description: t("Please provide both your dietary preferences and calorie goals.", "الرجاء تقديم تفضيلاتك الغذائية وأهداف السعرات الحرارية."),
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
-    setMealPlan([]); // Clear previous results
+    setHasGenerated(true);
+    setMealPlan(''); // Clear previous results
+    await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate AI processing
 
     try {
-      const result = await mockAIMealPlanner({
-        diet: dietType,
-        calories: Number(calorieGoal),
-        days: Number(numDays),
-        disliked: dislikedIngredients,
-      });
+      const result = await mockAIMealPlan(dietaryPreferences, calorieGoals);
       setMealPlan(result);
       toast({
         title: t("Meal Plan Generated!", "تم إنشاء خطة الوجبات!"),
-        description: t("Your personalized meal plan is ready.", "خطتك الغذائية المخصصة جاهزة."),
+        description: t("Your personalized meal plan has been generated.", "تم إنشاء خطة وجباتك المخصصة."),
       });
     } catch (error) {
       console.error('Meal plan generation error:', error);
@@ -93,96 +67,46 @@ const SmartMealPlannerPage = () => {
     }
   };
 
-  const dietOptions = [
-    { value: 'none', label: t('None', 'لا شيء') },
-    { value: 'vegetarian', label: t('Vegetarian', 'نباتي') },
-    { value: 'vegan', label: t('Vegan', 'نباتي صرف') },
-    { value: 'keto', label: t('Keto', 'كيتو') },
-    { value: 'gluten-free', label: t('Gluten-Free', 'خالي من الغلوتين') },
-    { value: 'paleo', label: t('Paleo', 'باليو') },
-  ];
-
   return (
     <PageContainer header={{ title: t('Smart Meal Planner', 'مخطط الوجبات الذكي'), showBackButton: true }}>
       <div className={`p-4 pb-20 space-y-6 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-        <div className="bg-gradient-to-br from-yellow-500 to-amber-600 p-6 rounded-lg text-white text-center mb-6">
+        <div className="bg-gradient-to-br from-yellow-500 to-orange-600 p-6 rounded-lg text-white text-center mb-6">
           <Calendar className="h-12 w-12 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">{t('Plan Your Meals Intelligently', 'خطط لوجباتك بذكاء')}</h1>
-          <p className="opacity-90">{t('Generate personalized meal plans based on your dietary needs and goals.', 'أنشئ خطط وجبات مخصصة بناءً على احتياجاتك وأهدافك الغذائية.')}</p>
+          <h1 className="text-2xl font-bold mb-2">{t('Generate Your Weekly Meal Plan', 'أنشئ خطة وجباتك الأسبوعية')}</h1>
+          <p className="opacity-90">{t('Get a personalized meal plan based on your dietary needs and calorie goals.', 'احصل على خطة وجبات مخصصة بناءً على احتياجاتك الغذائية وأهداف السعرات الحرارية.')}</p>
         </div>
 
         <Card>
           <CardContent className="p-4 space-y-4">
             <div>
-              <label htmlFor="diet-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('Diet Type', 'نوع الحمية')}
+              <label htmlFor="dietary-preferences" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('Dietary Preferences', 'التفضيلات الغذائية')}
               </label>
-              <Select value={dietType} onValueChange={setDietType} disabled={isLoading}>
-                <SelectTrigger id="diet-type" className="bg-white dark:bg-gray-700 dark:text-white">
-                  <SelectValue placeholder={t('Select a diet type', 'اختر نوع حمية')} />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800">
-                  {dietOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="calorie-goal" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('Daily Calorie Goal (kcal)', 'الهدف اليومي من السعرات الحرارية (سعرة حرارية)')}
-                </label>
-                <Input
-                  id="calorie-goal"
-                  type="number"
-                  placeholder="e.g., 2000"
-                  value={calorieGoal}
-                  onChange={(e) => setCalorieGoal(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                  className="bg-white dark:bg-gray-700 dark:text-white"
-                  min="1"
-                  disabled={isLoading}
-                />
-              </div>
-              <div>
-                <label htmlFor="num-days" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('Number of Days', 'عدد الأيام')}
-                </label>
-                <Input
-                  id="num-days"
-                  type="number"
-                  placeholder="e.g., 7"
-                  value={numDays}
-                  onChange={(e) => setNumDays(e.target.value === '' ? '' : parseInt(e.target.value))}
-                  className="bg-white dark:bg-gray-700 dark:text-white"
-                  min="1"
-                  max="30"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="disliked-ingredients" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('Disliked Ingredients (comma-separated)', 'مكونات لا تفضلها (مفصولة بفاصلة)')}
-              </label>
-              <Textarea
-                id="disliked-ingredients"
-                placeholder={t('e.g., cilantro, mushrooms, olives', 'مثال: كزبرة، فطر، زيتون')}
-                value={dislikedIngredients}
-                onChange={(e) => setDislikedIngredients(e.target.value)}
-                rows={3}
+              <Input
+                id="dietary-preferences"
+                placeholder={t('e.g., Vegetarian, Gluten-Free, Low Carb', 'مثال: نباتي، خالي من الغلوتين، قليل الكربوهيدرات')}
+                value={dietaryPreferences}
+                onChange={(e) => setDietaryPreferences(e.target.value)}
                 className="bg-white dark:bg-gray-700 dark:text-white"
                 disabled={isLoading}
               />
             </div>
-
+            <div>
+              <label htmlFor="calorie-goals" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('Calorie Goals', 'أهداف السعرات الحرارية')}
+              </label>
+              <Input
+                id="calorie-goals"
+                placeholder={t('e.g., 2000 calories per day', 'مثال: 2000 سعرة حرارية في اليوم')}
+                value={calorieGoals}
+                onChange={(e) => setCalorieGoals(e.target.value)}
+                className="bg-white dark:bg-gray-700 dark:text-white"
+                disabled={isLoading}
+              />
+            </div>
             <Button
-              onClick={handleGeneratePlan}
-              disabled={isLoading || !dietType || calorieGoal === '' || numDays === ''}
+              onClick={handleGenerateMealPlan}
+              disabled={isLoading || !dietaryPreferences.trim() || !calorieGoals.trim()}
               className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
             >
               {isLoading ? (
@@ -192,7 +116,7 @@ const SmartMealPlannerPage = () => {
                 </>
               ) : (
                 <>
-                  <PlusCircle className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5`} />
+                  <Sparkles className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-5 w-5`} />
                   {t('Generate Meal Plan', 'إنشاء خطة وجبات')}
                 </>
               )}
@@ -200,24 +124,18 @@ const SmartMealPlannerPage = () => {
           </CardContent>
         </Card>
 
-        {mealPlan.length > 0 && (
+        {hasGenerated && mealPlan && (
           <Card>
             <CardHeader className={`px-4 pt-4 pb-2 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
               <CardTitle className="text-xl font-bold text-wasfah-deep-teal flex items-center">
                 <Utensils className={`${direction === 'rtl' ? 'ml-2' : 'mr-2'} h-6 w-6`} />
-                {t('Your Personalized Meal Plan', 'خطة وجباتك المخصصة')}
+                {t('Your Meal Plan', 'خطة وجباتك')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="space-y-4">
-                {mealPlan.map((dayPlan, index) => (
-                  <Card key={index} className="bg-gray-50 dark:bg-gray-700 p-4">
-                    <pre className="whitespace-pre-wrap font-sans text-gray-800 dark:text-gray-200">
-                      {dayPlan}
-                    </pre>
-                  </Card>
-                ))}
-              </div>
+              <pre className="whitespace-pre-wrap font-sans text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
+                {mealPlan}
+              </pre>
             </CardContent>
           </Card>
         )}

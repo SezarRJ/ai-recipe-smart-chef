@@ -53,7 +53,7 @@ const RecipePersonalizerPage = () => {
     return response;
   };
 
-  const handlePersonalize = async () => {
+  const handlePersonalizeRecipe = async () => {
     if (!originalRecipe.trim() || !personalizationRequest.trim()) {
       toast({
         title: t("Missing Information", "معلومات مفقودة"),
@@ -67,6 +67,8 @@ const RecipePersonalizerPage = () => {
     setPersonalizedRecipe(''); // Clear previous results
 
     try {
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI processing
+
       const result = await mockAIPersonalizer(originalRecipe, personalizationRequest);
       setPersonalizedRecipe(result);
       toast({
@@ -124,7 +126,7 @@ const RecipePersonalizerPage = () => {
               />
             </div>
             <Button
-              onClick={handlePersonalize}
+              onClick={handlePersonalizeRecipe}
               disabled={isLoading || !originalRecipe.trim() || !personalizationRequest.trim()}
               className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
             >
