@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -59,6 +60,9 @@ import SupportTicketsPage from './pages/admin/SupportTicketsPage';
 import AIFeaturesPage from './pages/AIFeaturesPage'; // This remains in pages/ as the hub
 import ScanDishPage from './pages/ScanDishPage'; // This also remains in pages/
 import AIFindByIngredientsPage from './pages/AIFindByIngredientsPage'; // This also remains in pages/
+
+// Import GlobalCuisinePage from pages directory (ensure it's the correct one)
+import GlobalCuisinePage from './pages/GlobalCuisinePage';
 
 // Specific AI Feature Components (from components/ai/)
 import AICookingAssistantPage from './components/ai/AICookingAssistantPage';
