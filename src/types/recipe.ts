@@ -36,3 +36,14 @@ export interface RecipeFilters {
   difficulty?: string;
   search?: string;
 }
+
+export interface IngredientImage {
+  id: string;
+  ingredient_name: string;
+  name: string;
+  image_url: string;
+  alt_text: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
+}
