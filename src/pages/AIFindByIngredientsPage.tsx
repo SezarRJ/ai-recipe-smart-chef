@@ -12,7 +12,7 @@ import { SearchSummary } from '@/components/ingredients/SearchSummary';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
-import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { DrinkCustomizationForm, DrinkOptions as DrinkFormOptions } from '@/components/drinks/DrinkCustomizationForm';
 import { Recipe } from '@/types/index';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
@@ -133,7 +133,7 @@ export default function FindByIngredients() {
     cuisine: '',
   });
   const [addedIngredients, setAddedIngredients] = useState<Ingredient[]>([]);
-  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkOptions | null>(null);
+  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkFormOptions | null>(null);
   const [searchResults, setSearchResults] = useState<Recipe[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -223,7 +223,7 @@ export default function FindByIngredients() {
     });
   };
 
-  const handleGenerateCustomDrink = (options: DrinkOptions) => {
+  const handleGenerateCustomDrink = (options: DrinkFormOptions) => {
     setCustomDrinkOptions(options);
     setCurrentStep(4);
   };

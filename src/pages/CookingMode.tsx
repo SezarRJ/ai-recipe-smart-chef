@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ const CookingMode = () => {
         cuisine_type: "Mediterranean",
         calories: 320,
         rating: 4.5,
-        rating_count: 128,
+        ratingCount: 128,
         instructions: [
           "Drain and rinse the chickpeas thoroughly in cold water",
           "Dice the cucumber, tomatoes, and red onion into small pieces",
