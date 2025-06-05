@@ -1,238 +1,159 @@
 
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Clock, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { RecipeGrid } from '@/components/recipe/RecipeGrid';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { mockRecipes } from '@/data/mockData';
+import { Flag, Utensils, Dessert, Wine, Martini } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface GlobalCuisineProps {
-  language: string;
-}
+const GlobalCuisinePage = () => {
+  const navigate = useNavigate();
+  const [selectedMainCategory, setSelectedMainCategory] = useState('Foods');
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>([]);
+  const [selectedCuisine, setSelectedCuisine] = useState('');
 
-export const GlobalCuisine: React.FC<GlobalCuisineProps> = ({ language }) => {
-  const translations = {
-    en: {
-      title: 'Explore Global Cuisines',
-      subtitle: 'Discover authentic recipes from every corner of the world',
-      cuisines: [
-        {
-          name: 'Italian',
-          flag: '🇮🇹',
-          recipes: 1250,
-          difficulty: 'Medium',
-          time: '45 min',
-          popular: 'Pasta Carbonara'
-        },
-        {
-          name: 'Japanese',
-          flag: '🇯🇵',
-          recipes: 980,
-          difficulty: 'Hard',
-          time: '60 min',
-          popular: 'Ramen Bowl'
-        },
-        {
-          name: 'Mexican',
-          flag: '🇲🇽',
-          recipes: 820,
-          difficulty: 'Easy',
-          time: '30 min',
-          popular: 'Tacos al Pastor'
-        },
-        {
-          name: 'Indian',
-          flag: '🇮🇳',
-          recipes: 1100,
-          difficulty: 'Medium',
-          time: '50 min',
-          popular: 'Butter Chicken'
-        },
-        {
-          name: 'French',
-          flag: '🇫🇷',
-          recipes: 750,
-          difficulty: 'Hard',
-          time: '90 min',
-          popular: 'Coq au Vin'
-        },
-        {
-          name: 'Thai',
-          flag: '🇹🇭',
-          recipes: 650,
-          difficulty: 'Medium',
-          time: '35 min',
-          popular: 'Pad Thai'
-        }
-      ]
-    },
-    ar: {
-      title: 'استكشف المأكولات العالمية',
-      subtitle: 'اكتشف وصفات أصيلة من كل زاوية في العالم',
-      cuisines: [
-        {
-          name: 'إيطالي',
-          flag: '🇮🇹',
-          recipes: 1250,
-          difficulty: 'متوسط',
-          time: '45 دقيقة',
-          popular: 'باستا كاربونارا'
-        },
-        {
-          name: 'ياباني',
-          flag: '🇯🇵',
-          recipes: 980,
-          difficulty: 'صعب',
-          time: '60 دقيقة',
-          popular: 'رامن'
-        },
-        {
-          name: 'مكسيكي',
-          flag: '🇲🇽',
-          recipes: 820,
-          difficulty: 'سهل',
-          time: '30 دقيقة',
-          popular: 'تاكوس الباستور'
-        },
-        {
-          name: 'هندي',
-          flag: '🇮🇳',
-          recipes: 1100,
-          difficulty: 'متوسط',
-          time: '50 دقيقة',
-          popular: 'دجاج بالزبدة'
-        },
-        {
-          name: 'فرنسي',
-          flag: '🇫🇷',
-          recipes: 750,
-          difficulty: 'صعب',
-          time: '90 دقيقة',
-          popular: 'كوك أو فان'
-        },
-        {
-          name: 'تايلندي',
-          flag: '🇹🇭',
-          recipes: 650,
-          difficulty: 'متوسط',
-          time: '35 دقيقة',
-          popular: 'باد تاي'
-        }
-      ]
-    },
-    fr: {
-      title: 'Explorez les Cuisines Mondiales',
-      subtitle: 'Découvrez des recettes authentiques des quatre coins du monde',
-      cuisines: [
-        {
-          name: 'Italien',
-          flag: '🇮🇹',
-          recipes: 1250,
-          difficulty: 'Moyen',
-          time: '45 min',
-          popular: 'Pasta Carbonara'
-        },
-        {
-          name: 'Japonais',
-          flag: '🇯🇵',
-          recipes: 980,
-          difficulty: 'Difficile',
-          time: '60 min',
-          popular: 'Bol de Ramen'
-        },
-        {
-          name: 'Mexicain',
-          flag: '🇲🇽',
-          recipes: 820,
-          difficulty: 'Facile',
-          time: '30 min',
-          popular: 'Tacos al Pastor'
-        },
-        {
-          name: 'Indien',
-          flag: '🇮🇳',
-          recipes: 1100,
-          difficulty: 'Moyen',
-          time: '50 min',
-          popular: 'Poulet au Beurre'
-        },
-        {
-          name: 'Français',
-          flag: '🇫🇷',
-          recipes: 750,
-          difficulty: 'Difficile',
-          time: '90 min',
-          popular: 'Coq au Vin'
-        },
-        {
-          name: 'Thaï',
-          flag: '🇹🇭',
-          recipes: 650,
-          difficulty: 'Moyen',
-          time: '35 min',
-          popular: 'Pad Thai'
-        }
-      ]
+  // Main categories and their subcategories
+  const categories = {
+    'Foods': ['Main Dishes', 'Appetizers', 'Pickles', 'Soups', 'Sauces', 'Others'],
+    'Desserts': ['Traditional', 'Western', 'Pastries', 'Ice Cream', 'Others'],
+    'Drinks': ['Detox', 'Cocktails', 'Alcoholic', 'Hot Drinks', 'Others']
+  };
+
+  // List of cuisine countries with flag emoji
+  const cuisines = [
+    { name: 'Levant', flag: '🇱🇧' },
+    { name: 'Italian', flag: '🇮🇹' },
+    { name: 'Mexican', flag: '🇲🇽' },
+    { name: 'Chinese', flag: '🇨🇳' },
+    { name: 'Indian', flag: '🇮🇳' },
+    { name: 'Japanese', flag: '🇯🇵' },
+    { name: 'Thai', flag: '🇹🇭' },
+    { name: 'Turkish', flag: '🇹🇷' },
+    { name: 'Syrian', flag: '🇸🇾' },
+    { name: 'Iraqi', flag: '🇮🇶' },
+    { name: 'Yemeni', flag: '🇾🇪' },
+    { name: 'American', flag: '🇺🇸' },
+    { name: 'Moroccan', flag: '🇲🇦' },
+    { name: 'Lebanese', flag: '🇱🇧' },
+    { name: 'German', flag: '🇩🇪' }
+  ];
+
+  const toggleSubcategory = (subcategory: string) => {
+    if (selectedSubcategories.includes(subcategory)) {
+      setSelectedSubcategories(selectedSubcategories.filter(item => item !== subcategory));
+    } else {
+      setSelectedSubcategories([...selectedSubcategories, subcategory]);
     }
   };
 
-  const t = translations[language as keyof typeof translations] || translations.en;
+  // Get icon for main category
+  const getCategoryIcon = (category: string) => {
+    switch(category) {
+      case 'Foods':
+        return <Utensils size={16} className="mr-2" />;
+      case 'Desserts':
+        return <Dessert size={16} className="mr-2" />;
+      case 'Drinks':
+        return <Martini size={16} className="mr-2" />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <section id="recipes" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-orange-50 to-red-50">
-      <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            {t.title}
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t.subtitle}
-          </p>
+    <PageContainer
+      header={{
+        title: 'Global Cuisine',
+        showBackButton: true,
+        showSearch: true
+      }}
+    >
+      <div className="space-y-6 pb-20">
+        {/* Filter Section - Cuisine Country with flags */}
+        <Card className="p-4">
+          <div className="flex items-center mb-3">
+            <Flag className="h-5 w-5 text-wasfah-deep-teal mr-2" />
+            <h3 className="font-semibold text-wasfah-deep-teal">Select Cuisine</h3>
+          </div>
+          <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
+            <SelectTrigger className="bg-white">
+              <SelectValue placeholder="Select cuisine country" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {cuisines.map((cuisine) => (
+                <SelectItem key={cuisine.name} value={cuisine.name.toLowerCase()}>
+                  <span className="mr-2">{cuisine.flag}</span> {cuisine.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
+        
+        {/* Main Categories (horizontal scroll) */}
+        <div className="overflow-x-auto pb-2">
+          <div className="flex space-x-2 min-w-max">
+            {Object.keys(categories).map((category) => (
+              <Button 
+                key={category}
+                variant={selectedMainCategory === category ? "default" : "outline"}
+                className={selectedMainCategory === category ? 
+                  "bg-wasfah-bright-teal hover:bg-wasfah-teal" : 
+                  "border-wasfah-bright-teal text-wasfah-bright-teal"}
+                onClick={() => setSelectedMainCategory(category)}
+              >
+                {getCategoryIcon(category)}
+                {category}
+              </Button>
+            ))}
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {t.cuisines.map((cuisine, index) => (
-            <Card 
-              key={index} 
-              className="p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/80 backdrop-blur-sm border-orange-200"
-            >
-              <div className="text-center mb-4">
-                <div className="text-4xl mb-2">{cuisine.flag}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {cuisine.name}
-                </h3>
-                <p className="text-orange-600 font-semibold">
-                  {cuisine.recipes} recipes
-                </p>
+        
+        {/* Subcategories */}
+        <div className="overflow-x-auto pb-2">
+          <div className="flex space-x-2 min-w-max">
+            {categories[selectedMainCategory as keyof typeof categories].map((subcategory) => (
+              <Button 
+                key={subcategory}
+                variant="outline"
+                size="sm"
+                className={selectedSubcategories.includes(subcategory) ? 
+                  "bg-wasfah-deep-teal text-white border-wasfah-deep-teal" : 
+                  "border-wasfah-deep-teal text-wasfah-deep-teal"}
+                onClick={() => toggleSubcategory(subcategory)}
+              >
+                {subcategory}
+              </Button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Find Recipe Button - MOVED UP */}
+        <Button 
+          className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg py-6"
+        >
+          Find Recipe
+        </Button>
+        
+        {/* Recipe Results */}
+        <div>
+          <h2 className="text-lg font-bold text-wasfah-deep-teal mb-4">
+            {selectedCuisine ? (
+              <div className="flex items-center">
+                <span className="mr-2">
+                  {cuisines.find(c => c.name.toLowerCase() === selectedCuisine)?.flag}
+                </span>
+                {selectedCuisine.charAt(0).toUpperCase() + selectedCuisine.slice(1)} Recipes
               </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 text-sm">Popular dish:</span>
-                  <span className="font-medium text-gray-900">{cuisine.popular}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">{cuisine.time}</span>
-                  </div>
-                  <Badge 
-                    variant={cuisine.difficulty === 'Easy' || cuisine.difficulty === 'سهل' || cuisine.difficulty === 'Facile' ? 'default' : 
-                           cuisine.difficulty === 'Medium' || cuisine.difficulty === 'متوسط' || cuisine.difficulty === 'Moyen' ? 'secondary' : 'destructive'}
-                    className="text-xs"
-                  >
-                    {cuisine.difficulty}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-center pt-2">
-                  <Heart className="h-4 w-4 text-red-500 mr-1" />
-                  <span className="text-sm text-gray-600">4.8 rating</span>
-                </div>
-              </div>
-            </Card>
-          ))}
+            ) : 'Recommended for you'}
+          </h2>
+          <RecipeGrid recipes={mockRecipes} columns={2} cardSize="medium" />
         </div>
       </div>
-    </section>
+    </PageContainer>
   );
 };
+
+export default GlobalCuisinePage;
