@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -56,13 +55,12 @@ import AdvertisementPage from './pages/admin/AdvertisementPage';
 import SupportTicketsPage from './pages/admin/SupportTicketsPage';
 
 // --- Import AI & Tool Related Pages (including ALL the new ones) ---
-import AIFindByIngredientsPage from './pages/AIFindByIngredientsPage';
-import ScanDishPage from './pages/ScanDishPage';
-import GlobalCuisinePage from './pages/GlobalCuisinePage';
-import AIFeaturesPage from './pages/AIFeaturesPage'; // AI Features Hub
-import ToolsPage from './pages/ToolsPage'; // Tools Hub
+// AI Feature Pages - NOW IMPORTED FROM COMPONENTS/AI
+import AIFeaturesPage from './pages/AIFeaturesPage'; // This remains in pages/ as the hub
+import ScanDishPage from './pages/ScanDishPage'; // This also remains in pages/
+import AIFindByIngredientsPage from './pages/AIFindByIngredientsPage'; // This also remains in pages/
 
-// AI Feature Pages - Using existing components from the components directory
+// Specific AI Feature Components (from components/ai/)
 import AICookingAssistantPage from './components/ai/AICookingAssistantPage';
 import RecipePersonalizerPage from './components/ai/RecipePersonalizerPage';
 import SmartMealPlannerPage from './components/ai/SmartMealPlannerPage';
@@ -70,13 +68,14 @@ import DietaryAIAdvisorPage from './components/ai/DietaryAIAdvisorPage';
 import FitnessNutritionCoachPage from './components/ai/FitnessNutritionCoachPage';
 import MoodBasedRecipes from './components/ai/MoodBasedRecipes'; // NEW
 import SmartRecipeAdaptation from './components/ai/SmartRecipeAdaptation'; // NEW
-import { VoiceRecipeAssistant } from './components/ai/VoiceRecipeAssistant'; // NEW - Fixed import
+import { VoiceRecipeAssistant } from './components/ai/VoiceRecipeAssistant'; // NEW - named import
 
-// Tool Pages - Create placeholder pages for now
+// Tool Pages (currently placeholders, assuming their full code is not in components/ai/)
+import ToolsPage from './pages/ToolsPage'; // This remains in pages/ as the hub
 const NutritionCalculatorPage = () => <div>Nutrition Calculator Page (Coming Soon!)</div>;
 const RecipeScalerPage = () => <div>Recipe Scaler Page (Coming Soon!)</div>;
 
-// Placeholder Components for other tools (from ToolsPage.tsx) - keep if you don't have real files
+// Placeholder Components for other tools (from ToolsPage.tsx)
 const CookingTimerPage = () => <div>Cooking Timer Page (Coming Soon!)</div>;
 const UnitConverterPage = () => <div>Unit Converter Page (Coming Soon!)</div>;
 const TemperatureGuidePage = () => <div>Temperature Guide Page (Coming Soon!)</div>;
@@ -84,13 +83,13 @@ const SubstitutionGuidePage = () => <div>Substitution Guide Page (Coming Soon!)<
 const CookingTechniquesPage = () => <div>Cooking Techniques Page (Coming Soon!)</div>;
 const QuickRecipesPage = () => <div>Quick Recipes Page (Coming Soon!)</div>;
 
-// Create wrapper component for VoiceRecipeAssistant
+// Create wrapper component for VoiceRecipeAssistant - This is still in App.tsx
 const VoiceRecipeAssistantPage = () => {
   const mockRecipe = {
     title: "Sample Recipe",
     instructions: [
       "Prepare your ingredients by washing and chopping vegetables",
-      "Heat oil in a large pan over medium heat", 
+      "Heat oil in a large pan over medium heat",
       "Add onions and cook until translucent",
       "Add garlic and cook for another minute",
       "Add remaining ingredients and simmer for 20 minutes",
@@ -98,7 +97,7 @@ const VoiceRecipeAssistantPage = () => {
       "Serve hot and enjoy!"
     ]
   };
-  
+
   return <VoiceRecipeAssistant recipe={mockRecipe} />;
 };
 
@@ -108,7 +107,7 @@ import HealthTrackingHomePage from './pages/HealthTrackingHomePage';
 import PantryPage from './pages/PantryPage';
 import FavoritesPage from './pages/FavoritesPage';
 import BodyInformationPage from './pages/BodyInformationPage';
-import MicronutrientTracker from './components/ai/MicronutrientTracker'; // NEW
+import MicronutrientTracker from './components/ai/MicronutrientTracker'; // NEW - from components/ai/
 
 
 // User Settings Sub-pages (from SettingsPage.tsx)
