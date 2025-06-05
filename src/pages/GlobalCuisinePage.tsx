@@ -1,175 +1,238 @@
 
-import React, { useState } from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, MapPin, Clock, Users } from 'lucide-react';
-import { useRTL } from '@/contexts/RTLContext';
+import { Heart, Clock, Users } from 'lucide-react';
 
-const GlobalCuisinePage = () => {
-  const { t, direction } = useRTL();
-  const [searchTerm, setSearchTerm] = useState('');
+interface GlobalCuisineProps {
+  language: string;
+}
 
-  const cuisines = [
-    {
-      id: '1',
-      name: 'Italian',
-      nameAr: 'إيطالي',
-      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
-      description: 'Rich flavors with pasta, pizza, and Mediterranean ingredients',
-      descriptionAr: 'نكهات غنية مع المعكرونة والبيتزا والمكونات المتوسطية',
-      recipes: 245,
-      region: 'Europe',
-      difficulty: 'Medium'
+export const GlobalCuisine: React.FC<GlobalCuisineProps> = ({ language }) => {
+  const translations = {
+    en: {
+      title: 'Explore Global Cuisines',
+      subtitle: 'Discover authentic recipes from every corner of the world',
+      cuisines: [
+        {
+          name: 'Italian',
+          flag: '🇮🇹',
+          recipes: 1250,
+          difficulty: 'Medium',
+          time: '45 min',
+          popular: 'Pasta Carbonara'
+        },
+        {
+          name: 'Japanese',
+          flag: '🇯🇵',
+          recipes: 980,
+          difficulty: 'Hard',
+          time: '60 min',
+          popular: 'Ramen Bowl'
+        },
+        {
+          name: 'Mexican',
+          flag: '🇲🇽',
+          recipes: 820,
+          difficulty: 'Easy',
+          time: '30 min',
+          popular: 'Tacos al Pastor'
+        },
+        {
+          name: 'Indian',
+          flag: '🇮🇳',
+          recipes: 1100,
+          difficulty: 'Medium',
+          time: '50 min',
+          popular: 'Butter Chicken'
+        },
+        {
+          name: 'French',
+          flag: '🇫🇷',
+          recipes: 750,
+          difficulty: 'Hard',
+          time: '90 min',
+          popular: 'Coq au Vin'
+        },
+        {
+          name: 'Thai',
+          flag: '🇹🇭',
+          recipes: 650,
+          difficulty: 'Medium',
+          time: '35 min',
+          popular: 'Pad Thai'
+        }
+      ]
     },
-    {
-      id: '2',
-      name: 'Japanese',
-      nameAr: 'ياباني',
-      image: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&fit=crop',
-      description: 'Fresh ingredients, umami flavors, and artistic presentation',
-      descriptionAr: 'مكونات طازجة ونكهات أومامي وعرض فني',
-      recipes: 189,
-      region: 'Asia',
-      difficulty: 'Hard'
+    ar: {
+      title: 'استكشف المأكولات العالمية',
+      subtitle: 'اكتشف وصفات أصيلة من كل زاوية في العالم',
+      cuisines: [
+        {
+          name: 'إيطالي',
+          flag: '🇮🇹',
+          recipes: 1250,
+          difficulty: 'متوسط',
+          time: '45 دقيقة',
+          popular: 'باستا كاربونارا'
+        },
+        {
+          name: 'ياباني',
+          flag: '🇯🇵',
+          recipes: 980,
+          difficulty: 'صعب',
+          time: '60 دقيقة',
+          popular: 'رامن'
+        },
+        {
+          name: 'مكسيكي',
+          flag: '🇲🇽',
+          recipes: 820,
+          difficulty: 'سهل',
+          time: '30 دقيقة',
+          popular: 'تاكوس الباستور'
+        },
+        {
+          name: 'هندي',
+          flag: '🇮🇳',
+          recipes: 1100,
+          difficulty: 'متوسط',
+          time: '50 دقيقة',
+          popular: 'دجاج بالزبدة'
+        },
+        {
+          name: 'فرنسي',
+          flag: '🇫🇷',
+          recipes: 750,
+          difficulty: 'صعب',
+          time: '90 دقيقة',
+          popular: 'كوك أو فان'
+        },
+        {
+          name: 'تايلندي',
+          flag: '🇹🇭',
+          recipes: 650,
+          difficulty: 'متوسط',
+          time: '35 دقيقة',
+          popular: 'باد تاي'
+        }
+      ]
     },
-    {
-      id: '3',
-      name: 'Mexican',
-      nameAr: 'مكسيكي',
-      image: 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=400&h=300&fit=crop',
-      description: 'Spicy and vibrant with corn, beans, and chilies',
-      descriptionAr: 'حار ونابض بالحياة مع الذرة والفاصوليا والفلفل الحار',
-      recipes: 167,
-      region: 'Americas',
-      difficulty: 'Easy'
-    },
-    {
-      id: '4',
-      name: 'Indian',
-      nameAr: 'هندي',
-      image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop',
-      description: 'Complex spice blends and aromatic curries',
-      descriptionAr: 'خلطات توابل معقدة وكاري عطري',
-      recipes: 298,
-      region: 'Asia',
-      difficulty: 'Hard'
-    },
-    {
-      id: '5',
-      name: 'French',
-      nameAr: 'فرنسي',
-      image: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=300&fit=crop',
-      description: 'Sophisticated techniques and refined flavors',
-      descriptionAr: 'تقنيات متطورة ونكهات مكررة',
-      recipes: 134,
-      region: 'Europe',
-      difficulty: 'Hard'
-    },
-    {
-      id: '6',
-      name: 'Thai',
-      nameAr: 'تايلاندي',
-      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop',
-      description: 'Balance of sweet, sour, salty, and spicy',
-      descriptionAr: 'توازن بين الحلو والحامض والمالح والحار',
-      recipes: 156,
-      region: 'Asia',
-      difficulty: 'Medium'
-    }
-  ];
-
-  const filteredCuisines = cuisines.filter(cuisine =>
-    cuisine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cuisine.nameAr.includes(searchTerm)
-  );
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    fr: {
+      title: 'Explorez les Cuisines Mondiales',
+      subtitle: 'Découvrez des recettes authentiques des quatre coins du monde',
+      cuisines: [
+        {
+          name: 'Italien',
+          flag: '🇮🇹',
+          recipes: 1250,
+          difficulty: 'Moyen',
+          time: '45 min',
+          popular: 'Pasta Carbonara'
+        },
+        {
+          name: 'Japonais',
+          flag: '🇯🇵',
+          recipes: 980,
+          difficulty: 'Difficile',
+          time: '60 min',
+          popular: 'Bol de Ramen'
+        },
+        {
+          name: 'Mexicain',
+          flag: '🇲🇽',
+          recipes: 820,
+          difficulty: 'Facile',
+          time: '30 min',
+          popular: 'Tacos al Pastor'
+        },
+        {
+          name: 'Indien',
+          flag: '🇮🇳',
+          recipes: 1100,
+          difficulty: 'Moyen',
+          time: '50 min',
+          popular: 'Poulet au Beurre'
+        },
+        {
+          name: 'Français',
+          flag: '🇫🇷',
+          recipes: 750,
+          difficulty: 'Difficile',
+          time: '90 min',
+          popular: 'Coq au Vin'
+        },
+        {
+          name: 'Thaï',
+          flag: '🇹🇭',
+          recipes: 650,
+          difficulty: 'Moyen',
+          time: '35 min',
+          popular: 'Pad Thai'
+        }
+      ]
     }
   };
 
+  const t = translations[language as keyof typeof translations] || translations.en;
+
   return (
-    <PageContainer
-      header={{
-        title: t("Global Cuisine", "المطبخ العالمي"),
-        showBackButton: true
-      }}
-    >
-      <div className={`space-y-6 pb-24 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-        
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder={t("Search cuisines...", "البحث في المطابخ...")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+    <section id="recipes" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-orange-50 to-red-50">
+      <div className="container mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            {t.title}
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            {t.subtitle}
+          </p>
         </div>
 
-        {/* Cuisine Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredCuisines.map((cuisine) => (
-            <Card key={cuisine.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={cuisine.image}
-                  alt={direction === 'rtl' ? cuisine.nameAr : cuisine.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 right-4">
-                  <Badge className={getDifficultyColor(cuisine.difficulty)}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {t.cuisines.map((cuisine, index) => (
+            <Card 
+              key={index} 
+              className="p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-white/80 backdrop-blur-sm border-orange-200"
+            >
+              <div className="text-center mb-4">
+                <div className="text-4xl mb-2">{cuisine.flag}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {cuisine.name}
+                </h3>
+                <p className="text-orange-600 font-semibold">
+                  {cuisine.recipes} recipes
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 text-sm">Popular dish:</span>
+                  <span className="font-medium text-gray-900">{cuisine.popular}</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-1">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">{cuisine.time}</span>
+                  </div>
+                  <Badge 
+                    variant={cuisine.difficulty === 'Easy' || cuisine.difficulty === 'سهل' || cuisine.difficulty === 'Facile' ? 'default' : 
+                           cuisine.difficulty === 'Medium' || cuisine.difficulty === 'متوسط' || cuisine.difficulty === 'Moyen' ? 'secondary' : 'destructive'}
+                    className="text-xs"
+                  >
                     {cuisine.difficulty}
                   </Badge>
                 </div>
-              </div>
-              <CardHeader>
-                <CardTitle className={`text-xl ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                  {direction === 'rtl' ? cuisine.nameAr : cuisine.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-gray-600 dark:text-gray-400 mb-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-                  {direction === 'rtl' ? cuisine.descriptionAr : cuisine.description}
-                </p>
-                <div className={`flex items-center justify-between mb-4 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`flex items-center gap-4 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`flex items-center gap-1 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">{cuisine.region}</span>
-                    </div>
-                    <div className={`flex items-center gap-1 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                      <Users className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">{cuisine.recipes} {t("recipes", "وصفات")}</span>
-                    </div>
-                  </div>
+
+                <div className="flex items-center justify-center pt-2">
+                  <Heart className="h-4 w-4 text-red-500 mr-1" />
+                  <span className="text-sm text-gray-600">4.8 rating</span>
                 </div>
-                <Button className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal text-white">
-                  {t("Explore Recipes", "استكشاف الوصفات")}
-                </Button>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
-
-        {filteredCuisines.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
-              {t("No cuisines found matching your search.", "لا توجد مطابخ تطابق بحثك.")}
-            </p>
-          </div>
-        )}
       </div>
-    </PageContainer>
+    </section>
   );
 };
-
-export default GlobalCuisinePage;
