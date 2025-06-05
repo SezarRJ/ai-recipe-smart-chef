@@ -1,20 +1,26 @@
 
-import React from 'react';
+import React, { ElementType } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Search } from 'lucide-react';
 
 interface DrinkOptions {
-  base: string;
-  sournessSweetness: number[];
-  dryRefreshing: number[];
-  glassType: string;
-  themes: string[];
+  type: string;
+  strength: string;
+  flavor: string;
+  temperature: string;
+}
+
+interface MainCategory {
+  id: string;
+  name: string;
+  icon: ElementType;
+  subcategories: { name: string; icon: ElementType; requiresCustomForm?: boolean }[];
 }
 
 interface SearchSummaryProps {
-  selectedCategory: { name: string; id?: string } | null;
-  selectedSubcategory: { name: string; icon?: React.ElementType; requiresCustomForm?: boolean } | null;
+  selectedCategory: MainCategory | null;
+  selectedSubcategory: { name: string; icon: ElementType; requiresCustomForm?: boolean } | null;
   ingredientCount: number;
   filterCount: number;
   customDrinkOptions?: DrinkOptions | null;
@@ -27,98 +33,58 @@ export const SearchSummary: React.FC<SearchSummaryProps> = ({
   ingredientCount,
   filterCount,
   customDrinkOptions,
-  onSearch
+  onSearch,
 }) => {
-  const isDrinkCategory = selectedCategory?.id === 'drinks';
-  const isCustomDrink = isDrinkCategory && selectedSubcategory?.requiresCustomForm;
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-center mb-6 text-wasfah-deep-teal">Ready to Search</h2>
-      
-      {/* Search Summary */}
-      <Card className="mb-6 bg-wasfah-mint/10 border-wasfah-mint/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base text-wasfah-deep-teal">Search Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-wasfah-teal">Category:</span>
-            <span className="font-medium">{selectedCategory?.name}</span>
+    <Card>
+      <CardContent className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Search Summary</h3>
+        
+        <div className="space-y-3 mb-6">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Category:</span>
+            <span className="font-medium">{selectedCategory?.name || 'None'}</span>
           </div>
           
-          <div className="flex justify-between text-sm">
-            <span className="text-wasfah-teal">Type:</span>
-            <span className="font-medium">{selectedSubcategory?.name}</span>
-          </div>
-          
-          {!isCustomDrink && (
-            <div className="flex justify-between text-sm">
-              <span className="text-wasfah-teal">Ingredients:</span>
-              <span className="font-medium">{ingredientCount} items</span>
+          {selectedSubcategory && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Type:</span>
+              <span className="font-medium">{selectedSubcategory.name}</span>
             </div>
           )}
           
-          {isCustomDrink && customDrinkOptions && (
-            <>
-              <div className="flex justify-between text-sm">
-                <span className="text-wasfah-teal">Base:</span>
-                <span className="font-medium">{customDrinkOptions.base}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-wasfah-teal">Glass Type:</span>
-                <span className="font-medium">{customDrinkOptions.glassType}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-wasfah-teal">Sourness/Sweetness:</span>
-                <span className="font-medium">
-                  {customDrinkOptions.sournessSweetness[0] < 40 ? 'More Sour' : 
-                   customDrinkOptions.sournessSweetness[0] > 60 ? 'More Sweet' : 'Balanced'}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-wasfah-teal">Dry/Refreshing:</span>
-                <span className="font-medium">
-                  {customDrinkOptions.dryRefreshing[0] < 40 ? 'More Dry' : 
-                   customDrinkOptions.dryRefreshing[0] > 60 ? 'More Refreshing' : 'Balanced'}
-                </span>
-              </div>
-              {customDrinkOptions.themes.length > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-wasfah-teal">Themes:</span>
-                  <span className="font-medium">{customDrinkOptions.themes.join(', ')}</span>
-                </div>
-              )}
-            </>
-          )}
+          <div className="flex justify-between">
+            <span className="text-gray-600">Ingredients:</span>
+            <span className="font-medium">{ingredientCount}</span>
+          </div>
           
-          <div className="flex justify-between text-sm">
-            <span className="text-wasfah-teal">Filters:</span>
-            <span className="font-medium">{filterCount} applied</span>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Filters:</span>
+            <span className="font-medium">{filterCount}</span>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Search Button */}
-      <Button
-        onClick={onSearch}
-        className="w-full h-14 bg-wasfah-bright-teal hover:bg-wasfah-teal text-lg font-semibold text-white"
-      >
-        <Search className="mr-3 h-6 w-6" />
-        {isDrinkCategory ? 'Find My Drink Recipe' : 'Find My Recipes'}
-      </Button>
+          {customDrinkOptions && (
+            <div className="border-t pt-3">
+              <div className="text-sm text-gray-600 mb-2">Custom Drink Options:</div>
+              <div className="text-xs space-y-1">
+                <div>Type: {customDrinkOptions.type}</div>
+                <div>Strength: {customDrinkOptions.strength}</div>
+                <div>Flavor: {customDrinkOptions.flavor}</div>
+                <div>Temperature: {customDrinkOptions.temperature}</div>
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* Results Placeholder */}
-      <Card className="mt-6 border-2 border-dashed border-gray-200">
-        <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="h-8 w-8 text-gray-400" />
-          </div>
-          <p className="text-gray-600">
-            Recipe results will appear here after searching
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        <Button 
+          onClick={onSearch}
+          className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
+          size="lg"
+        >
+          <Search className="h-5 w-5 mr-2" />
+          Find Recipes
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
