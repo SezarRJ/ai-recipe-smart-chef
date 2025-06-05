@@ -45,14 +45,14 @@ const CookingMode = () => {
           "Serve immediately or chill for up to 2 hours before serving"
         ],
         ingredients: [
-          { name: "Chickpeas", amount: 2, unit: "cans" },
-          { name: "Cucumber", amount: 1, unit: "large" },
-          { name: "Tomatoes", amount: 2, unit: "medium" },
-          { name: "Red onion", amount: 0.5, unit: "small" },
-          { name: "Olive oil", amount: 3, unit: "tablespoons" },
-          { name: "Lemon juice", amount: 2, unit: "tablespoons" },
-          { name: "Feta cheese", amount: 100, unit: "grams" },
-          { name: "Fresh parsley", amount: 0.25, unit: "cup" }
+          { id: "1", name: "Chickpeas", amount: 2, unit: "cans" },
+          { id: "2", name: "Cucumber", amount: 1, unit: "large" },
+          { id: "3", name: "Tomatoes", amount: 2, unit: "medium" },
+          { id: "4", name: "Red onion", amount: 0.5, unit: "small" },
+          { id: "5", name: "Olive oil", amount: 3, unit: "tablespoons" },
+          { id: "6", name: "Lemon juice", amount: 2, unit: "tablespoons" },
+          { id: "7", name: "Feta cheese", amount: 100, unit: "grams" },
+          { id: "8", name: "Fresh parsley", amount: 0.25, unit: "cup" }
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

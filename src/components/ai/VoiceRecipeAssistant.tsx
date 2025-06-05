@@ -33,7 +33,7 @@ export const VoiceRecipeAssistant: React.FC<VoiceRecipeAssistantProps> = ({
   const { toast } = useToast();
 
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     // Initialize speech synthesis
@@ -49,7 +49,7 @@ export const VoiceRecipeAssistant: React.FC<VoiceRecipeAssistantProps> = ({
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+      recognitionRef.current.onresult = (event: any) => {
         const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
         handleVoiceCommand(command);
       };

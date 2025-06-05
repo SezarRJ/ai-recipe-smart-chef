@@ -19,11 +19,13 @@ import { useLocation } from 'react-router-dom';
 
 interface DrinkOptions {
   type: string;
-  strength: string;
+  strength: number;
   flavor: string;
-  mixer: string;
-  garnish: string;
-  special: string;
+  temperature: string;
+  themes?: string[];
+  mixer?: string;
+  garnish?: string;
+  special?: string;
 }
 
 interface MainCategory {
@@ -312,7 +314,7 @@ Focus on practical recipes that can be made with the ingredients provided.`;
                   prep_time: 10,
                   cook_time: 20,
                   servings: 4,
-                  cuisine_type: 'Fusion',
+                  cuisine_type: 'International',
                   calories: 300,
                   instructions: [
                     'Prepare all ingredients',
