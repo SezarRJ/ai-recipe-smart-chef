@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -72,6 +73,12 @@ import HelpSupportPage from './pages/HelpSupportPage';
 import DeleteAccountPage from './pages/DeleteAccountPage';
 import ConnectedDevicesPage from './pages/ConnectedDevicesPage';
 import MainSettingsPage from './pages/MainSettingsPage';
+import CreateRecipePage from './pages/CreateRecipePage';
+import SharedRecipesPage from './pages/SharedRecipesPage';
+import SmartPantryPage from './pages/SmartPantryPage';
+import ShoppingListPage from './pages/ShoppingListPage';
+import AiChefPage from './pages/AiChefPage';
+import ScanIngredientsPage from './pages/ScanIngredientsPage';
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -131,11 +138,17 @@ const App = () => {
                   <Route path="/meal-plan" element={<MealPlanPage />} />
                   <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
                   <Route path="/pantry" element={<PantryPage />} />
+                  <Route path="/smart-pantry" element={<SmartPantryPage />} />
                   <Route path="/favorites" element={<FavoritesPage />} />
                   <Route path="/community" element={<CommunityPage />} />
                   <Route path="/services" element={<ServicesPage />} />
                   <Route path="/recipes" element={<RecipesPage />} />
                   <Route path="/ai-features" element={<AIFeaturesPage />} />
+                  <Route path="/create-recipe" element={<CreateRecipePage />} />
+                  <Route path="/shared-recipes" element={<SharedRecipesPage />} />
+                  <Route path="/shopping-list" element={<ShoppingListPage />} />
+                  <Route path="/ai-chef" element={<AiChefPage />} />
+                  <Route path="/scan-ingredients" element={<ScanIngredientsPage />} />
 
                   {/* New Settings Routes */}
                   <Route path="/loyalty-program" element={<LoyaltyProgramPage />} />

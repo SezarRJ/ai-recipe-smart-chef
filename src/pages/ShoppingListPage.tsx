@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,457 +7,271 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingBag, Plus, Trash2, Share2, Search, Filter, Edit3, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useRTL } from '@/contexts/RTLContext';
+import { Plus, Share2, ShoppingCart, Trash2, Edit } from 'lucide-react';
 
-// Sample shopping list data
-const initialItems = [
-  { id: '1', name: 'Chicken breast', quantity: 500, unit: 'g', category: 'Meat', checked: false, dateAdded: new Date(), priority: 'high' },
-  { id: '2', name: 'Olive oil', quantity: 1, unit: 'bottle', category: 'Oils', checked: false, dateAdded: new Date(), priority: 'medium' },
-  { id: '3', name: 'Garlic', quantity: 5, unit: 'cloves', category: 'Vegetables', checked: false, dateAdded: new Date(), priority: 'low' },
-  { id: '4', name: 'Onions', quantity: 2, unit: '', category: 'Vegetables', checked: true, dateAdded: new Date(), priority: 'medium' },
-  { id: '5', name: 'Rice', quantity: 1, unit: 'kg', category: 'Grains', checked: false, dateAdded: new Date(), priority: 'high' },
-  { id: '6', name: 'Tomatoes', quantity: 4, unit: '', category: 'Vegetables', checked: false, dateAdded: new Date(), priority: 'medium' },
-  { id: '7', name: 'Greek yogurt', quantity: 500, unit: 'g', category: 'Dairy', checked: true, dateAdded: new Date(), priority: 'low' },
-  { id: '8', name: 'Lemons', quantity: 3, unit: '', category: 'Fruits', checked: false, dateAdded: new Date(), priority: 'low' },
-];
+const ShoppingListPage = () => {
+  const [newItem, setNewItem] = useState('');
+  const [shoppingLists, setShoppingLists] = useState([
+    {
+      id: 1,
+      name: 'Weekly Groceries',
+      items: [
+        { id: 1, name: 'Milk', quantity: '2 liters', category: 'Dairy', completed: false },
+        { id: 2, name: 'Bread', quantity: '1 loaf', category: 'Bakery', completed: true },
+        { id: 3, name: 'Apples', quantity: '6 pieces', category: 'Fruits', completed: false },
+        { id: 4, name: 'Chicken', quantity: '2 lbs', category: 'Meat', completed: false },
+      ],
+      createdAt: '2024-01-15',
+      shared: false
+    },
+    {
+      id: 2,
+      name: 'Party Supplies',
+      items: [
+        { id: 5, name: 'Cake mix', quantity: '2 boxes', category: 'Baking', completed: false },
+        { id: 6, name: 'Balloons', quantity: '20 pieces', category: 'Party', completed: false },
+      ],
+      createdAt: '2024-01-14',
+      shared: true
+    }
+  ]);
 
-export default function ShoppingListPage() {
-  const { toast } = useToast();
-  const { t } = useRTL();
-  const [items, setItems] = useState(initialItems);
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemQuantity, setNewItemQuantity] = useState('');
-  const [newItemUnit, setNewItemUnit] = useState('');
-  const [newItemCategory, setNewItemCategory] = useState('Other');
-  const [newItemPriority, setNewItemPriority] = useState('medium');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('name');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
+  const [activeList, setActiveList] = useState(shoppingLists[0]);
 
-  const categories = [...new Set(items.map(item => item.category))].sort();
-  const priorities = ['high', 'medium', 'low'];
-
-  const handleCheck = (id) => {
-    setItems(items.map(item =>
-      item.id === id ? { ...item, checked: !item.checked } : item
-    ));
+  const toggleItemCompletion = (itemId: number) => {
+    const updatedLists = shoppingLists.map(list => {
+      if (list.id === activeList.id) {
+        return {
+          ...list,
+          items: list.items.map(item =>
+            item.id === itemId ? { ...item, completed: !item.completed } : item
+          )
+        };
+      }
+      return list;
+    });
+    setShoppingLists(updatedLists);
+    setActiveList(updatedLists.find(list => list.id === activeList.id) || activeList);
   };
 
-  const handleAddItem = (e) => {
-    e.preventDefault();
-
-    if (!newItemName.trim()) {
-      toast({
-        title: t("Error", "خطأ"),
-        description: t("Please enter an item name", "يرجى إدخال اسم العنصر"),
-        variant: "destructive",
+  const addItem = () => {
+    if (newItem.trim()) {
+      const newItemObject = {
+        id: Date.now(),
+        name: newItem,
+        quantity: '1',
+        category: 'Other',
+        completed: false
+      };
+      
+      const updatedLists = shoppingLists.map(list => {
+        if (list.id === activeList.id) {
+          return {
+            ...list,
+            items: [...list.items, newItemObject]
+          };
+        }
+        return list;
       });
-      return;
-    }
-
-    const newItem = {
-      id: Date.now().toString(),
-      name: newItemName.trim(),
-      quantity: Number(newItemQuantity) || 1,
-      unit: newItemUnit.trim(),
-      category: newItemCategory,
-      priority: newItemPriority,
-      checked: false,
-      dateAdded: new Date(),
-    };
-
-    setItems([newItem, ...items]);
-    setNewItemName('');
-    setNewItemQuantity('');
-    setNewItemUnit('');
-    setNewItemCategory('Other');
-    setNewItemPriority('medium');
-    setShowAddForm(false);
-
-    toast({
-      title: t("Item added", "تمت إضافة العنصر"),
-      description: t(`${newItem.name} added to your shopping list.`, `تمت إضافة ${newItem.name} إلى قائمة التسوق.`),
-    });
-  };
-
-  const handleRemoveChecked = () => {
-    const checkedItems = items.filter(item => item.checked);
-    if (checkedItems.length === 0) {
-      toast({
-        title: t("No items selected", "لم يتم تحديد عناصر"),
-        description: t("Please check items to remove.", "يرجى تحديد العناصر للإزالة."),
-      });
-      return;
-    }
-
-    setItems(items.filter(item => !item.checked));
-    toast({
-      title: t("Items removed", "تمت إزالة العناصر"),
-      description: t(`${checkedItems.length} item(s) removed from your list.`, `تمت إزالة ${checkedItems.length} عنصر من قائمتك.`),
-    });
-  };
-
-  const handleClearAll = () => {
-    setItems([]);
-    toast({
-      title: t("List cleared", "تم مسح القائمة"),
-      description: t("All items have been removed from your list.", "تمت إزالة جميع العناصر من قائمتك."),
-    });
-  };
-
-  const handleEditItem = (id) => {
-    const itemToEdit = items.find(item => item.id === id);
-    if (itemToEdit) {
-      setEditingItemId(id);
-      setNewItemName(itemToEdit.name);
-      setNewItemQuantity(itemToEdit.quantity.toString());
-      setNewItemUnit(itemToEdit.unit);
-      setNewItemCategory(itemToEdit.category);
-      setNewItemPriority(itemToEdit.priority);
-      setShowAddForm(true);
+      
+      setShoppingLists(updatedLists);
+      setActiveList(updatedLists.find(list => list.id === activeList.id) || activeList);
+      setNewItem('');
     }
   };
 
-  const handleUpdateItem = (e) => {
-    e.preventDefault();
-
-    if (!newItemName.trim()) {
-      toast({
-        title: t("Error", "خطأ"),
-        description: t("Please enter an item name", "يرجى إدخال اسم العنصر"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setItems(items.map(item =>
-      item.id === editingItemId
-        ? {
-            ...item,
-            name: newItemName.trim(),
-            quantity: Number(newItemQuantity) || 1,
-            unit: newItemUnit.trim(),
-            category: newItemCategory,
-            priority: newItemPriority,
-          }
-        : item
-    ));
-
-    setEditingItemId(null);
-    setNewItemName('');
-    setNewItemQuantity('');
-    setNewItemUnit('');
-    setNewItemCategory('Other');
-    setNewItemPriority('medium');
-    setShowAddForm(false);
-
-    toast({
-      title: t("Item updated", "تم تحديث العنصر"),
-      description: t("Your item has been updated.", "تم تحديث العنصر."),
-    });
-  };
-
-  const sortedItems = [...items].sort((a, b) => {
-    if (sortOption === 'name') {
-      return a.name.localeCompare(b.name);
-    } else if (sortOption === 'category') {
-      return a.category.localeCompare(b.category);
-    } else if (sortOption === 'priority') {
-      const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
-    } else if (sortOption === 'checked') {
-      return a.checked === b.checked ? 0 : a.checked ? 1 : -1;
-    }
-    return 0;
-  });
-
-  const filteredItems = sortedItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
-    const matchesPriority = filterPriority === 'all' || item.priority === filterPriority;
-    return matchesSearch && matchesCategory && matchesPriority;
-  });
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const completedCount = items.filter(item => item.checked).length;
-  const totalCount = items.length;
-  const completionPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const completedCount = activeList.items.filter(item => item.completed).length;
+  const totalCount = activeList.items.length;
 
   return (
-    <PageContainer header={{ title: t('Shopping List', 'قائمة التسوق'), showBackButton: true }}>
-      <div className="space-y-6 pb-6">
-        {/* Header Card with Progress */}
-        <Card className="bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal text-white">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-white/20 rounded-lg">
-                  <ShoppingBag className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">{t('My Shopping List', 'قائمة التسوق الخاصة بي')}</CardTitle>
-                  <p className="text-white/80 text-sm">
-                    {t(`${totalCount} items total`, `${totalCount} عنصر إجمالي`)}
-                  </p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" className="text-white border-white/30 hover:bg-white/20">
-                <Share2 className="h-4 w-4 mr-2" />
-                {t('Share', 'مشاركة')}
+    <PageContainer
+      header={{
+        title: 'Smart Shopping Lists',
+        showBackButton: true
+      }}
+    >
+      <div className="space-y-6 pb-20">
+        {/* List Selector */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Shopping Lists</span>
+              <Button size="sm" className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
+                <Plus className="h-4 w-4 mr-1" />
+                New List
               </Button>
-            </div>
+            </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{t('Progress', 'التقدم')}</span>
-                <span>{completedCount}/{totalCount}</span>
-              </div>
-              <div className="w-full bg-white/20 rounded-full h-2">
+              {shoppingLists.map((list) => (
                 <div 
-                  className="bg-white rounded-full h-2 transition-all duration-300"
-                  style={{ width: `${completionPercentage}%` }}
-                />
-              </div>
+                  key={list.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                    activeList.id === list.id ? 'border-wasfah-bright-teal bg-wasfah-bright-teal/5' : 'border-gray-200'
+                  }`}
+                  onClick={() => setActiveList(list)}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-medium">{list.name}</h3>
+                      <p className="text-sm text-gray-600">{list.items.length} items</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {list.shared && <Badge variant="outline">Shared</Badge>}
+                      <Badge variant="secondary">{list.createdAt}</Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-wasfah-bright-teal hover:bg-wasfah-teal h-12"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t('Add Item', 'إضافة عنصر')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleRemoveChecked}
-            className="h-12 border-red-200 text-red-600 hover:bg-red-50"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {t('Clear Checked', 'مسح المحدد')}
-          </Button>
-        </div>
-
-        {/* Add/Edit Form */}
-        <AnimatePresence>
-          {showAddForm && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card>
-                <CardContent className="p-4">
-                  <form onSubmit={editingItemId ? handleUpdateItem : handleAddItem} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="col-span-2">
-                        <Input
-                          placeholder={t("Item name", "اسم العنصر")}
-                          value={newItemName}
-                          onChange={(e) => setNewItemName(e.target.value)}
-                        />
-                      </div>
-                      <Input
-                        placeholder={t("Quantity", "الكمية")}
-                        type="number"
-                        value={newItemQuantity}
-                        onChange={(e) => setNewItemQuantity(e.target.value)}
-                      />
-                      <Input
-                        placeholder={t("Unit", "الوحدة")}
-                        value={newItemUnit}
-                        onChange={(e) => setNewItemUnit(e.target.value)}
-                      />
-                      <Select value={newItemCategory} onValueChange={setNewItemCategory}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("Category", "الفئة")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map(category => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                          <SelectItem value="Other">{t("Other", "أخرى")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select value={newItemPriority} onValueChange={setNewItemPriority}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("Priority", "الأولوية")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="high">{t("High", "عالية")}</SelectItem>
-                          <SelectItem value="medium">{t("Medium", "متوسطة")}</SelectItem>
-                          <SelectItem value="low">{t("Low", "منخفضة")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setShowAddForm(false);
-                          setEditingItemId(null);
-                          setNewItemName('');
-                          setNewItemQuantity('');
-                          setNewItemUnit('');
-                          setNewItemCategory('Other');
-                          setNewItemPriority('medium');
-                        }}
-                      >
-                        {t('Cancel', 'إلغاء')}
-                      </Button>
-                      <Button type="submit" className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
-                        {editingItemId ? t('Update', 'تحديث') : t('Add', 'إضافة')}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Search and Filters */}
+        {/* Active List Progress */}
         <Card>
           <CardContent className="p-4">
-            <div className="space-y-3">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder={t('Search items...', 'البحث عن العناصر...')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">{activeList.name}</h3>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Share2 className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <Select value={sortOption} onValueChange={setSortOption}>
-                  <SelectTrigger className="text-xs">
-                    <SelectValue placeholder={t("Sort", "ترتيب")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">{t("Name", "الاسم")}</SelectItem>
-                    <SelectItem value="category">{t("Category", "الفئة")}</SelectItem>
-                    <SelectItem value="priority">{t("Priority", "الأولوية")}</SelectItem>
-                    <SelectItem value="checked">{t("Status", "الحالة")}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="text-xs">
-                    <SelectValue placeholder={t("Category", "الفئة")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("All", "الكل")}</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={filterPriority} onValueChange={setFilterPriority}>
-                  <SelectTrigger className="text-xs">
-                    <SelectValue placeholder={t("Priority", "الأولوية")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("All", "الكل")}</SelectItem>
-                    <SelectItem value="high">{t("High", "عالية")}</SelectItem>
-                    <SelectItem value="medium">{t("Medium", "متوسطة")}</SelectItem>
-                    <SelectItem value="low">{t("Low", "منخفضة")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            </div>
+            <div className="text-sm text-gray-600 mb-2">
+              {completedCount} of {totalCount} items completed
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-wasfah-bright-teal h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
+              ></div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Items List */}
-        <div className="space-y-2">
-          <AnimatePresence>
-            {filteredItems.map(item => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className={`${item.checked ? 'opacity-60' : ''}`}
-              >
-                <Card className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <Checkbox
-                        checked={item.checked}
-                        onCheckedChange={() => handleCheck(item.id)}
-                        className="h-5 w-5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className={`font-medium ${item.checked ? 'line-through text-gray-500' : ''}`}>
-                            {item.name}
-                          </h3>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant="outline" className={getPriorityColor(item.priority)}>
-                              {t(item.priority, item.priority)}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditItem(item.id)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit3 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-sm text-gray-500">
-                            {item.quantity} {item.unit} • {item.category}
-                          </p>
-                          {item.checked && (
-                            <div className="flex items-center text-green-600 text-xs">
-                              <Check className="h-3 w-3 mr-1" />
-                              {t('Completed', 'مكتمل')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+        {/* Add New Item */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add new item..."
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addItem()}
+                className="flex-1"
+              />
+              <Button onClick={addItem} className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-        {filteredItems.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <ShoppingBag className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500">
-                {t('No items found', 'لم يتم العثور على عناصر')}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Shopping Items */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">All Items</TabsTrigger>
+            <TabsTrigger value="pending">Pending</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-3">
+            {activeList.items.map((item) => (
+              <Card key={item.id} className={item.completed ? 'opacity-60' : ''}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={item.completed}
+                      onCheckedChange={() => toggleItemCompletion(item.id)}
+                    />
+                    <div className="flex-1">
+                      <h4 className={`font-medium ${item.completed ? 'line-through' : ''}`}>
+                        {item.name}
+                      </h4>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{item.category}</Badge>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="pending" className="space-y-3">
+            {activeList.items.filter(item => !item.completed).map((item) => (
+              <Card key={item.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={item.completed}
+                      onCheckedChange={() => toggleItemCompletion(item.id)}
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.name}</h4>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{item.category}</Badge>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="completed" className="space-y-3">
+            {activeList.items.filter(item => item.completed).map((item) => (
+              <Card key={item.id} className="opacity-60">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={item.completed}
+                      onCheckedChange={() => toggleItemCompletion(item.id)}
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium line-through">{item.name}</h4>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{item.category}</Badge>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4">
+          <Button variant="outline" className="h-12">
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Generate from Recipes
+          </Button>
+          <Button variant="outline" className="h-12">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share List
+          </Button>
+        </div>
       </div>
     </PageContainer>
   );
-}
+};
+
+export default ShoppingListPage;

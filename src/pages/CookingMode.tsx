@@ -8,6 +8,9 @@ const CookingMode = () => {
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isAutoMode, setIsAutoMode] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(3);
 
   useEffect(() => {
     // Simulate fetching recipe data
@@ -46,8 +49,44 @@ const CookingMode = () => {
     }, 1000);
   }, [id]);
 
+  // Auto-advance timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isAutoMode && currentStep < recipe?.instructions?.length - 1) {
+      timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            setCurrentStep((current) => current + 1);
+            return 3; // Reset to 3 seconds for next step
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isAutoMode, currentStep, recipe?.instructions?.length]);
+
+  const toggleAutoMode = () => {
+    setIsAutoMode(!isAutoMode);
+    setTimeRemaining(3); // Reset timer
+  };
+
+  const stopAutoMode = () => {
+    setIsAutoMode(false);
+    setTimeRemaining(3);
+  };
+
   const handleClose = () => {
     navigate(`/recipe/${id}`);
+  };
+
+  const handleStepChange = (step: number) => {
+    setCurrentStep(step);
+    setTimeRemaining(3); // Reset timer when manually changing steps
   };
 
   if (loading) {
@@ -75,6 +114,12 @@ const CookingMode = () => {
     <EnhancedCookingMode
       recipe={recipe}
       onClose={handleClose}
+      currentStep={currentStep}
+      onStepChange={handleStepChange}
+      isAutoMode={isAutoMode}
+      onToggleAutoMode={toggleAutoMode}
+      onStopAutoMode={stopAutoMode}
+      timeRemaining={timeRemaining}
     />
   );
 };

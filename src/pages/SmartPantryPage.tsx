@@ -1,214 +1,209 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Plus, Package, AlertTriangle, Calendar, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface SmartPantryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  expiryDate: string;
-  category: string;
-  aiSuggestions?: string[];
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Scan, AlertTriangle, Calendar, Search } from 'lucide-react';
 
 const SmartPantryPage = () => {
-  const { toast } = useToast();
-  const [pantryItems, setPantryItems] = useState<SmartPantryItem[]>([
-    {
-      id: '1',
-      name: 'Milk',
-      quantity: 1,
-      unit: 'liter',
-      expiryDate: '2024-01-15',
-      category: 'Dairy',
-      aiSuggestions: ['Use in pancakes', 'Make yogurt', 'Coffee creamer']
-    },
-    {
-      id: '2',
-      name: 'Chicken Breast',
-      quantity: 500,
-      unit: 'grams',
-      expiryDate: '2024-01-12',
-      category: 'Meat',
-      aiSuggestions: ['Grilled chicken', 'Chicken curry', 'Chicken salad']
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const pantryItems = [
+    { id: 1, name: 'Chicken Breast', quantity: '2 lbs', category: 'Protein', expiryDate: '2024-01-20', status: 'fresh' },
+    { id: 2, name: 'Milk', quantity: '1 gallon', category: 'Dairy', expiryDate: '2024-01-18', status: 'expiring' },
+    { id: 3, name: 'Tomatoes', quantity: '6 pieces', category: 'Vegetables', expiryDate: '2024-01-15', status: 'expired' },
+    { id: 4, name: 'Rice', quantity: '5 lbs', category: 'Grains', expiryDate: '2024-06-15', status: 'fresh' },
+    { id: 5, name: 'Eggs', quantity: '12 pieces', category: 'Protein', expiryDate: '2024-01-25', status: 'fresh' },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'fresh': return 'bg-green-100 text-green-800';
+      case 'expiring': return 'bg-yellow-100 text-yellow-800';
+      case 'expired': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  ]);
-  const [newItem, setNewItem] = useState({ name: '', quantity: '', unit: '', expiryDate: '' });
+  };
 
-  const addItem = () => {
-    if (!newItem.name || !newItem.quantity) {
-      toast({
-        title: 'Missing information',
-        description: 'Please fill in item name and quantity',
-        variant: 'destructive'
-      });
-      return;
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'expiring': return <AlertTriangle className="h-4 w-4" />;
+      case 'expired': return <AlertTriangle className="h-4 w-4" />;
+      default: return null;
     }
-
-    const item: SmartPantryItem = {
-      id: Date.now().toString(),
-      name: newItem.name,
-      quantity: Number(newItem.quantity),
-      unit: newItem.unit || 'pieces',
-      expiryDate: newItem.expiryDate,
-      category: 'General',
-      aiSuggestions: ['Use in recipes', 'Quick meal ideas']
-    };
-
-    setPantryItems([...pantryItems, item]);
-    setNewItem({ name: '', quantity: '', unit: '', expiryDate: '' });
-    
-    toast({
-      title: 'Item added',
-      description: `${item.name} added to smart pantry`
-    });
   };
 
-  const removeItem = (id: string) => {
-    setPantryItems(pantryItems.filter(item => item.id !== id));
-    toast({
-      title: 'Item removed',
-      description: 'Item removed from pantry'
-    });
-  };
-
-  const isExpiringSoon = (expiryDate: string) => {
-    if (!expiryDate) return false;
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    const diffTime = expiry.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 3 && diffDays >= 0;
-  };
-
-  const isExpired = (expiryDate: string) => {
-    if (!expiryDate) return false;
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    return expiry < today;
-  };
+  const expiringItems = pantryItems.filter(item => item.status === 'expiring' || item.status === 'expired');
 
   return (
     <PageContainer
       header={{
         title: 'Smart Pantry',
-        showBackButton: true,
+        showBackButton: true
       }}
     >
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-wasfah-bright-teal" />
-              AI-Powered Pantry Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <Input
-                placeholder="Item name"
-                value={newItem.name}
-                onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-              />
-              <Input
-                placeholder="Quantity"
-                type="number"
-                value={newItem.quantity}
-                onChange={(e) => setNewItem({...newItem, quantity: e.target.value})}
-              />
-              <Input
-                placeholder="Unit"
-                value={newItem.unit}
-                onChange={(e) => setNewItem({...newItem, unit: e.target.value})}
-              />
-              <Input
-                placeholder="Expiry date"
-                type="date"
-                value={newItem.expiryDate}
-                onChange={(e) => setNewItem({...newItem, expiryDate: e.target.value})}
-              />
+      <div className="space-y-6 pb-20">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4">
+          <Button className="h-20 bg-wasfah-bright-teal hover:bg-wasfah-teal">
+            <div className="flex flex-col items-center">
+              <Plus className="h-6 w-6 mb-1" />
+              <span>Add Item</span>
             </div>
-            <Button onClick={addItem} className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pantryItems.map((item) => (
-            <Card key={item.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(item.id)}
-                    className="h-8 w-8 text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">
-                    {item.quantity} {item.unit}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {item.expiryDate && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className={`text-sm ${
-                      isExpired(item.expiryDate) ? 'text-red-600' :
-                      isExpiringSoon(item.expiryDate) ? 'text-orange-600' : 'text-gray-600'
-                    }`}>
-                      {isExpired(item.expiryDate) ? 'Expired' :
-                       isExpiringSoon(item.expiryDate) ? 'Expiring soon' : 'Fresh'}
-                    </span>
-                    {(isExpired(item.expiryDate) || isExpiringSoon(item.expiryDate)) && (
-                      <AlertTriangle className="h-4 w-4 text-orange-500" />
-                    )}
-                  </div>
-                )}
-
-                <Badge variant="secondary">{item.category}</Badge>
-
-                {item.aiSuggestions && item.aiSuggestions.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">AI Suggestions:</p>
-                    <div className="space-y-1">
-                      {item.aiSuggestions.map((suggestion, index) => (
-                        <p key={index} className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
-                          • {suggestion}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+          </Button>
+          <Button variant="outline" className="h-20">
+            <div className="flex flex-col items-center">
+              <Scan className="h-6 w-6 mb-1" />
+              <span>Scan Barcode</span>
+            </div>
+          </Button>
         </div>
 
-        {pantryItems.length === 0 && (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Empty Pantry</h3>
-              <p className="text-gray-500">Add items to start managing your smart pantry</p>
+        {/* Expiring Items Alert */}
+        {expiringItems.length > 0 && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-yellow-800">
+                <AlertTriangle className="h-5 w-5" />
+                Items Need Attention
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {expiringItems.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center p-2 bg-white rounded">
+                    <div>
+                      <span className="font-medium">{item.name}</span>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                    </div>
+                    <Badge className={getStatusColor(item.status)}>
+                      {item.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search pantry items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Pantry Items Tabs */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="protein">Protein</TabsTrigger>
+            <TabsTrigger value="vegetables">Vegetables</TabsTrigger>
+            <TabsTrigger value="dairy">Dairy</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-4">
+            {pantryItems.map((item) => (
+              <Card key={item.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">Expires: {item.expiryDate}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className={getStatusColor(item.status)}>
+                        {getStatusIcon(item.status)}
+                        <span className="ml-1">{item.status}</span>
+                      </Badge>
+                      <Badge variant="outline">{item.category}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="protein">
+            {pantryItems.filter(item => item.category === 'Protein').map((item) => (
+              <Card key={item.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">Expires: {item.expiryDate}</span>
+                      </div>
+                    </div>
+                    <Badge className={getStatusColor(item.status)}>
+                      {getStatusIcon(item.status)}
+                      <span className="ml-1">{item.status}</span>
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="vegetables">
+            {pantryItems.filter(item => item.category === 'Vegetables').map((item) => (
+              <Card key={item.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">Expires: {item.expiryDate}</span>
+                      </div>
+                    </div>
+                    <Badge className={getStatusColor(item.status)}>
+                      {getStatusIcon(item.status)}
+                      <span className="ml-1">{item.status}</span>
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="dairy">
+            {pantryItems.filter(item => item.category === 'Dairy').map((item) => (
+              <Card key={item.id}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">Expires: {item.expiryDate}</span>
+                      </div>
+                    </div>
+                    <Badge className={getStatusColor(item.status)}>
+                      {getStatusIcon(item.status)}
+                      <span className="ml-1">{item.status}</span>
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
       </div>
     </PageContainer>
   );
