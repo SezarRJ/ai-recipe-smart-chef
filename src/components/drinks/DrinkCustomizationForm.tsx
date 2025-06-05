@@ -7,13 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 
-// Define the type for the options the form will return
+// Updated interface to match what's expected in AIFindByIngredientsPage.tsx
 export interface DrinkOptions {
-  base: string;
-  sournessSweetness: number[]; // Slider returns an array [value]
-  dryRefreshing: number[]; // Slider returns an array [value]
-  glassType: string;
-  themes: string[]; // Array of selected themes
+  type: string;
+  strength: number;
+  flavor: string;
+  temperature: string;
+  themes?: string[]; // Keep themes as optional for backward compatibility
 }
 
 interface DrinkCustomizationFormProps {
@@ -21,13 +21,16 @@ interface DrinkCustomizationFormProps {
   onBack: () => void;
 }
 
-const baseOptions = [
+const typeOptions = [
   'No Alcohol', 'Vodka', 'Gin', 'Rum', 'Tequila', 'Whiskey', 'Brandy', 'Liqueur', 'Sake', 'Other', 'Any Alcohol'
 ];
 
-const glassOptions = [
-  'Martini glass', 'Highball glass', 'Collins glass', 'Old Fashioned glass', 'Coupe glass',
-  'Margarita glass', 'Shot glass', 'Wine glass', 'Champagne flute', 'Mug', 'Any Glass'
+const flavorOptions = [
+  'Sweet', 'Sour', 'Bitter', 'Fruity', 'Spicy', 'Herbal', 'Citrus', 'Mint', 'Chocolate', 'Vanilla'
+];
+
+const temperatureOptions = [
+  'Cold', 'Room Temperature', 'Warm', 'Hot'
 ];
 
 const themeOptions = [
@@ -36,10 +39,10 @@ const themeOptions = [
 ];
 
 export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({ onGenerateDrink, onBack }) => {
-  const [base, setBase] = useState<string>('');
-  const [sournessSweetness, setSournessSweetness] = useState<number[]>([50]); // Default to balanced
-  const [dryRefreshing, setDryRefreshing] = useState<number[]>([50]); // Default to balanced
-  const [glassType, setGlassType] = useState<string>('');
+  const [type, setType] = useState<string>('');
+  const [strength, setStrength] = useState<number[]>([50]); // Slider returns array
+  const [flavor, setFlavor] = useState<string>('');
+  const [temperature, setTemperature] = useState<string>('');
   const [themes, setThemes] = useState<string[]>([]);
 
   const handleThemeChange = (theme: string, isChecked: boolean) => {
@@ -51,15 +54,15 @@ export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({ 
   };
 
   const handleSubmit = () => {
-    if (!base || !glassType) {
-        console.error("Please select a Base and Glass Type.");
+    if (!type || !flavor || !temperature) {
+        console.error("Please select Type, Flavor, and Temperature.");
         return;
     }
     const options: DrinkOptions = {
-      base,
-      sournessSweetness,
-      dryRefreshing,
-      glassType,
+      type,
+      strength: strength[0], // Convert from array to number
+      flavor,
+      temperature,
       themes,
     };
     onGenerateDrink(options);
@@ -69,66 +72,65 @@ export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({ 
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Customize Your Drink</h2>
 
-      {/* Base Selection */}
+      {/* Type Selection */}
       <div>
-        <Label htmlFor="base-select" className="text-lg font-medium">1. Select Base</Label>
-        <Select onValueChange={setBase} value={base}>
-          <SelectTrigger id="base-select" className="w-full mt-2">
-            <SelectValue placeholder="Choose an alcohol base or 'No Alcohol'" />
+        <Label htmlFor="type-select" className="text-lg font-medium">1. Select Type</Label>
+        <Select onValueChange={setType} value={type}>
+          <SelectTrigger id="type-select" className="w-full mt-2">
+            <SelectValue placeholder="Choose an alcohol type or 'No Alcohol'" />
           </SelectTrigger>
           <SelectContent>
-            {baseOptions.map(option => (
+            {typeOptions.map(option => (
               <SelectItem key={option} value={option}>{option}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Sourness/Sweetness Slider */}
+      {/* Strength Slider */}
       <div>
-        <Label htmlFor="sourness-sweetness-slider" className="text-lg font-medium">2. Sourness / Sweetness</Label>
+        <Label htmlFor="strength-slider" className="text-lg font-medium">2. Strength Level</Label>
         <div className="flex items-center space-x-4 mt-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Sour</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Mild</span>
             <Slider
-                id="sourness-sweetness-slider"
-                value={sournessSweetness}
-                onValueChange={setSournessSweetness}
+                id="strength-slider"
+                value={strength}
+                onValueChange={setStrength}
                 max={100}
                 step={1}
                 className="flex-1"
             />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Sweet</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Strong</span>
         </div>
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">Current: {sournessSweetness[0] < 40 ? 'More Sour' : sournessSweetness[0] > 60 ? 'More Sweet' : 'Balanced'}</p>
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+          Current: {strength[0] < 33 ? 'Mild' : strength[0] > 66 ? 'Strong' : 'Medium'}
+        </p>
       </div>
 
-      {/* Dry/Refreshing Slider */}
+      {/* Flavor Selection */}
       <div>
-        <Label htmlFor="dry-refreshing-slider" className="text-lg font-medium">3. Dry / Refreshing</Label>
-         <div className="flex items-center space-x-4 mt-4">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Dry</span>
-            <Slider
-                id="dry-refreshing-slider"
-                value={dryRefreshing}
-                onValueChange={setDryRefreshing}
-                max={100}
-                step={1}
-                className="flex-1"
-            />
-            <span className="text-sm text-gray-600 dark:text-gray-400">Refreshing</span>
-        </div>
-         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">Current: {dryRefreshing[0] < 40 ? 'More Dry' : dryRefreshing[0] > 60 ? 'More Refreshing' : 'Balanced'}</p>
-      </div>
-
-      {/* Glass Type Selection */}
-      <div>
-        <Label htmlFor="glass-select" className="text-lg font-medium">4. Choose Type of Glass</Label>
-        <Select onValueChange={setGlassType} value={glassType}>
-          <SelectTrigger id="glass-select" className="w-full mt-2">
-            <SelectValue placeholder="Select a glass type" />
+        <Label htmlFor="flavor-select" className="text-lg font-medium">3. Choose Flavor Profile</Label>
+        <Select onValueChange={setFlavor} value={flavor}>
+          <SelectTrigger id="flavor-select" className="w-full mt-2">
+            <SelectValue placeholder="Select a flavor profile" />
           </SelectTrigger>
           <SelectContent>
-            {glassOptions.map(option => (
+            {flavorOptions.map(option => (
+              <SelectItem key={option} value={option}>{option}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Temperature Selection */}
+      <div>
+        <Label htmlFor="temperature-select" className="text-lg font-medium">4. Choose Temperature</Label>
+        <Select onValueChange={setTemperature} value={temperature}>
+          <SelectTrigger id="temperature-select" className="w-full mt-2">
+            <SelectValue placeholder="Select temperature preference" />
+          </SelectTrigger>
+          <SelectContent>
+            {temperatureOptions.map(option => (
               <SelectItem key={option} value={option}>{option}</SelectItem>
             ))}
           </SelectContent>
@@ -137,7 +139,7 @@ export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({ 
 
       {/* Theme Selection (Checkboxes) */}
       <div>
-        <Label className="text-lg font-medium mb-4 block">5. Choose a Theme(s)</Label>
+        <Label className="text-lg font-medium mb-4 block">5. Choose Theme(s) (Optional)</Label>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {themeOptions.map(theme => (
             <div key={theme} className="flex items-center space-x-2">
