@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,9 +28,6 @@ const CookingMode = () => {
         difficulty: "Easy",
         cuisine_type: "Mediterranean",
         calories: 320,
-        protein: 12,
-        carbs: 45,
-        fat: 8,
         rating: 4.5,
         rating_count: 128,
         instructions: [
