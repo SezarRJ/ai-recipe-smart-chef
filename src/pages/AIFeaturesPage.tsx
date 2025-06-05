@@ -1,8 +1,17 @@
-
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bot, Camera, Sparkles, Brain } from 'lucide-react';
+import {
+  Bot,
+  Camera,
+  Sparkles,
+  Brain,
+  MessageSquare, // For AI Chatbot/Assistant
+  BookOpen,      // For Recipe Personalization
+  Lightbulb,     // For Meal Planning/Recommendations
+  Leaf,          // For Dietary AI
+  Dumbbell       // For Fitness AI
+} from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { Link } from 'react-router-dom';
 
@@ -13,14 +22,44 @@ export default function AIFeaturesPage() {
     {
       icon: <Camera className="h-8 w-8 text-green-500" />,
       title: t('Dish Scanner', 'ماسح الأطباق'),
-      description: t('Identify dishes from photos', 'تحديد الأطباق من الصور'),
-      path: '/scan-dish',
+      description: t('Identify dishes from photos and get nutrition facts', 'تحديد الأطباق من الصور والحصول على الحقائق الغذائية'),
+      path: '/ai/scan-dish', // Changed to '/ai/' prefix for consistency
     },
     {
       icon: <Brain className="h-8 w-8 text-purple-500" />,
       title: t('AI Recipe Finder', 'باحث الوصفات الذكي'),
-      description: t('Find recipes by ingredients', 'البحث عن الوصفات بالمكونات'),
-      path: '/ai-find-by-ingredients',
+      description: t('Find recipes based on ingredients you have, dietary needs, or preferences', 'البحث عن الوصفات بناءً على المكونات المتوفرة لديك، أو الاحتياجات الغذائية، أو التفضيلات'),
+      path: '/ai/recipe-finder', // Changed path for consistency
+    },
+    {
+      icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
+      title: t('AI Cooking Assistant', 'مساعد الطبخ بالذكاء الاصطناعي'),
+      description: t('Ask questions, get cooking tips, and troubleshoot recipes with an AI chatbot', 'اطرح الأسئلة، احصل على نصائح الطبخ، واستكشف أخطاء الوصفات مع روبوت الدردشة'),
+      path: '/ai/cooking-assistant',
+    },
+    {
+      icon: <BookOpen className="h-8 w-8 text-orange-500" />,
+      title: t('Recipe Personalizer', 'مخصص الوصفات'),
+      description: t('Adjust recipes to your taste, skill level, or available ingredients', 'تعديل الوصفات لتناسب ذوقك، مستوى مهارتك، أو المكونات المتوفرة'),
+      path: '/ai/recipe-personalizer',
+    },
+    {
+      icon: <Lightbulb className="h-8 w-8 text-yellow-500" />,
+      title: t('Smart Meal Planner', 'مخطط الوجبات الذكي'),
+      description: t('Generate personalized meal plans based on your goals and preferences', 'أنشئ خطط وجبات مخصصة بناءً على أهدافك وتفضيلاتك'),
+      path: '/ai/meal-planner',
+    },
+    {
+      icon: <Leaf className="h-8 w-8 text-emerald-500" />,
+      title: t('Dietary AI Advisor', 'مستشار الحمية بالذكاء الاصطناعي'),
+      description: t('Get AI-driven advice for specific diets (Keto, Vegan, Gluten-Free, etc.)', 'احصل على نصائح مدعومة بالذكاء الاصطناعي لأنظمة غذائية محددة (كيتو، نباتي، خالي من الغلوتين، إلخ.)'),
+      path: '/ai/dietary-advisor',
+    },
+    {
+      icon: <Dumbbell className="h-8 w-8 text-red-500" />,
+      title: t('Fitness & Nutrition Coach', 'مدرب اللياقة والتغذية'),
+      description: t('AI guidance for fitness goals, calorie tracking, and macros', 'توجيهات الذكاء الاصطناعي لأهداف اللياقة البدنية، تتبع السعرات الحرارية، والمغذيات الكبرى'),
+      path: '/ai/fitness-coach',
     },
   ];
 
@@ -30,7 +69,7 @@ export default function AIFeaturesPage() {
         <div className="bg-gradient-to-br from-purple-500 to-blue-600 p-6 rounded-lg text-white text-center mb-6">
           <Sparkles className="h-12 w-12 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">{t('AI-Powered Features', 'الميزات المدعومة بالذكاء الاصطناعي')}</h1>
-          <p className="opacity-90">{t('Discover intelligent cooking assistance', 'اكتشف المساعدة الذكية في الطبخ')}</p>
+          <p className="opacity-90">{t('Discover intelligent cooking assistance designed to make your life easier and healthier.', 'اكتشف المساعدة الذكية في الطبخ المصممة لجعل حياتك أسهل وأكثر صحة.')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
