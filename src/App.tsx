@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -69,7 +70,7 @@ import DietaryAIAdvisorPage from './components/ai/DietaryAIAdvisorPage';
 import FitnessNutritionCoachPage from './components/ai/FitnessNutritionCoachPage';
 import MoodBasedRecipes from './components/ai/MoodBasedRecipes'; // NEW
 import SmartRecipeAdaptation from './components/ai/SmartRecipeAdaptation'; // NEW
-import VoiceRecipeAssistant from './components/ai/VoiceRecipeAssistant'; // NEW
+import { VoiceRecipeAssistant } from './components/ai/VoiceRecipeAssistant'; // NEW - Fixed import
 
 // Tool Pages - Create placeholder pages for now
 const NutritionCalculatorPage = () => <div>Nutrition Calculator Page (Coming Soon!)</div>;
@@ -83,6 +84,23 @@ const SubstitutionGuidePage = () => <div>Substitution Guide Page (Coming Soon!)<
 const CookingTechniquesPage = () => <div>Cooking Techniques Page (Coming Soon!)</div>;
 const QuickRecipesPage = () => <div>Quick Recipes Page (Coming Soon!)</div>;
 
+// Create wrapper component for VoiceRecipeAssistant
+const VoiceRecipeAssistantPage = () => {
+  const mockRecipe = {
+    title: "Sample Recipe",
+    instructions: [
+      "Prepare your ingredients by washing and chopping vegetables",
+      "Heat oil in a large pan over medium heat", 
+      "Add onions and cook until translucent",
+      "Add garlic and cook for another minute",
+      "Add remaining ingredients and simmer for 20 minutes",
+      "Season with salt and pepper to taste",
+      "Serve hot and enjoy!"
+    ]
+  };
+  
+  return <VoiceRecipeAssistant recipe={mockRecipe} />;
+};
 
 // Meal & Health Related Pages
 import MealPlanPage from './pages/MealPlanPage';
@@ -197,7 +215,7 @@ const App = () => {
                   <Route path="/ai/fitness-coach" element={<FitnessNutritionCoachPage />} />
                   <Route path="/ai/mood-recipes" element={<MoodBasedRecipes />} /> {/* NEW */}
                   <Route path="/ai/smart-adaptation" element={<SmartRecipeAdaptation />} /> {/* NEW */}
-                  <Route path="/ai/voice-assistant" element={<VoiceRecipeAssistant />} /> {/* NEW */}
+                  <Route path="/ai/voice-assistant" element={<VoiceRecipeAssistantPage />} /> {/* NEW */}
 
 
                   {/* --- Tools Hub and Sub-pages --- */}
