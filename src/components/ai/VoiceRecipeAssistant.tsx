@@ -11,7 +11,7 @@ interface Recipe {
   id?: string;
   title: string;
   instructions: string[];
-  ingredients?: Array<{ id: string; name: string; amount: number; unit: string }>;
+  ingredients?: Array<{ id?: string; name: string; amount: number; unit: string }>;
   tips?: string[];
 }
 
@@ -33,7 +33,7 @@ export const VoiceRecipeAssistant: React.FC<VoiceRecipeAssistantProps> = ({
   const { toast } = useToast();
 
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     // Initialize speech synthesis
@@ -43,13 +43,13 @@ export const VoiceRecipeAssistant: React.FC<VoiceRecipeAssistantProps> = ({
 
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
         const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
         handleVoiceCommand(command);
       };

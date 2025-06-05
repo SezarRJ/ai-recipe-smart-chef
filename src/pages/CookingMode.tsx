@@ -45,14 +45,14 @@ const CookingMode = () => {
           "Serve immediately or chill for up to 2 hours before serving"
         ],
         ingredients: [
-          { name: "Chickpeas", quantity: 2, unit: "cans" },
-          { name: "Cucumber", quantity: 1, unit: "large" },
-          { name: "Tomatoes", quantity: 2, unit: "medium" },
-          { name: "Red onion", quantity: 0.5, unit: "small" },
-          { name: "Olive oil", quantity: 3, unit: "tablespoons" },
-          { name: "Lemon juice", quantity: 2, unit: "tablespoons" },
-          { name: "Feta cheese", quantity: 100, unit: "grams" },
-          { name: "Fresh parsley", quantity: 0.25, unit: "cup" }
+          { name: "Chickpeas", amount: 2, unit: "cans" },
+          { name: "Cucumber", amount: 1, unit: "large" },
+          { name: "Tomatoes", amount: 2, unit: "medium" },
+          { name: "Red onion", amount: 0.5, unit: "small" },
+          { name: "Olive oil", amount: 3, unit: "tablespoons" },
+          { name: "Lemon juice", amount: 2, unit: "tablespoons" },
+          { name: "Feta cheese", amount: 100, unit: "grams" },
+          { name: "Fresh parsley", amount: 0.25, unit: "cup" }
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -118,7 +118,7 @@ const CookingMode = () => {
             Exit Cooking Mode
           </Button>
           <h1 className="text-2xl font-bold text-center flex-1">{recipe.title}</h1>
-          <div className="w-32" /> {/* Spacer for centering */}
+          <div className="w-32" />
         </div>
 
         {/* Voice Recipe Assistant */}
@@ -202,7 +202,7 @@ const CookingMode = () => {
             {recipe.ingredients.map((ingredient, index) => (
               <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                 <span>{ingredient.name}</span>
-                <span className="text-sm text-gray-600">{ingredient.quantity} {ingredient.unit}</span>
+                <span className="text-sm text-gray-600">{ingredient.amount} {ingredient.unit}</span>
               </div>
             ))}
           </div>
