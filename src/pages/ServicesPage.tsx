@@ -1,164 +1,298 @@
 
 import React from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import {
-  Camera, Scale, Smartphone, Award, Gift, CreditCard, ShoppingCart,
-  Activity, Heart, Book, Bot, Utensils, Users, MapPin,
-  PlusCircle, Share2, Archive // Added icons for new services
+import { PageContainer } from '@/components/layout/PageContainer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Bot, 
+  Utensils, 
+  Calculator, 
+  Timer, 
+  Scale, 
+  Thermometer,
+  Camera,
+  Users,
+  Heart,
+  Target,
+  Zap,
+  Smartphone,
+  ChefHat,
+  BookOpen,
+  Award,
+  TrendingUp
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 
-export default function ServicesPage() {
-  const { t } = useRTL();
+const ServicesPage = () => {
+  const { t, direction } = useRTL();
 
-  // Define the list of IDs to remove
-  const idsToRemove = [
-    'loyalty-program',
-    'subscription',
+  const serviceCategories = [
+    {
+      title: t("AI-Powered Features", "ميزات الذكاء الاصطناعي"),
+      description: t("Smart cooking assistance powered by AI", "مساعدة الطبخ الذكية بالذكاء الاصطناعي"),
+      services: [
+        {
+          name: t("AI Cooking Assistant", "مساعد الطبخ بالذكاء الاصطناعي"),
+          description: t("Get instant cooking help and advice", "احصل على مساعدة ونصائح فورية للطبخ"),
+          icon: Bot,
+          path: "/ai/cooking-assistant",
+          isPremium: false
+        },
+        {
+          name: t("Recipe Personalizer", "مخصص الوصفات"),
+          description: t("Customize recipes to your preferences", "خصص الوصفات حسب تفضيلاتك"),
+          icon: Target,
+          path: "/ai/recipe-personalizer",
+          isPremium: true
+        },
+        {
+          name: t("Smart Meal Planner", "مخطط الوجبات الذكي"),
+          description: t("AI-powered meal planning", "تخطيط الوجبات بالذكاء الاصطناعي"),
+          icon: Utensils,
+          path: "/ai/meal-planner",
+          isPremium: true
+        },
+        {
+          name: t("Dietary AI Advisor", "مستشار النظام الغذائي بالذكاء الاصطناعي"),
+          description: t("Personalized dietary guidance", "إرشادات غذائية شخصية"),
+          icon: Heart,
+          path: "/ai/dietary-advisor",
+          isPremium: true
+        },
+        {
+          name: t("Fitness Nutrition Coach", "مدرب التغذية واللياقة"),
+          description: t("Nutrition advice for fitness goals", "نصائح تغذية لأهداف اللياقة"),
+          icon: TrendingUp,
+          path: "/ai/fitness-coach",
+          isPremium: true
+        },
+        {
+          name: t("Mood-Based Recipes", "وصفات حسب المزاج"),
+          description: t("Recipes that match your mood", "وصفات تناسب مزاجك"),
+          icon: Zap,
+          path: "/ai/mood-recipes",
+          isPremium: true
+        }
+      ]
+    },
+    {
+      title: t("Smart Tools", "الأدوات الذكية"),
+      description: t("Essential cooking tools and calculators", "أدوات الطبخ الأساسية والحاسبات"),
+      services: [
+        {
+          name: t("Nutrition Calculator", "حاسبة التغذية"),
+          description: t("Calculate nutritional values", "احسب القيم الغذائية"),
+          icon: Calculator,
+          path: "/tools/nutrition-calculator",
+          isPremium: false
+        },
+        {
+          name: t("Recipe Scaler", "مقياس الوصفات"),
+          description: t("Scale recipes for any serving size", "اضبط الوصفات لأي عدد حصص"),
+          icon: Scale,
+          path: "/tools/recipe-scaler",
+          isPremium: false
+        },
+        {
+          name: t("Cooking Timer", "مؤقت الطبخ"),
+          description: t("Multiple timers for cooking", "مؤقتات متعددة للطبخ"),
+          icon: Timer,
+          path: "/tools/cooking-timer",
+          isPremium: false
+        },
+        {
+          name: t("Unit Converter", "محول الوحدات"),
+          description: t("Convert cooking measurements", "حول قياسات الطبخ"),
+          icon: Scale,
+          path: "/tools/unit-converter",
+          isPremium: false
+        },
+        {
+          name: t("Temperature Guide", "دليل درجات الحرارة"),
+          description: t("Cooking temperature reference", "مرجع درجات حرارة الطبخ"),
+          icon: Thermometer,
+          path: "/tools/temperature-guide",
+          isPremium: false
+        }
+      ]
+    },
+    {
+      title: t("Smart Discovery", "الاكتشاف الذكي"),
+      description: t("Find and discover new recipes", "اعثر على واكتشف وصفات جديدة"),
+      services: [
+        {
+          name: t("Scan Dish", "مسح الطبق"),
+          description: t("Identify dishes from photos", "تعرف على الأطباق من الصور"),
+          icon: Camera,
+          path: "/ai/scan-dish",
+          isPremium: true
+        },
+        {
+          name: t("Recipe Finder", "محدد الوصفات"),
+          description: t("Find recipes by ingredients", "اعثر على وصفات بالمكونات"),
+          icon: BookOpen,
+          path: "/ai/recipe-finder",
+          isPremium: false
+        },
+        {
+          name: t("Global Cuisine", "المطبخ العالمي"),
+          description: t("Explore international cuisines", "استكشف المطابخ العالمية"),
+          icon: ChefHat,
+          path: "/global-cuisine",
+          isPremium: false
+        }
+      ]
+    },
+    {
+      title: t("Health & Wellness", "الصحة والعافية"),
+      description: t("Track your health and nutrition", "تتبع صحتك وتغذيتك"),
+      services: [
+        {
+          name: t("Health Tracking", "تتبع الصحة"),
+          description: t("Monitor your health metrics", "راقب مؤشراتك الصحية"),
+          icon: Heart,
+          path: "/health-tracking-home",
+          isPremium: false
+        },
+        {
+          name: t("Micronutrient Tracker", "متتبع المغذيات الدقيقة"),
+          description: t("Track vitamins and minerals", "تتبع الفيتامينات والمعادن"),
+          icon: Target,
+          path: "/micronutrient-tracker",
+          isPremium: true
+        },
+        {
+          name: t("Body Information", "معلومات الجسم"),
+          description: t("Track body measurements", "تتبع قياسات الجسم"),
+          icon: Users,
+          path: "/body-information",
+          isPremium: false
+        }
+      ]
+    },
+    {
+      title: t("Social & Community", "المجتمع والتواصل"),
+      description: t("Connect with other cooking enthusiasts", "تواصل مع عشاق الطبخ الآخرين"),
+      services: [
+        {
+          name: t("Community", "المجتمع"),
+          description: t("Join cooking community", "انضم إلى مجتمع الطبخ"),
+          icon: Users,
+          path: "/community",
+          isPremium: false
+        },
+        {
+          name: t("Loyalty Program", "برنامج الولاء"),
+          description: t("Earn rewards for cooking", "اكسب مكافآت للطبخ"),
+          icon: Award,
+          path: "/loyalty-program",
+          isPremium: false
+        }
+      ]
+    },
+    {
+      title: t("Premium Features", "الميزات المميزة"),
+      description: t("Unlock advanced cooking features", "افتح ميزات الطبخ المتقدمة"),
+      services: [
+        {
+          name: t("Voice Recipe Assistant", "مساعد الوصفات الصوتي"),
+          description: t("Voice-guided cooking", "طبخ بالإرشاد الصوتي"),
+          icon: Smartphone,
+          path: "/ai/voice-assistant",
+          isPremium: true
+        },
+        {
+          name: t("Smart Recipe Adaptation", "تكييف الوصفات الذكي"),
+          description: t("Adapt recipes automatically", "كيف الوصفات تلقائياً"),
+          icon: Zap,
+          path: "/ai/smart-adaptation",
+          isPremium: true
+        }
+      ]
+    }
   ];
-
-  // Define the new services to add
-  const newServices = [
-      {
-          id: 'create-recipe',
-          icon: <PlusCircle className="h-6 w-6 text-green-600" />, // Using PlusCircle icon
-          title: t('Create Recipe', 'إنشاء وصفة', 'Tarif Oluştur'),
-          description: t('Add your own recipes to the app', 'أضف وصفاتك الخاصة إلى التطبيق', 'Kendi tariflerinizi uygulamaya ekleyin'),
-          link: '/create-recipe', // Placeholder link
-      },
-      {
-          id: 'share-recipe',
-          icon: <Share2 className="h-6 w-6 text-blue-500" />, // Using Share2 icon
-          title: t('Share Recipe', 'مشاركة وصفة', 'Tarif Paylaş'),
-          description: t('Share your favorite recipes with others', 'شارك وصفاتك المفضلة مع الآخرين', 'Favori tariflerinizi başkalarıyla paylaşın'),
-          link: '/share-recipe', // Placeholder link
-      },
-      {
-          id: 'smart-pantry',
-          icon: <Archive className="h-6 w-6 text-amber-600" />, // Using Archive icon
-          title: t('Smart Pantry', 'مخزن ذكي', 'Akıllı Kiler'),
-          description: t('Manage your ingredients and find recipes', 'إدارة مكوناتك والعثور على الوصفات', 'Malzemelerinizi yönetin ve tarif bulun'),
-          link: '/smart-pantry', // Placeholder link
-      },
-  ];
-
-
-  const services = [
-    {
-      id: 'scan-dish',
-      icon: <Camera className="h-6 w-6 text-green-500" />,
-      title: t('Scan Dish', 'مسح طبق', 'Yemek Tara'),
-      description: t('Identify dishes and get recipes', 'تحديد الأطباق والحصول على الوصفات', 'Yemekleri tanımlayın ve tarif alın'),
-      link: '/scan-dish',
-    },
-    {
-      id: 'scan-ingredients',
-      icon: <Camera className="h-6 w-6 text-amber-500" />,
-      title: t('Scan Ingredients', 'مسح المكونات', 'Malzeme Tara'),
-      description: t('Scan ingredients to find recipes', 'مسح المكونات للعثور على الوصفات', 'Tarif bulmak için malzemeleri tarayın'),
-      link: '/scan-ingredients',
-    },
-    {
-      id: 'body-information',
-      icon: <Scale className="h-6 w-6 text-blue-500" />,
-      title: t('Body Information', 'معلومات الجسم', 'Vücut Bilgisi'),
-      description: t('Track your body metrics', 'تتبع مقاييس جسمك', 'Vücut ölçümlerinizi takip edin'),
-      link: '/body-information',
-    },
-    {
-      id: 'health-tracking',
-      icon: <Activity className="h-6 w-6 text-red-500" />,
-      title: t('Health Tracking', 'تتبع الصحة', 'Sağlık Takibi'),
-      description: t('Monitor your health and nutrition', 'مراقبة صحتك وتغذيتك', 'Sağlığınızı ve beslenmenizi izleyin'),
-      link: '/health-tracking-home',
-    },
-    {
-      id: 'ai-chef',
-      icon: <Bot className="h-6 w-6 text-purple-500" />,
-      title: t('AI Chef Assistant', 'مساعد الطاهي الذكي', 'AI Şef Asistanı'),
-      description: t('Get personalized cooking advice', 'احصل على نصائح طبخ شخصية', 'Kişiselleştirilmiş yemek tavsiyeleri alın'),
-      link: '/ai-chef',
-    },
-    {
-      id: 'meal-planning',
-      icon: <Utensils className="h-6 w-6 text-wasfah-deep-teal" />,
-      title: t('Meal Planning', 'تخطيط الوجبات', 'Öğün Planlama'),
-      description: t('Plan your weekly meals', 'خطط وجباتك الأسبوعية', 'Haftalık öğünlerinizi planlayın'),
-      link: '/meal-plan',
-    },
-    {
-      id: 'shopping-list',
-      icon: <ShoppingCart className="h-6 w-6 text-wasfah-bright-teal" />,
-      title: t('Smart Shopping List', 'قائمة التسوق الذكية', 'Akıllı Alışveriş Listesi'),
-      description: t('Generate shopping lists from recipes', 'إنشاء قوائم التسوق من الوصفات', 'Tariflerden alışveriş listeleri oluşturun'),
-      link: '/shopping-list',
-    },
-    {
-      id: 'loyalty-program', // This will be filtered out
-      icon: <Award className="h-6 w-6 text-amber-500" />,
-      title: t('Loyalty Program', 'برنامج الولاء', 'Sadakat Programı'),
-      description: t('Earn rewards for cooking', 'اكسب مكافآت للطبخ', 'Yemek yaparak ödül kazanın'),
-      link: '/loyalty-program',
-    },
-    {
-      id: 'subscription', // This will be filtered out
-      icon: <CreditCard className="h-6 w-6 text-purple-500" />,
-      title: t('Premium Subscription', 'الاشتراك المميز', 'Premium Abonelik'),
-      description: t('Unlock premium features', 'فتح الميزات المميزة', 'Premium özelliklerin kilidini açın'),
-      link: '/subscription',
-    },
-    {
-      id: 'connected-devices',
-      icon: <Smartphone className="h-6 w-6 text-green-600" />,
-      title: t('Connected Devices', 'الأجهزة المتصلة', 'Bağlı Cihazlar'),
-      description: t('Sync with your smart devices', 'مزامنة مع أجهزتك الذكية', 'Akıllı cihazlarınızla senkronize edin'),
-      link: '/connected-devices',
-    },
-    {
-      id: 'community',
-      icon: <Users className="h-6 w-6 text-blue-600" />,
-      title: t('Community', 'المجتمع', 'Topluluk'),
-      description: t('Connect with other food lovers', 'تواصل مع عشاق الطعام الآخرين', 'Diğer yemek severleriyle bağlantı kurun'),
-      link: '/community',
-    },
-    {
-      id: 'global-cuisine',
-      icon: <MapPin className="h-6 w-6 text-orange-500" />,
-      title: t('Global Cuisine', 'المأكولات العالمية', 'Küresel Mutfak'),
-      description: t('Explore cuisines from around the world', 'استكشف المأكولات من جميع أنحاء العالم', 'Dünyanın her yerinden mutfakları keşfedin'),
-      link: '/global-cuisine',
-    },
-  ]
-  .filter(service => !idsToRemove.includes(service.id)) // Remove specified items
-  .concat(newServices); // Add the new items
-
 
   return (
-    <PageContainer header={{ title: t('Services', 'الخدمات', 'Hizmetler'), showBackButton: true }}>
-      <div className="space-y-6 pb-20">
-        <div className="bg-gradient-to-br from-wasfah-bright-teal to-wasfah-deep-teal p-6 rounded-lg text-white text-center mb-6">
-          <h1 className="text-2xl font-bold mb-2">{t('Our Services', 'خدماتنا', 'Hizmetlerimiz')}</h1>
-          <p className="opacity-90">{t('Discover all the amazing features WasfahAI has to offer', 'اكتشف جميع الميزات المذهلة التي تقدمها وصفة الذكية', 'WasfahAI\'nin sunduğu tüm harika özellikleri keşfedin')}</p>
+    <PageContainer
+      header={{
+        title: t("Services", "الخدمات"),
+        showBackButton: true
+      }}
+    >
+      <div className={`space-y-8 pb-24 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            {t("All Features & Services", "جميع الميزات والخدمات")}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            {t("Explore all the features and services available in WasfahAI to enhance your cooking experience", "استكشف جميع الميزات والخدمات المتاحة في وصفة الذكاء الاصطناعي لتعزيز تجربة الطبخ")}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {services.map((service) => (
-            <Link to={service.link} key={service.id}>
-              <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full">
-                <CardContent className="p-6 flex flex-col items-center text-center h-full">
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-full mb-4">
-                    {service.icon}
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{service.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 flex-1">{service.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+        {/* Service Categories */}
+        {serviceCategories.map((category, categoryIndex) => (
+          <div key={categoryIndex} className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {category.title}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                {category.description}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {category.services.map((service, serviceIndex) => (
+                <Link key={serviceIndex} to={service.path}>
+                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <div className={`flex items-center justify-between ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex items-center gap-3 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                          <div className="p-2 bg-wasfah-bright-teal/10 rounded-lg">
+                            <service.icon className="h-6 w-6 text-wasfah-bright-teal" />
+                          </div>
+                          <CardTitle className="text-lg">{service.name}</CardTitle>
+                        </div>
+                        {service.isPremium && (
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                            {t("Premium", "مميز")}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {service.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Call to Action */}
+        <div className="text-center bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal text-white rounded-2xl p-8">
+          <h2 className="text-2xl font-bold mb-4">
+            {t("Ready to Start Cooking?", "جاهز لبدء الطبخ؟")}
+          </h2>
+          <p className="mb-6 opacity-90">
+            {t("Join thousands of home cooks using AI to create amazing meals", "انضم إلى آلاف الطهاة المنزليين الذين يستخدمون الذكاء الاصطناعي لإعداد وجبات رائعة")}
+          </p>
+          <Link 
+            to="/ai-features" 
+            className="inline-block bg-white text-wasfah-bright-teal px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+          >
+            {t("Start Cooking with AI", "ابدأ الطبخ مع الذكاء الاصطناعي")}
+          </Link>
         </div>
       </div>
     </PageContainer>
   );
-}
+};
+
+export default ServicesPage;

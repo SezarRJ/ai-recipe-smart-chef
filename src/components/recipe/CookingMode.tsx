@@ -13,13 +13,16 @@ import {
   MicOff,
   Timer as TimerIcon,
   Video,
-  VideoOff
+  VideoOff,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { Recipe } from '@/types/index';
 import { Progress } from '@/components/ui/progress';
 import { Timer } from '@/components/cooking/Timer';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
+import { VoiceRecipeAssistant } from '@/components/ai/VoiceRecipeAssistant';
 
 interface CookingModeProps {
   recipe: Recipe;
@@ -34,11 +37,14 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
   const [isListening, setIsListening] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [showTimer, setShowTimer] = useState(false);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [isAutoMode, setIsAutoMode] = useState(false);
   const { toast } = useToast();
   
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
+  const autoStepTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const totalSteps = recipe.instructions.length;
   const progress = Math.round((currentStep / (totalSteps - 1)) * 100);
@@ -90,8 +96,27 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      if (autoStepTimeoutRef.current) {
+        clearTimeout(autoStepTimeoutRef.current);
+      }
     };
   }, [language]);
+
+  // Auto-advance effect for step-by-step reading
+  useEffect(() => {
+    if (isAutoMode && isVoiceEnabled) {
+      // Wait 3 seconds then speak current step
+      autoStepTimeoutRef.current = setTimeout(() => {
+        speakCurrentStep();
+      }, 3000);
+    }
+
+    return () => {
+      if (autoStepTimeoutRef.current) {
+        clearTimeout(autoStepTimeoutRef.current);
+      }
+    };
+  }, [currentStep, isAutoMode, isVoiceEnabled]);
 
   const handleVoiceCommand = (command: string) => {
     console.log('Voice command received:', command);
@@ -102,6 +127,7 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
     const repeatCommands = ['repeat', 'again', 'إعادة', 'tekrar'];
     const timerCommands = ['timer', 'set timer', 'مؤقت', 'zamanlayıcı'];
     const completeCommands = ['done', 'complete', 'finished', 'تم', 'انتهيت', 'tamamlandı'];
+    const autoCommands = ['auto mode', 'start auto', 'وضع تلقائي', 'otomatik mod'];
     
     if (nextCommands.some(cmd => command.includes(cmd))) {
       nextStep();
@@ -113,6 +139,8 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
       setShowTimer(true);
     } else if (completeCommands.some(cmd => command.includes(cmd))) {
       toggleStepComplete(currentStep);
+    } else if (autoCommands.some(cmd => command.includes(cmd))) {
+      setIsAutoMode(!isAutoMode);
     }
   };
 
@@ -135,10 +163,10 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
       toast({
         title: t("Voice assistant activated", "تم تفعيل المساعد الصوتي"),
         description: language === 'ar' 
-          ? "قل 'التالي'، 'السابق'، 'إعادة'، 'مؤقت'، أو 'تم'"
+          ? "قل 'التالي'، 'السابق'، 'إعادة'، 'مؤقت'، 'تم'، أو 'وضع تلقائي'"
           : language === 'tr'
-          ? "Söyle 'sonraki', 'önceki', 'tekrar', 'zamanlayıcı', veya 'tamamlandı'"
-          : "Say 'next', 'previous', 'repeat', 'timer', or 'done'"
+          ? "Söyle 'sonraki', 'önceki', 'tekrar', 'zamanlayıcı', 'tamamlandı', veya 'otomatik mod'"
+          : "Say 'next', 'previous', 'repeat', 'timer', 'done', or 'auto mode'"
       });
     }
   };
@@ -155,6 +183,11 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
       : `Step ${currentStep + 1}: ${recipe.instructions[currentStep]}`;
     
     const utterance = new SpeechSynthesisUtterance(stepText);
+    
+    // Set voice properties for aromatic speaking
+    utterance.rate = 0.7; // Slower, more deliberate
+    utterance.pitch = 1.1; // Slightly higher pitch for clarity
+    utterance.volume = 1;
     
     // Set voice language
     const voices = synthRef.current.getVoices();
@@ -195,9 +228,6 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
-      if (isVoiceEnabled) {
-        setTimeout(() => speakCurrentStep(), 500);
-      }
     } else {
       toast({
         title: t("Cooking Complete!", "اكتمل الطبخ!"),
@@ -209,9 +239,6 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-      if (isVoiceEnabled) {
-        setTimeout(() => speakCurrentStep(), 500);
-      }
     }
   };
 
@@ -225,12 +252,12 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
     setCompletedSteps(newCompleted);
   };
 
-  // Auto-speak current step when voice is enabled
+  // Auto-speak current step when voice is enabled or step changes
   useEffect(() => {
-    if (isVoiceEnabled && currentStep === 0) {
+    if (isVoiceEnabled && !isAutoMode) {
       setTimeout(() => speakCurrentStep(), 1000);
     }
-  }, [isVoiceEnabled]);
+  }, [currentStep, isVoiceEnabled]);
   
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col">
@@ -243,6 +270,14 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
             {t("Cooking Mode", "وضع الطبخ")}
           </h2>
           <div className={`flex items-center space-x-2 ${direction === 'rtl' ? 'space-x-reverse' : ''}`}>
+            <Button
+              variant={showVoiceAssistant ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowVoiceAssistant(!showVoiceAssistant)}
+              className="text-xs"
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
             <Button
               variant={showVideo ? "default" : "outline"}
               size="sm"
@@ -279,6 +314,30 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
           </div>
           <Progress value={progress} className="h-2" />
         </div>
+
+        {/* Auto Mode Indicator */}
+        {isAutoMode && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className={`flex items-center justify-between ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
+              <span className="text-sm font-medium text-blue-600">
+                {t('Auto Mode Active - Steps will be read automatically', 'الوضع التلقائي نشط - سيتم قراءة الخطوات تلقائياً')}
+              </span>
+              <Button variant="outline" size="sm" onClick={() => setIsAutoMode(false)}>
+                {t('Stop', 'إيقاف')}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Voice Recipe Assistant */}
+        {showVoiceAssistant && (
+          <div className="mb-6">
+            <VoiceRecipeAssistant 
+              recipe={recipe} 
+              onStepChange={setCurrentStep}
+            />
+          </div>
+        )}
         
         {/* Video Section (Premium Feature) */}
         {showVideo && (
@@ -331,6 +390,14 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
               <TimerIcon className="h-4 w-4" />
               <span className="ml-1">{t('Timer', 'مؤقت')}</span>
             </Button>
+            <Button
+              variant={isAutoMode ? "destructive" : "default"}
+              size="sm"
+              onClick={() => setIsAutoMode(!isAutoMode)}
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span className="ml-1">{isAutoMode ? t('Stop Auto', 'إيقاف التلقائي') : t('Auto Mode', 'وضع تلقائي')}</span>
+            </Button>
           </div>
         </div>
 
@@ -379,9 +446,9 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 0}
-            className="w-28"
+            className={`w-32 flex items-center gap-2 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
           >
-            <ChevronLeft size={16} className={`${direction === 'rtl' ? 'rotate-180 ml-1' : 'mr-1'}`} />
+            <ArrowLeft size={16} className={direction === 'rtl' ? 'rotate-180' : ''} />
             {t("Previous", "السابق")}
           </Button>
           
@@ -399,10 +466,10 @@ export const CookingMode: React.FC<CookingModeProps> = ({ recipe, onClose }) => 
           <Button
             onClick={nextStep}
             disabled={currentStep === totalSteps - 1}
-            className="w-28 bg-wasfah-bright-teal hover:bg-wasfah-teal text-white"
+            className={`w-32 bg-wasfah-bright-teal hover:bg-wasfah-teal text-white flex items-center gap-2 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}
           >
             {t("Next", "التالي")}
-            <ChevronRight size={16} className={`${direction === 'rtl' ? 'rotate-180 mr-1' : 'ml-1'}`} />
+            <ArrowRight size={16} className={direction === 'rtl' ? 'rotate-180' : ''} />
           </Button>
         </div>
       </div>
