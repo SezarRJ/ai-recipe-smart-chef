@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ const CookingMode = () => {
         image_url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
         prep_time: 15,
         cook_time: 0,
-        cooking_time: 15,
         servings: 4,
         difficulty: "Easy",
         cuisine_type: "Mediterranean",
