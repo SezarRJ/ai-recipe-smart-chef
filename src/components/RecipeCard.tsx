@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Recipe } from '@/types/index';
-import recipeService from '@/services/recipeService';
+import { recipeService } from '@/services/recipeService';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, ChefHat, Bookmark } from 'lucide-react';
