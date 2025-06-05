@@ -2,17 +2,37 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, Users, BookOpen, Settings, Shield, 
-  BarChart3, CreditCard, Gift, Languages, Monitor,
-  UserCog, Building, Plug, Image, FileText, Library,
-  Crown, MessageCircle
+  LayoutDashboard, 
+  Users, 
+  ChefHat, 
+  ShoppingBag, 
+  CreditCard, 
+  Server, 
+  BarChart, 
+  Settings, 
+  Shield, 
+  Bell, 
+  Wrench,
+  Languages,
+  Award,
+  DollarSign,
+  Cpu,
+  UserCog,
+  Crown,
+  Image,
+  Globe,
+  MessageSquare,
+  Megaphone,
+  Users2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { WasfahLogo } from '@/components/icons/WasfahLogo';
+import { WasfahLogo } from '../icons/WasfahLogo';
+import { AdminLogoutLink } from './AdminLogoutLink';
+import { getAdminRole, isSuperAdminAuthenticated } from '@/lib/adminAuth';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -20,195 +40,191 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarFooter,
-  SidebarSeparator,
-} from '@/components/ui/sidebar';
-import { getAdminRole, isSuperAdminAuthenticated } from '@/lib/adminAuth';
+} from "@/components/ui/sidebar";
 
-interface SidebarItem {
-  title: string;
-  href: string;
+interface SidebarItemProps {
   icon: React.ElementType;
-  badge?: string;
+  label: string;
+  href: string;
+  isActive: boolean;
   requireSuperAdmin?: boolean;
 }
 
-const mainItems: SidebarItem[] = [
-  { title: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { title: 'Users', href: '/admin/users', icon: Users },
-  { title: 'User Types', href: '/admin/user-types', icon: UserCog, requireSuperAdmin: true },
-  { title: 'Recipes', href: '/admin/recipes', icon: BookOpen },
-  { title: 'Content Library', href: '/admin/content-library', icon: Library },
-];
-
-const contentItems: SidebarItem[] = [
-  { title: 'Ingredients', href: '/admin/ingredients', icon: Image },
-  { title: 'Ingredient Images', href: '/admin/ingredient-images', icon: Image },
-  { title: 'Translations', href: '/admin/translations', icon: FileText },
-  { title: 'Languages', href: '/admin/languages', icon: Languages },
-];
-
-const businessItems: SidebarItem[] = [
-  { title: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
-  { title: 'Accounting', href: '/admin/accounting', icon: Building, requireSuperAdmin: true },
-  { title: 'Rewards', href: '/admin/rewards', icon: Gift },
-  { title: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  { title: 'Communications', href: '/admin/communications', icon: MessageCircle },
-  { title: 'Support Tickets', href: '/admin/support', icon: MessageCircle },
-  { title: 'Community', href: '/admin/community', icon: Users },
-  { title: 'Notifications', href: '/admin/notifications', icon: MessageCircle },
-];
-
-const systemItems: SidebarItem[] = [
-  { title: 'Integrations', href: '/admin/integrations', icon: Plug, requireSuperAdmin: true },
-  { title: 'System', href: '/admin/system', icon: Monitor, requireSuperAdmin: true },
-  { title: 'Security', href: '/admin/security', icon: Shield, requireSuperAdmin: true },
-  { title: 'Maintenance', href: '/admin/maintenance', icon: Shield, requireSuperAdmin: true },
-  { title: 'Settings', href: '/admin/settings', icon: Settings, requireSuperAdmin: true },
-];
-
-const SidebarItemComponent = ({ item }: { item: SidebarItem }) => {
-  const location = useLocation();
-  const isActive = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);
+const SidebarItem = ({ icon: Icon, label, href, isActive, requireSuperAdmin = false }: SidebarItemProps) => {
   const isSuperAdmin = isSuperAdminAuthenticated();
-  const Icon = item.icon;
-
-  if (item.requireSuperAdmin && !isSuperAdmin) {
-    return (
-      <SidebarMenuItem>
-        <SidebarMenuButton className="opacity-50 cursor-not-allowed" disabled>
-          <Icon className="h-4 w-4" />
-          <span>{item.title}</span>
-          <Crown className="h-3 w-3 text-yellow-400 ml-auto" />
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    );
-  }
-
+  
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
-        <Link to={item.href}>
+        <Link
+          to={href}
+          className={cn(
+            requireSuperAdmin && !isSuperAdmin && 'opacity-50 pointer-events-none',
+            requireSuperAdmin && 'border-l-2 border-yellow-400/60'
+          )}
+          title={requireSuperAdmin && !isSuperAdmin ? 'Super Admin required' : ''}
+        >
           <Icon className="h-4 w-4" />
-          <span>{item.title}</span>
-          {item.requireSuperAdmin && <Crown className="h-3 w-3 text-yellow-400 ml-auto" />}
+          <span>{label}</span>
+          {requireSuperAdmin && <Crown className="h-3 w-3 text-yellow-400 ml-auto" />}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
 };
 
-export const ModernAdminSidebar: React.FC = () => {
+export const ModernAdminSidebar = () => {
+  const location = useLocation();
+  const pathname = location.pathname;
   const adminRole = getAdminRole();
+  const isSuperAdmin = isSuperAdminAuthenticated();
+
+  const mainItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin', requireSuperAdmin: false },
+    { icon: Users, label: 'Users', href: '/admin/users', requireSuperAdmin: false },
+    { icon: UserCog, label: 'User Types', href: '/admin/user-types', requireSuperAdmin: true },
+    { icon: ChefHat, label: 'Recipes', href: '/admin/recipes', requireSuperAdmin: false },
+    { icon: ShoppingBag, label: 'Ingredients', href: '/admin/ingredients', requireSuperAdmin: false },
+  ];
+
+  const contentItems = [
+    { icon: Image, label: 'Ingredient Images', href: '/admin/ingredient-images', requireSuperAdmin: false },
+    { icon: Image, label: 'Image Control', href: '/admin/images', requireSuperAdmin: false },
+    { icon: Globe, label: 'Translations', href: '/admin/translations', requireSuperAdmin: false },
+    { icon: Languages, label: 'Languages', href: '/admin/languages', requireSuperAdmin: false },
+  ];
+
+  const businessItems = [
+    { icon: CreditCard, label: 'Subscriptions', href: '/admin/subscriptions', requireSuperAdmin: false },
+    { icon: DollarSign, label: 'Accounting', href: '/admin/accounting', requireSuperAdmin: true },
+    { icon: Award, label: 'Rewards', href: '/admin/rewards', requireSuperAdmin: false },
+    { icon: MessageSquare, label: 'Communications', href: '/admin/communications', requireSuperAdmin: false },
+    { icon: Megaphone, label: 'Advertisements', href: '/admin/advertisements', requireSuperAdmin: false },
+    { icon: Users2, label: 'Community', href: '/admin/community', requireSuperAdmin: false },
+  ];
+
+  const systemItems = [
+    { icon: Cpu, label: 'Integrations', href: '/admin/integrations', requireSuperAdmin: true },
+    { icon: Server, label: 'System', href: '/admin/system', requireSuperAdmin: true },
+    { icon: BarChart, label: 'Analytics', href: '/admin/analytics', requireSuperAdmin: false },
+    { icon: Shield, label: 'Security', href: '/admin/security', requireSuperAdmin: true },
+    { icon: Wrench, label: 'Maintenance', href: '/admin/maintenance', requireSuperAdmin: true },
+    { icon: Settings, label: 'Settings', href: '/admin/settings', requireSuperAdmin: true },
+  ];
 
   return (
-    <Sidebar variant="sidebar" className="bg-gray-900 text-white border-gray-800">
-      <SidebarHeader className="border-b border-gray-800 p-4">
-        <div className="flex items-center space-x-3">
+    <Sidebar>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-4 py-2">
           <div className="w-8 h-8 bg-wasfah-bright-teal rounded-lg flex items-center justify-center">
             <WasfahLogo className="h-5 w-5 text-white" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">Admin Panel</h2>
-            <div className="flex items-center gap-1">
-              <p className="text-xs text-gray-400">Wasfah Management</p>
-              {adminRole === 'superadmin' && (
-                <>
-                  <Crown className="h-3 w-3 text-yellow-400" />
-                  <span className="text-xs text-yellow-400">Super Admin</span>
-                </>
-              )}
-            </div>
+          <div className="flex flex-col">
+            <span className="font-bold text-sm">Wasfah Admin</span>
+            {adminRole === 'superadmin' && (
+              <div className="flex items-center">
+                <Crown className="h-3 w-3 text-yellow-400 mr-1" />
+                <span className="text-xs text-yellow-600">Super Admin</span>
+              </div>
+            )}
           </div>
         </div>
       </SidebarHeader>
-
-      <SidebarContent className="bg-gray-900">
+      
+      <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">
-            Main
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarItemComponent key={item.href} item={item} />
+                <SidebarItem
+                  key={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  href={item.href}
+                  isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                  requireSuperAdmin={item.requireSuperAdmin}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator className="bg-gray-800" />
-
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">
-            Content
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Content</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {contentItems.map((item) => (
-                <SidebarItemComponent key={item.href} item={item} />
+                <SidebarItem
+                  key={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  href={item.href}
+                  isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                  requireSuperAdmin={item.requireSuperAdmin}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator className="bg-gray-800" />
-
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">
-            Business
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Business</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {businessItems.map((item) => (
-                <SidebarItemComponent key={item.href} item={item} />
+                <SidebarItem
+                  key={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  href={item.href}
+                  isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                  requireSuperAdmin={item.requireSuperAdmin}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator className="bg-gray-800" />
-
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">
-            System
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>System</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {systemItems.map((item) => (
-                <SidebarItemComponent key={item.href} item={item} />
+                <SidebarItem
+                  key={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  href={item.href}
+                  isActive={pathname === item.href || pathname.startsWith(`${item.href}/`)}
+                  requireSuperAdmin={item.requireSuperAdmin}
+                />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-gray-800 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold",
-              adminRole === 'superadmin' ? 'bg-yellow-500' : 'bg-wasfah-bright-teal'
-            )}>
-              {adminRole === 'superadmin' ? 'SA' : 'A'}
+      
+      <SidebarFooter>
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center min-w-0">
+              <div className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0",
+                adminRole === 'superadmin' ? 'bg-yellow-500' : 'bg-wasfah-bright-teal'
+              )}>
+                {adminRole === 'superadmin' ? 'SA' : 'A'}
+              </div>
+              <div className="ml-2 min-w-0">
+                <p className="text-xs font-medium flex items-center">
+                  {adminRole === 'superadmin' ? 'Super Admin' : 'Admin User'}
+                  {adminRole === 'superadmin' && <Crown className="h-2 w-2 text-yellow-400 ml-1" />}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-white flex items-center">
-                {adminRole === 'superadmin' ? 'Super Admin' : 'Admin User'}
-              </p>
-              <p className="text-xs text-gray-300">
-                {adminRole === 'superadmin' ? 'superadmin@wasfahai.com' : 'admin@wasfahai.com'}
-              </p>
-            </div>
+            <AdminLogoutLink />
           </div>
         </div>
-        <Button 
-          variant="outline" 
-          className="w-full mt-3 text-gray-300 border-gray-600 hover:bg-gray-800"
-          asChild
-        >
-          <Link to="/home">Back to App</Link>
-        </Button>
       </SidebarFooter>
     </Sidebar>
   );
