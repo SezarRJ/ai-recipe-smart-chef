@@ -1,213 +1,584 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, ElementType, useEffect } from 'react';
+import {
+  Utensils, Cake, Coffee, Camera, Mic, Soup, Salad, Egg, Milk, Drumstick,
+  LeafyGreen, Carrot, IceCream, Cookie, Wine, Beer, ChefHat,
+  Sparkles, Wheat, Fish, GlassWater, Package2, Loader2,
+} from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, X, Filter } from 'lucide-react';
+import { CategorySelector } from '@/components/ingredients/CategorySelector';
+import { IngredientManager } from '@/components/ingredients/IngredientManager';
+import { FilterPanel } from '@/components/ingredients/FilterPanel';
+import { SearchSummary } from '@/components/ingredients/SearchSummary';
+import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { useToast } from '@/hooks/use-toast';
-import { IngredientImage } from '@/types/recipe';
 import { useRTL } from '@/contexts/RTLContext';
+import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { Recipe } from '@/types/index';
+import { supabase } from '@/integrations/supabase/client';
+import { useLocation } from 'react-router-dom';
 
-interface Filters {
-  dietary: string[];
-  cookTime: string[];
-  difficulty: string[];
-  cuisine: string[];
+interface MainCategory {
+  id: string;
+  name: string;
+  icon: ElementType;
+  subcategories: { name: string; icon: ElementType; requiresCustomForm?: boolean }[];
 }
 
-interface FilterOptions {
-  dietary: string[];
-  cookTime: string[];
-  difficulty: string[];
-  cuisine: string[];
+interface AIFilters {
+  dietary: string;
+  cookTime: string;
+  difficulty: string;
+  cuisine: string;
 }
 
-const FindByIngredientsPage = () => {
-  const { t } = useRTL();
-  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [availableIngredients, setAvailableIngredients] = useState<IngredientImage[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+interface Ingredient {
+  id: string;
+  name: string;
+  quantity: string;
+  unit: string;
+  source: 'manual' | 'pantry';
+  icon?: ElementType;
+}
+
+interface PantryItem {
+  id: string;
+  name: string;
+  quantity: string;
+  unit: string;
+  icon?: ElementType;
+}
+
+export default function FindByIngredients() {
   const { toast } = useToast();
+  const { t } = useRTL();
+  const location = useLocation();
 
-  const [filters, setFilters] = useState<Filters>({
-    dietary: [],
-    cookTime: [],
-    difficulty: [],
-    cuisine: []
+  // Get ingredients from previous page if navigated from ingredient selection
+  const stateIngredients = location.state?.selectedIngredients || [];
+
+  // --- Categories, Filters, Pantry ---
+  const mainCategories: MainCategory[] = [
+    {
+      id: 'food',
+      name: 'Food',
+      icon: ChefHat,
+      subcategories: [
+        { name: 'Main Dishes', icon: ChefHat },
+        { name: 'Appetizers', icon: Salad },
+        { name: 'Pickles', icon: Package2 },
+        { name: 'Soups', icon: Soup },
+        { name: 'Sauces', icon: Utensils },
+        { name: 'Others', icon: Utensils }
+      ]
+    },
+    {
+      id: 'desserts',
+      name: 'Desserts',
+      icon: Cake,
+      subcategories: [
+        { name: 'Traditional', icon: Cookie },
+        { name: 'Western', icon: IceCream },
+        { name: 'Pastries', icon: Cake },
+        { name: 'Ice Cream', icon: IceCream },
+        { name: 'Others', icon: Sparkles }
+      ]
+    },
+    {
+      id: 'drinks',
+      name: 'Drinks',
+      icon: Coffee,
+      subcategories: [
+        { name: 'Detox', icon: GlassWater },
+        { name: 'Cocktails', icon: Wine },
+        { name: 'Alcoholic', icon: Beer, requiresCustomForm: true },
+        { name: 'Hot Drinks', icon: Coffee },
+        { name: 'Others', icon: GlassWater }
+      ]
+    },
+  ];
+
+  const AI_FILTER_OPTIONS = {
+    dietary: ['Normal', 'Healthy', 'Vegetarian', 'Vegan', 'Gluten-Free'],
+    cookTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'],
+    difficulty: ['Beginner', 'Intermediate', 'Expert'],
+    cuisine: ['Levant', 'Italian', 'Mexican', 'Chinese', 'Indian', 'American'],
+  };
+
+  const PANTRY_ITEMS: PantryItem[] = [
+    { id: 'p1', name: 'Flour', quantity: '1', unit: 'kg', icon: Wheat },
+    { id: 'p2', name: 'Sugar', quantity: '500', unit: 'g', icon: Sparkles },
+    { id: 'p3', name: 'Eggs', quantity: '6', unit: 'pcs', icon: Egg },
+    { id: 'p4', name: 'Milk', quantity: '1', unit: 'liter', icon: Milk },
+    { id: 'p5', name: 'Chicken Breast', quantity: '500', unit: 'g', icon: Drumstick },
+    { id: 'p6', name: 'Spinach', quantity: '200', unit: 'g', icon: LeafyGreen },
+    { id: 'p7', name: 'Cheese', quantity: '300', unit: 'g', icon: Package2 },
+    { id: 'p8', name: 'Salmon', quantity: '400', unit: 'g', icon: Fish },
+    { id: 'p9', name: 'Shrimp', quantity: '500', unit: 'g', icon: Fish },
+    { id: 'p10', name: 'Carrots', quantity: '5', unit: 'pcs', icon: Carrot },
+  ];
+
+  // --- State ---
+  const [currentStep, setCurrentStep] = useState(stateIngredients.length > 0 ? 4 : 1);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(
+    stateIngredients.length > 0 ? mainCategories[0] : null
+  );
+  const [selectedSubcategory, setSelectedSubcategory] = useState<{ name: string; icon: ElementType; requiresCustomForm?: boolean } | null>(
+    stateIngredients.length > 0 ? mainCategories[0].subcategories[0] : null
+  );
+  const [filters, setFilters] = useState<AIFilters>({
+    dietary: '',
+    cookTime: '',
+    difficulty: '',
+    cuisine: '',
   });
+  const [addedIngredients, setAddedIngredients] = useState<Ingredient[]>([]);
+  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkOptions | null>(null);
+  const [searchResults, setSearchResults] = useState<Recipe[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
-  const filterOptions: FilterOptions = {
-    dietary: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free'],
-    cookTime: ['Under 15 min', '15-30 min', '30-60 min', 'Over 1 hour'],
-    difficulty: ['Easy', 'Medium', 'Hard'],
-    cuisine: ['Italian', 'Asian', 'Mexican', 'Indian', 'Mediterranean']
-  };
-
-  const handleFilterChange = (filterType: keyof Filters, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: prev[filterType].includes(value)
-        ? prev[filterType].filter(item => item !== value)
-        : [...prev[filterType], value]
-    }));
-  };
-
+  // Initialize ingredients from previous page
   useEffect(() => {
-    const mockIngredientImages: IngredientImage[] = [
-      {
-        id: '1',
-        ingredient_name: 'Tomato',
-        name: 'Tomato',
-        image_url: 'https://images.unsplash.com/photo-1546470427-e-576x300?crop=1',
-        alt_text: 'Fresh tomato',
-        category: 'vegetables',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-    setAvailableIngredients(mockIngredientImages);
+    if (stateIngredients.length > 0) {
+      const initialIngredients: Ingredient[] = stateIngredients.map((name: string, index: number) => ({
+        id: `from-selection-${index}`,
+        name,
+        quantity: '1',
+        unit: 'cup',
+        source: 'manual' as const
+      }));
+      setAddedIngredients(initialIngredients);
+    }
   }, []);
 
-  const addIngredient = (ingredient: string) => {
-    if (!selectedIngredients.includes(ingredient)) {
-      setSelectedIngredients([...selectedIngredients, ingredient]);
+  // --- Handlers ---
+  const handleCategorySelect = (category: MainCategory) => {
+    setSelectedCategory(category);
+    setSelectedSubcategory(null);
+    if (!stateIngredients.length) {
+      setAddedIngredients([]);
     }
+    setCustomDrinkOptions(null);
+    setSearchResults([]);
+    setShowResults(false);
+    setCurrentStep(2);
   };
 
-  const removeIngredient = (ingredient: string) => {
-    setSelectedIngredients(selectedIngredients.filter(i => i !== ingredient));
+  const handleSubcategorySelect = (subcategory: { name: string; icon: ElementType; requiresCustomForm?: boolean }) => {
+    setSelectedSubcategory(subcategory);
+    if (!stateIngredients.length) {
+      setAddedIngredients([]);
+    }
+    setCustomDrinkOptions(null);
+    setSearchResults([]);
+    setShowResults(false);
+    setCurrentStep(3);
   };
 
-  const findRecipes = () => {
-    if (selectedIngredients.length === 0) {
+  const handleFilterChange = (filterType: keyof AIFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [filterType]: value }));
+  };
+
+  const handleAddIngredient = (ingredient: Ingredient) => {
+    const ingredientWithId = ingredient.id ? ingredient : { ...ingredient, id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` };
+    setAddedIngredients(prev => [...prev, ingredientWithId]);
+  };
+
+  const handleAddPantryItem = (item: PantryItem) => {
+    const isAlreadyAdded = addedIngredients.some(ing => ing.name === item.name);
+    if (isAlreadyAdded) {
       toast({
-        title: t("No ingredients selected", "لم يتم اختيار مكونات"),
-        description: t("Please select at least one ingredient", "يرجى اختيار مكون واحد على الأقل"),
-        variant: "destructive"
+        title: t('error.alreadyAdded') || "Already Added",
+        description: `${item.name} ${t('error.alreadyInList') || 'is already in your list.'}`,
+        variant: "default",
       });
       return;
     }
-    
+    setAddedIngredients(prev => [...prev, {
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      source: 'pantry',
+      icon: item.icon
+    }]);
+  };
+
+  const handleRemoveIngredient = (id: string) => {
+    setAddedIngredients(prev => prev.filter(ing => ing.id !== id));
+  };
+
+  const handleScanIngredients = () => {
     toast({
-      title: t("Finding recipes...", "جاري البحث عن الوصفات..."),
-      description: `${t("Searching for recipes with", "البحث عن وصفات تحتوي على")} ${selectedIngredients.join(', ')}`
+      title: t('feature.scan') || "Scan Feature",
+      description: t('feature.scanDescription') || "Camera scanning feature will be implemented soon!",
     });
   };
 
-  const filteredIngredients = availableIngredients.filter(ingredient =>
-    ingredient.ingredient_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleVoiceInput = () => {
+    toast({
+      title: t('feature.voice') || "Voice Feature",
+      description: t('feature.voiceDescription') || "Voice input feature will be implemented soon!",
+    });
+  };
+
+  const handleGenerateCustomDrink = (options: DrinkOptions) => {
+    setCustomDrinkOptions(options);
+    setCurrentStep(4);
+  };
+
+  // --- AI-powered Search ---
+  const handleSearchRecipes = async () => {
+    const isAlcoholicDrinkSearch = selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
+    if (!isAlcoholicDrinkSearch && addedIngredients.length === 0) {
+      toast({
+        title: t('Error', 'خطأ'),
+        description: t('Please select at least one ingredient', 'يرجى اختيار مكون واحد على الأقل'),
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsSearching(true);
+    try {
+      let results: Recipe[] = [];
+      if (isAlcoholicDrinkSearch && customDrinkOptions) {
+        toast({
+          title: t('Custom Drinks', 'المشروبات المخصصة'),
+          description: t('Custom drink generation coming soon!', 'توليد المشروبات المخصصة قريباً!'),
+        });
+        results = [];
+      } else {
+        // Use AI-powered search with optimized query for mobile
+        const ingredientNames = addedIngredients.map(ing => ing.name);
+        const aiQuery = `Generate 3-4 quick and easy recipes using: ${ingredientNames.join(', ')}.
+
+Return ONLY valid JSON array. Format:
+[{
+  "title": "Recipe Name",
+  "description": "Brief description", 
+  "difficulty": "Easy",
+  "prep_time": 10,
+  "cook_time": 20,
+  "servings": 4,
+  "cuisine_type": "International",
+  "calories": 300,
+  "ingredients": [{"name": "ingredient", "amount": 1, "unit": "cup"}],
+  "instructions": ["Step 1", "Step 2"]
+}]
+
+Focus on practical recipes that can be made with the ingredients provided.`;
+
+        const { data: aiResponse, error: aiError } = await supabase.functions.invoke('ai-chef', {
+          body: {
+            query: aiQuery,
+            context: {
+              selectedIngredients: ingredientNames,
+              requestType: 'recipe_generation',
+              responseFormat: 'json_array'
+            }
+          }
+        });
+
+        if (aiError) throw new Error(`AI service error: ${aiError.message || 'Unknown error'}`);
+        if (!aiResponse || !aiResponse.response) throw new Error('Invalid or empty response from AI service');
+
+        let aiRecipes = [];
+        try {
+          const responseText = aiResponse.response.trim();
+          if (responseText.startsWith('[') && responseText.endsWith(']')) {
+            aiRecipes = JSON.parse(responseText);
+          } else {
+            // Fallback parsing logic
+            const jsonArrayMatch = responseText.match(/\[[\s\S]*\]/);
+            if (jsonArrayMatch) {
+              aiRecipes = JSON.parse(jsonArrayMatch[0]);
+            } else {
+              // Create fallback recipe
+              aiRecipes = [
+                {
+                  title: `Recipe with ${ingredientNames.slice(0, 2).join(' & ')}`,
+                  description: `A delicious combination using ${ingredientNames.join(', ')}.`,
+                  difficulty: 'Easy',
+                  prep_time: 10,
+                  cook_time: 20,
+                  servings: 4,
+                  cuisine_type: 'Fusion',
+                  calories: 300,
+                  instructions: [
+                    'Prepare all ingredients',
+                    'Heat oil in a pan',
+                    'Add ingredients and cook',
+                    'Season and serve'
+                  ],
+                  ingredients: ingredientNames.map(ing => ({
+                    name: ing,
+                    amount: 1,
+                    unit: 'cup'
+                  }))
+                }
+              ];
+            }
+          }
+          if (!Array.isArray(aiRecipes) || aiRecipes.length === 0) throw new Error('No valid recipes found');
+        } catch {
+          // Fallback recipe
+          aiRecipes = [
+            {
+              title: `Creative Recipe with ${ingredientNames.slice(0, 2).join(' & ')}`,
+              description: `A delicious combination using ${ingredientNames.join(', ')}.`,
+              difficulty: 'Medium',
+              prep_time: 15,
+              cook_time: 25,
+              servings: 4,
+              cuisine_type: 'Fusion',
+              calories: 320,
+              instructions: [
+                'Prepare and wash all ingredients',
+                'Heat oil in a large pan',
+                'Add ingredients in order of cook time needed',
+                'Season with salt, pepper, and preferred spices',
+                'Cook until ingredients are tender',
+                'Adjust seasoning and serve hot'
+              ],
+              ingredients: ingredientNames.map(ing => ({
+                name: ing,
+                amount: 1,
+                unit: 'cup'
+              }))
+            }
+          ];
+        }
+
+        // Transform to Recipe format with correct properties for @/types/index Recipe interface
+        results = aiRecipes.map((recipe: any, index: number): Recipe => ({
+          id: `ai-recipe-${Date.now()}-${index}`,
+          title: recipe.title || `Recipe with ${ingredientNames.join(', ')}`,
+          description: recipe.description || `A recipe using ${ingredientNames.join(', ')}`,
+          image: '',
+          image_url: '',
+          prepTime: recipe.prep_time || 15,
+          prep_time: recipe.prep_time || 15,
+          cookTime: recipe.cook_time || 30,
+          cook_time: recipe.cook_time || 30,
+          servings: recipe.servings || 4,
+          difficulty: recipe.difficulty || 'Medium',
+          calories: recipe.calories || 300,
+          rating: 0,
+          ratingCount: 0,
+          instructions: Array.isArray(recipe.instructions) ? recipe.instructions :
+            (recipe.instructions ? [recipe.instructions] : ['Follow recipe steps']),
+          categories: [],
+          tags: ['AI Generated'],
+          isFavorite: false,
+          cuisineType: recipe.cuisine_type || 'Fusion',
+          cuisine_type: recipe.cuisine_type || 'Fusion',
+          status: 'published' as const,
+          author_id: 'ai-chef',
+          is_verified: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ingredients: Array.isArray(recipe.ingredients) ?
+            recipe.ingredients.map((ing: any) => ({
+              id: `ing-${Math.random()}`,
+              name: typeof ing === 'string' ? ing : (ing.name || ing.ingredient || 'Unknown'),
+              amount: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
+              unit: typeof ing === 'object' ? (ing.unit || 'cup') : 'cup',
+              inPantry: false
+            })) :
+            ingredientNames.map(ing => ({
+              id: `ing-${Math.random()}`,
+              name: ing,
+              amount: 1,
+              unit: 'cup',
+              inPantry: false
+            }))
+        }));
+
+      }
+
+      setSearchResults(results);
+      setShowResults(true);
+
+      if (results.length === 0) {
+        toast({
+          title: t('No Results Found', 'لم يتم العثور على نتائج'),
+          description: t('No recipes found with your selected ingredients. Try different ingredients or remove some filters.', 'لم يتم العثور على وصفات بالمكونات المختارة. جرب مكونات أخرى أو احذف بعض المرشحات.'),
+        });
+      } else {
+        toast({
+          title: t('Search Complete', 'اكتمل البحث'),
+          description: `${t('Found', 'تم العثور على')} ${results.length} ${t('recipes', 'وصفة')}!`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: t('Error', 'خطأ'),
+        description: error.message || t('Failed to search recipes. Please try again.', 'فشل في البحث عن الوصفات. يرجى المحاولة مرة أخرى.'),
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // --- Step Indicator ---
+  const renderStepIndicator = () => (
+    <div className="flex justify-center mb-6">
+      <div className="flex space-x-2">
+        {[1, 2, 3, 4].map((step) => (
+          <div
+            key={step}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+              step <= currentStep
+                ? 'bg-wasfah-bright-teal text-white'
+                : 'bg-gray-200 text-gray-500'
+            }`}
+          >
+            {step}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 
+  const showDrinkCustomizationForm = currentStep === 3 && selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
+
+  // --- Results View ---
+  if (showResults) {
+    return (
+      <PageContainer
+        header={{
+          title: t('Search Results', 'نتائج البحث'),
+          showBackButton: true
+        }}
+        className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
+      >
+        <div className="space-y-6 pb-6">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">
+              {t(`Found ${searchResults.length} recipes`, `تم العثور على ${searchResults.length} وصفة`)}
+            </h2>
+            <p className="text-gray-600">
+              {t('Recipes using your selected ingredients', 'وصفات باستخدام المكونات المختارة')}
+            </p>
+          </div>
+          <RecipeGrid recipes={searchResults} />
+          {searchResults.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <ChefHat className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">
+                {t('No recipes found', 'لم يتم العثور على وصفات')}
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {t('Try different ingredients or adjust your filters', 'جرب مكونات مختلفة أو عدل المرشحات')}
+              </p>
+            </div>
+          )}
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // --- Main Multi-Step UI ---
   return (
     <PageContainer
       header={{
-        title: t("Find by Ingredients", "البحث بالمكونات"),
-        showBackButton: true
+        title: t('Find Recipe', 'ابحث عن وصفة'),
+        showBackButton: true,
       }}
+      className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
     >
-      <div className="space-y-6 pb-24">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                {t("Search Ingredients", "البحث في المكونات")}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                {t("Filters", "المرشحات")}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder={t("Search ingredients...", "البحث في المكونات...")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+      <div className="space-y-6 pb-6">
+        {renderStepIndicator()}
+
+        <FilterPanel
+          filters={filters}
+          filterOptions={AI_FILTER_OPTIONS}
+          showFilters={showFilters}
+          onFilterChange={handleFilterChange}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          onCloseFilters={() => setShowFilters(false)}
+        />
+
+        {currentStep === 1 && (
+          <CategorySelector
+            categories={mainCategories}
+            selectedCategory={selectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            currentStep={currentStep}
+            onCategorySelect={handleCategorySelect}
+            onSubcategorySelect={handleSubcategorySelect}
+            onBack={() => {}}
+          />
+        )}
+
+        {currentStep === 2 && selectedCategory && (
+          <CategorySelector
+            categories={mainCategories}
+            selectedCategory={selectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            currentStep={currentStep}
+            onCategorySelect={handleCategorySelect}
+            onSubcategorySelect={handleSubcategorySelect}
+            onBack={() => setCurrentStep(1)}
+          />
+        )}
+
+        {currentStep === 3 && (
+          showDrinkCustomizationForm ? (
+            <DrinkCustomizationForm
+              onGenerateDrink={handleGenerateCustomDrink}
+              onBack={() => setCurrentStep(2)}
+            />
+          ) : (
+            <>
+              <IngredientManager
+                addedIngredients={addedIngredients}
+                pantryItems={PANTRY_ITEMS}
+                onAddIngredient={handleAddIngredient}
+                onRemoveIngredient={handleRemoveIngredient}
+                onAddPantryItem={handleAddPantryItem}
+                onScanIngredients={handleScanIngredients}
+                onVoiceInput={handleVoiceInput}
               />
-            </div>
-
-            {showFilters && (
-              <Card className="p-4">
-                <div className="space-y-4">
-                  {Object.entries(filterOptions).map(([filterType, options]) => (
-                    <div key={filterType}>
-                      <h4 className="font-medium mb-2 capitalize">{filterType}</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {options.map((option) => (
-                          <Badge
-                            key={option}
-                            variant={filters[filterType as keyof Filters].includes(option) ? "default" : "outline"}
-                            className="cursor-pointer"
-                            onClick={() => handleFilterChange(filterType as keyof Filters, option)}
-                          >
-                            {option}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {filteredIngredients.map((ingredient) => (
-                <Card 
-                  key={ingredient.id} 
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => addIngredient(ingredient.ingredient_name)}
+              <div className="pt-4">
+                <button
+                  onClick={() => setCurrentStep(4)}
+                  disabled={addedIngredients.length === 0}
+                  className="w-full h-12 mt-6 bg-wasfah-bright-teal hover:bg-wasfah-teal text-white disabled:bg-gray-300 rounded-lg font-medium transition-colors"
                 >
-                  <CardContent className="p-4 text-center">
-                    <img
-                      src={ingredient.image_url}
-                      alt={ingredient.alt_text}
-                      className="w-full h-20 object-cover rounded-md mb-2"
-                    />
-                    <p className="text-sm font-medium">{ingredient.ingredient_name}</p>
-                    <Button size="sm" className="mt-2 w-full">
-                      <Plus className="h-4 w-4 mr-1" />
-                      {t("Add", "إضافة")}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  {t('Continue to Search', 'متابعة للبحث')}
+                </button>
+              </div>
+            </>
+          )
+        )}
 
-            {selectedIngredients.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-medium">{t("Selected Ingredients:", "المكونات المختارة:")}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {selectedIngredients.map((ingredient) => (
-                    <Badge key={ingredient} variant="secondary" className="flex items-center gap-1">
-                      {ingredient}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
-                        onClick={() => removeIngredient(ingredient)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
+        {currentStep === 4 && (
+          <>
+            <SearchSummary
+              selectedCategory={selectedCategory}
+              selectedSubcategory={selectedSubcategory}
+              ingredientCount={showDrinkCustomizationForm ? 0 : addedIngredients.length}
+              filterCount={Object.values(filters).filter(v => v).length}
+              customDrinkOptions={customDrinkOptions}
+              onSearch={handleSearchRecipes}
+            />
+            {isSearching && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-wasfah-bright-teal mr-2" />
+                <span className="text-gray-600">
+                  {t('Searching for recipes...', 'البحث عن الوصفات...')}
+                </span>
               </div>
             )}
-
-            <Button onClick={findRecipes} className="w-full" size="lg">
-              {t("Find Recipes", "البحث عن الوصفات")} ({selectedIngredients.length} {t("ingredients", "مكونات")})
-            </Button>
-          </CardContent>
-        </Card>
+          </>
+        )}
       </div>
     </PageContainer>
   );
-};
-
-export default FindByIngredientsPage;
+}
