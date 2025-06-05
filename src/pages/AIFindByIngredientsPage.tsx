@@ -12,7 +12,7 @@ import { SearchSummary } from '@/components/ingredients/SearchSummary';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
-import { DrinkCustomizationForm, DrinkOptions as DrinkFormOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { DrinkCustomizationForm } from '@/components/drinks/DrinkCustomizationForm';
 import { Recipe } from '@/types/index';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
@@ -46,6 +46,14 @@ interface PantryItem {
   quantity: string;
   unit: string;
   icon?: ElementType;
+}
+
+interface DrinkFormOptions {
+  alcoholType: string;
+  strength: string;
+  flavor: string;
+  occasion: string;
+  temperature: string;
 }
 
 export default function FindByIngredients() {
@@ -249,7 +257,6 @@ export default function FindByIngredients() {
         });
         results = [];
       } else {
-        // Use AI-powered search with optimized query for mobile
         const ingredientNames = addedIngredients.map(ing => ing.name);
         const aiQuery = `Generate 3-4 quick and easy recipes using: ${ingredientNames.join(', ')}.
 
@@ -289,12 +296,10 @@ Focus on practical recipes that can be made with the ingredients provided.`;
           if (responseText.startsWith('[') && responseText.endsWith(']')) {
             aiRecipes = JSON.parse(responseText);
           } else {
-            // Fallback parsing logic
             const jsonArrayMatch = responseText.match(/\[[\s\S]*\]/);
             if (jsonArrayMatch) {
               aiRecipes = JSON.parse(jsonArrayMatch[0]);
             } else {
-              // Create fallback recipe
               aiRecipes = [
                 {
                   title: `Recipe with ${ingredientNames.slice(0, 2).join(' & ')}`,
@@ -322,7 +327,6 @@ Focus on practical recipes that can be made with the ingredients provided.`;
           }
           if (!Array.isArray(aiRecipes) || aiRecipes.length === 0) throw new Error('No valid recipes found');
         } catch {
-          // Fallback recipe
           aiRecipes = [
             {
               title: `Creative Recipe with ${ingredientNames.slice(0, 2).join(' & ')}`,
@@ -350,7 +354,6 @@ Focus on practical recipes that can be made with the ingredients provided.`;
           ];
         }
 
-        // Transform to Recipe format with correct properties for @/types/index Recipe interface
         results = aiRecipes.map((recipe: any, index: number): Recipe => ({
           id: `ai-recipe-${Date.now()}-${index}`,
           title: recipe.title || `Recipe with ${ingredientNames.join(', ')}`,

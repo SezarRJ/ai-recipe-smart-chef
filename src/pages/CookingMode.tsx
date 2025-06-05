@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { Recipe } from "@/types/index";
 import { VoiceRecipeAssistant } from "@/components/ai/VoiceRecipeAssistant";
+import { TimerOverlay } from "@/components/recipe/TimerOverlay";
 
 const CookingMode = () => {
   const { id } = useParams();
@@ -12,6 +14,7 @@ const CookingMode = () => {
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [isAutoMode, setIsAutoMode] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
 
   useEffect(() => {
     // Simulate fetching recipe data
@@ -50,8 +53,7 @@ const CookingMode = () => {
           { id: "8", name: "Fresh parsley", amount: 0.25, unit: "cup" }
         ],
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_public: true
+        updated_at: new Date().toISOString()
       });
       setLoading(false);
     }, 1000);
@@ -134,6 +136,13 @@ const CookingMode = () => {
                 {isAutoMode ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 {isAutoMode ? 'Pause Auto' : 'Auto Mode'}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTimer(true)}
+              >
+                Timer
+              </Button>
             </div>
           </div>
           
@@ -201,6 +210,14 @@ const CookingMode = () => {
             ))}
           </div>
         </div>
+
+        {/* Timer Overlay */}
+        <TimerOverlay
+          isOpen={showTimer}
+          onClose={() => setShowTimer(false)}
+          initialMinutes={5}
+          stepDescription={`Step ${currentStep + 1}: ${recipe.instructions[currentStep]}`}
+        />
       </div>
     </div>
   );
