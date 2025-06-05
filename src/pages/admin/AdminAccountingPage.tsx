@@ -1,209 +1,189 @@
 
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { Search, DollarSign, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
-const mockTransactions = [
-  {
-    id: 'TXN-001',
-    type: 'subscription',
-    amount: 9.99,
-    currency: 'USD',
-    status: 'completed',
-    user: 'Sarah Johnson',
-    date: '2024-01-15',
-    plan: 'Premium Monthly'
-  },
-  {
-    id: 'TXN-002',
-    type: 'refund',
-    amount: -4.99,
-    currency: 'USD',
-    status: 'completed',
-    user: 'Ahmed Hassan',
-    date: '2024-01-14',
-    plan: 'Basic Monthly'
-  },
-  {
-    id: 'TXN-003',
-    type: 'subscription',
-    amount: 99.99,
-    currency: 'USD',
-    status: 'pending',
-    user: 'Maria Garcia',
-    date: '2024-01-13',
-    plan: 'Premium Annual'
-  }
-];
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DollarSign, TrendingUp, TrendingDown, CreditCard, Download, FileText } from 'lucide-react';
 
 const AdminAccountingPage = () => {
-  const [transactions] = useState(mockTransactions);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'subscription': return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case 'refund': return <TrendingDown className="h-4 w-4 text-red-500" />;
-      default: return <DollarSign className="h-4 w-4 text-gray-500" />;
+  const [transactions] = useState([
+    {
+      id: '1',
+      type: 'subscription',
+      amount: 9.99,
+      currency: 'USD',
+      status: 'completed',
+      date: '2024-01-15',
+      user: 'user@example.com',
+      description: 'Premium Monthly Subscription'
+    },
+    {
+      id: '2',
+      type: 'refund',
+      amount: -4.99,
+      currency: 'USD',
+      status: 'processed',
+      date: '2024-01-14',
+      user: 'user2@example.com',
+      description: 'Subscription Refund'
     }
+  ]);
+
+  const stats = {
+    totalRevenue: 15420.50,
+    monthlyRevenue: 2340.25,
+    refunds: 245.00,
+    activeSubscriptions: 156
   };
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      completed: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      failed: 'bg-red-100 text-red-800',
-      cancelled: 'bg-gray-100 text-gray-800'
-    };
-    return <Badge className={variants[status as keyof typeof variants]}>{status}</Badge>;
-  };
-
-  const formatAmount = (amount: number, currency: string) => {
-    const isNegative = amount < 0;
-    const formattedAmount = Math.abs(amount).toFixed(2);
-    return `${isNegative ? '-' : ''}$${formattedAmount}`;
-  };
-
-  const totalRevenue = transactions
-    .filter(t => t.status === 'completed' && t.amount > 0)
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalRefunds = Math.abs(transactions
-    .filter(t => t.status === 'completed' && t.amount < 0)
-    .reduce((sum, t) => sum + t.amount, 0));
-
-  const filteredTransactions = transactions.filter(transaction =>
-    transaction.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    transaction.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
-    <AdminPageWrapper title="Accounting">
+    <AdminPageWrapper title="Accounting & Finance">
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-semibold">Accounting & Finance</h1>
-            <p className="text-muted-foreground">Monitor revenue, transactions, and financial reports.</p>
+            <h1 className="text-2xl font-semibold">Accounting Dashboard</h1>
+            <p className="text-muted-foreground">Financial overview and transaction management.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline">
-              <Calendar className="h-4 w-4 mr-2" />
-              Date Range
-            </Button>
-            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
               Export Report
+            </Button>
+            <Button>
+              <FileText className="h-4 w-4 mr-2" />
+              Generate Invoice
             </Button>
           </div>
         </div>
 
-        {/* Financial Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">${totalRevenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">+12% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Refunds</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">${totalRefunds.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">-5% from last month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-              <DollarSign className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                ${transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</p>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">{transactions.filter(t => t.status === 'pending').length} transactions</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Net Income</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">${(totalRevenue - totalRefunds).toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Current month</p>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                  <p className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <TrendingDown className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Refunds</p>
+                  <p className="text-2xl font-bold">${stats.refunds.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <CreditCard className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Subscriptions</p>
+                  <p className="text-2xl font-bold">{stats.activeSubscriptions}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search transactions..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <Tabs defaultValue="transactions" className="w-full">
+          <TabsList>
+            <TabsTrigger value="transactions">Recent Transactions</TabsTrigger>
+            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+            <TabsTrigger value="reports">Financial Reports</TabsTrigger>
+          </TabsList>
 
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Transaction ID</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">{transaction.id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getTypeIcon(transaction.type)}
-                      <span className="capitalize">{transaction.type}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{transaction.user}</TableCell>
-                  <TableCell>{transaction.plan}</TableCell>
-                  <TableCell>
-                    <span className={transaction.amount < 0 ? 'text-red-600' : 'text-green-600'}>
-                      {formatAmount(transaction.amount, transaction.currency)}
-                    </span>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(transaction.status)}</TableCell>
-                  <TableCell>{transaction.date}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+          <TabsContent value="transactions">
+            <Card>
+              <CardHeader>
+                <CardTitle>Transaction History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Transaction ID</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="font-mono">{transaction.id}</TableCell>
+                        <TableCell className="capitalize">{transaction.type}</TableCell>
+                        <TableCell className={transaction.amount >= 0 ? "text-green-600" : "text-red-600"}>
+                          ${Math.abs(transaction.amount)}
+                        </TableCell>
+                        <TableCell>{transaction.user}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-800">{transaction.status}</Badge>
+                        </TableCell>
+                        <TableCell>{transaction.date}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscriptions">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Subscription management interface will be displayed here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <Card>
+              <CardHeader>
+                <CardTitle>Financial Reports</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Financial reports and analytics will be displayed here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminPageWrapper>
   );

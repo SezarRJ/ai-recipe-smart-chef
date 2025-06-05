@@ -1,849 +1,304 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Mail, Send, Bell, Settings, Users, BarChart3, Eye, Edit, Trash2, Plus, Calendar, Clock, Target, TrendingUp, MessageSquare, Zap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  MessageSquare, 
+  Send, 
+  Mail,
+  Bell,
+  Users,
+  Calendar,
+  BarChart3,
+  Eye,
+  Edit,
+  Trash2
+} from 'lucide-react';
 
-const AdminCommunicationsPage = () => {
-  const { toast } = useToast();
+interface Communication {
+  id: string;
+  title: string;
+  message: string;
+  type: 'email' | 'push' | 'in_app' | 'sms';
+  status: 'draft' | 'scheduled' | 'sent' | 'failed';
+  target_audience: 'all' | 'premium' | 'free' | 'inactive';
+  scheduled_date?: string;
+  sent_date?: string;
+  recipients_count: number;
+  open_rate?: number;
+  click_rate?: number;
+  created_at: string;
+}
 
-  const [campaigns, setCampaigns] = useState([
+export default function AdminCommunicationsPage() {
+  const [selectedTab, setSelectedTab] = useState('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [communications, setCommunications] = useState<Communication[]>([
     {
-      id: 1,
-      name: 'Welcome Series',
-      status: 'active',
+      id: '1',
+      title: 'Welcome to WasfahAI Premium',
+      message: 'Thank you for upgrading to premium!',
       type: 'email',
-      recipients: 1250,
-      openRate: '24.5%',
-      clickRate: '3.2%',
-      scheduled: '2024-01-15',
-      created: '2024-01-10'
-    },
-    {
-      id: 2,
-      name: 'Recipe of the Week',
-      status: 'draft',
-      type: 'push',
-      recipients: 890,
-      openRate: '18.7%',
-      clickRate: '2.8%',
-      scheduled: '2024-01-20',
-      created: '2024-01-12'
-    }
-  ]);
-
-  const [templates, setTemplates] = useState([
-    {
-      id: 1,
-      name: 'Welcome Email',
-      type: 'email',
-      category: 'onboarding',
-      usage: 45,
-      lastModified: '2024-01-10'
-    },
-    {
-      id: 2,
-      name: 'Recipe Notification',
-      type: 'push',
-      category: 'content',
-      usage: 23,
-      lastModified: '2024-01-08'
-    }
-  ]);
-
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'New Recipe Added',
-      message: 'Check out our latest Mediterranean recipe!',
-      type: 'info' as const,
       status: 'sent',
-      recipients: 1200,
-      sent: '2024-01-15 10:30'
+      target_audience: 'premium',
+      sent_date: '2024-01-15',
+      recipients_count: 1250,
+      open_rate: 85,
+      click_rate: 23,
+      created_at: '2024-01-15'
     },
     {
-      id: 2,
-      title: 'Weekly Challenge',
-      message: 'Join this week\'s cooking challenge and win prizes!',
-      type: 'info' as const,
+      id: '2',
+      title: 'New Recipe Collection Available',
+      message: 'Check out our new Mediterranean collection',
+      type: 'push',
+      status: 'sent',
+      target_audience: 'all',
+      sent_date: '2024-01-20',
+      recipients_count: 5400,
+      open_rate: 72,
+      click_rate: 15,
+      created_at: '2024-01-20'
+    },
+    {
+      id: '3',
+      title: 'Weekly Recipe Digest',
+      message: 'Your personalized recipe recommendations',
+      type: 'email',
       status: 'scheduled',
-      recipients: 950,
-      sent: '2024-01-16 09:00'
+      target_audience: 'all',
+      scheduled_date: '2024-06-10',
+      recipients_count: 6200,
+      created_at: '2024-06-05'
     }
   ]);
 
-  const [newCampaign, setNewCampaign] = useState({
-    name: '',
-    type: 'email',
-    subject: '',
-    content: '',
-    audience: 'all',
-    schedule: 'now'
-  });
-
-  const [newTemplate, setNewTemplate] = useState({
-    name: '',
-    type: 'email',
-    category: 'general',
-    subject: '',
-    content: ''
-  });
-
-  const [newNotification, setNewNotification] = useState({
-    title: '',
-    message: '',
-    type: 'info' as const,
-    audience: 'all',
-    schedule: 'now'
-  });
-
-  const analyticsData = {
-    totalCampaigns: 24,
-    activeCampaigns: 8,
-    totalRecipients: 15420,
-    avgOpenRate: '22.3%',
-    avgClickRate: '3.1%',
-    totalNotifications: 156,
-    deliveryRate: '98.7%',
-    unsubscribeRate: '0.8%'
-  };
-
-  const recentActivity = [
-    { action: 'Campaign "Holiday Recipes" sent', timestamp: '2 hours ago', type: 'email' },
-    { action: 'Push notification delivered to 1,200 users', timestamp: '4 hours ago', type: 'push' },
-    { action: 'Email template "Welcome Series" updated', timestamp: '1 day ago', type: 'template' },
-    { action: 'Campaign "Weekly Newsletter" scheduled', timestamp: '2 days ago', type: 'email' }
-  ];
-
-  const handleCreateCampaign = () => {
-    if (!newCampaign.name || !newCampaign.subject || !newCampaign.content) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const campaign = {
-      id: campaigns.length + 1,
-      ...newCampaign,
-      status: 'draft',
-      recipients: 0,
-      openRate: '0%',
-      clickRate: '0%',
-      scheduled: new Date().toISOString().split('T')[0],
-      created: new Date().toISOString().split('T')[0]
+  const getTypeBadge = (type: string) => {
+    const colors = {
+      'email': 'bg-blue-100 text-blue-800',
+      'push': 'bg-green-100 text-green-800',
+      'in_app': 'bg-purple-100 text-purple-800',
+      'sms': 'bg-orange-100 text-orange-800'
     };
-
-    setCampaigns([...campaigns, campaign]);
-    setNewCampaign({
-      name: '',
-      type: 'email',
-      subject: '',
-      content: '',
-      audience: 'all',
-      schedule: 'now'
-    });
-
-    toast({
-      title: "Campaign Created",
-      description: "Your campaign has been created successfully.",
-    });
-  };
-
-  const handleCreateTemplate = () => {
-    if (!newTemplate.name || !newTemplate.content) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const template = {
-      id: templates.length + 1,
-      ...newTemplate,
-      usage: 0,
-      lastModified: new Date().toISOString().split('T')[0]
-    };
-
-    setTemplates([...templates, template]);
-    setNewTemplate({
-      name: '',
-      type: 'email',
-      category: 'general',
-      subject: '',
-      content: ''
-    });
-
-    toast({
-      title: "Template Created",
-      description: "Your template has been created successfully.",
-    });
-  };
-
-  const handleCreateNotification = () => {
-    if (!newNotification.title || !newNotification.message) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const notification = {
-      id: notifications.length + 1,
-      ...newNotification,
-      status: 'draft',
-      recipients: 0,
-      sent: ''
-    };
-
-    setNotifications([...notifications, notification]);
-    setNewNotification({
-      title: '',
-      message: '',
-      type: 'info' as const,
-      audience: 'all',
-      schedule: 'now'
-    });
-
-    toast({
-      title: "Notification Created",
-      description: "Your notification has been created successfully.",
-    });
-  };
-
-  const handleDeleteCampaign = (id: number) => {
-    setCampaigns(campaigns.filter(c => c.id !== id));
-    toast({
-      title: "Campaign Deleted",
-      description: "The campaign has been deleted successfully.",
-    });
-  };
-
-  const handleDeleteTemplate = (id: number) => {
-    setTemplates(templates.filter(t => t.id !== id));
-    toast({
-      title: "Template Deleted",
-      description: "The template has been deleted successfully.",
-    });
-  };
-
-  const handleDeleteNotification = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-    toast({
-      title: "Notification Deleted",
-      description: "The notification has been deleted successfully.",
-    });
+    return <Badge className={colors[type] || 'bg-gray-100 text-gray-800'}>{type}</Badge>;
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      active: 'default',
-      draft: 'secondary',
-      sent: 'default',
-      scheduled: 'outline'
+    const colors = {
+      'draft': 'bg-gray-100 text-gray-800',
+      'scheduled': 'bg-yellow-100 text-yellow-800',
+      'sent': 'bg-green-100 text-green-800',
+      'failed': 'bg-red-100 text-red-800'
     };
-    return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
+    return <Badge className={colors[status] || 'bg-gray-100 text-gray-800'}>{status}</Badge>;
   };
 
-  const getTypeBadge = (type: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      email: 'default',
-      push: 'secondary',
-      sms: 'outline'
-    };
-    return <Badge variant={variants[type] || 'secondary'}>{type}</Badge>;
+  const stats = {
+    totalCommunications: communications.length,
+    sentCommunications: communications.filter(c => c.status === 'sent').length,
+    scheduledCommunications: communications.filter(c => c.status === 'scheduled').length,
+    avgOpenRate: Math.round(communications.reduce((sum, c) => sum + (c.open_rate || 0), 0) / communications.length)
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Communications</h1>
-          <p className="text-gray-600 mt-1">Manage email campaigns, push notifications, and user communications</p>
+          <h1 className="text-3xl font-bold">Communications Management</h1>
+          <p className="text-gray-600">Manage email campaigns, push notifications, and user communications</p>
         </div>
-        <div className="flex space-x-2">
-          <Button>
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Quick Message
-          </Button>
-          <Button>
-            <Zap className="h-4 w-4 mr-2" />
-            Send Notification
-          </Button>
-        </div>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Send className="h-4 w-4 mr-2" />
+              Create Communication
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Communication</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input id="title" placeholder="Communication title" />
+                </div>
+                <div>
+                  <Label htmlFor="type">Type</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="push">Push Notification</SelectItem>
+                      <SelectItem value="in_app">In-App Message</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="message">Message</Label>
+                <Textarea id="message" placeholder="Enter your message" rows={4} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="audience">Target Audience</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select audience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Users</SelectItem>
+                      <SelectItem value="premium">Premium Users</SelectItem>
+                      <SelectItem value="free">Free Users</SelectItem>
+                      <SelectItem value="inactive">Inactive Users</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="schedule">Schedule (Optional)</Label>
+                  <Input id="schedule" type="datetime-local" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button className="flex-1">Create & Send</Button>
+                <Button variant="outline">Save as Draft</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Analytics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Campaigns</p>
-                <p className="text-2xl font-bold text-gray-900">{analyticsData.totalCampaigns}</p>
+                <p className="text-sm font-medium">Total Communications</p>
+                <p className="text-2xl font-bold">{stats.totalCommunications}</p>
               </div>
-              <Mail className="h-8 w-8 text-blue-500" />
             </div>
-            <p className="text-xs text-gray-500 mt-2">{analyticsData.activeCampaigns} active</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Send className="h-4 w-4 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Recipients</p>
-                <p className="text-2xl font-bold text-gray-900">{analyticsData.totalRecipients.toLocaleString()}</p>
+                <p className="text-sm font-medium">Sent</p>
+                <p className="text-2xl font-bold">{stats.sentCommunications}</p>
               </div>
-              <Users className="h-8 w-8 text-green-500" />
             </div>
-            <p className="text-xs text-gray-500 mt-2">Delivery rate: {analyticsData.deliveryRate}</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-orange-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Open Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{analyticsData.avgOpenRate}</p>
+                <p className="text-sm font-medium">Scheduled</p>
+                <p className="text-2xl font-bold">{stats.scheduledCommunications}</p>
               </div>
-              <Eye className="h-8 w-8 text-purple-500" />
             </div>
-            <p className="text-xs text-gray-500 mt-2">Click rate: {analyticsData.avgClickRate}</p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-purple-600" />
               <div>
-                <p className="text-sm font-medium text-gray-600">Notifications</p>
-                <p className="text-2xl font-bold text-gray-900">{analyticsData.totalNotifications}</p>
+                <p className="text-sm font-medium">Avg Open Rate</p>
+                <p className="text-2xl font-bold">{stats.avgOpenRate}%</p>
               </div>
-              <Bell className="h-8 w-8 text-orange-500" />
             </div>
-            <p className="text-xs text-gray-500 mt-2">Unsubscribe: {analyticsData.unsubscribeRate}</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="campaigns" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="campaigns">Email Campaigns</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="notifications">Push Notifications</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* Email Campaigns Tab */}
-        <TabsContent value="campaigns" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Email Campaigns</span>
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Campaign
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {campaigns.map((campaign) => (
-                      <div key={campaign.id} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
-                            {getStatusBadge(campaign.status)}
-                            {getTypeBadge(campaign.type)}
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteCampaign(campaign.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+      {/* Main Content */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Communications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="sent">Sent</TabsTrigger>
+              <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
+              <TabsTrigger value="draft">Drafts</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value={selectedTab} className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Audience</TableHead>
+                    <TableHead>Recipients</TableHead>
+                    <TableHead>Open Rate</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {communications.map((comm) => (
+                    <TableRow key={comm.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{comm.title}</p>
+                          <p className="text-sm text-gray-500 truncate max-w-xs">{comm.message}</p>
                         </div>
-                        <div className="grid grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500">Recipients</p>
-                            <p className="font-medium">{campaign.recipients.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Open Rate</p>
-                            <p className="font-medium">{campaign.openRate}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Click Rate</p>
-                            <p className="font-medium">{campaign.clickRate}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Scheduled</p>
-                            <p className="font-medium">{campaign.scheduled}</p>
-                          </div>
+                      </TableCell>
+                      <TableCell>{getTypeBadge(comm.type)}</TableCell>
+                      <TableCell>{getStatusBadge(comm.status)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{comm.target_audience}</Badge>
+                      </TableCell>
+                      <TableCell>{comm.recipients_count.toLocaleString()}</TableCell>
+                      <TableCell>
+                        {comm.open_rate ? `${comm.open_rate}%` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {comm.sent_date || comm.scheduled_date || comm.created_at}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create New Campaign</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="campaign-name">Campaign Name</Label>
-                    <Input
-                      id="campaign-name"
-                      value={newCampaign.name}
-                      onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})}
-                      placeholder="Enter campaign name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="campaign-type">Type</Label>
-                    <Select value={newCampaign.type} onValueChange={(value) => setNewCampaign({...newCampaign, type: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="push">Push Notification</SelectItem>
-                        <SelectItem value="sms">SMS</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="campaign-subject">Subject</Label>
-                    <Input
-                      id="campaign-subject"
-                      value={newCampaign.subject}
-                      onChange={(e) => setNewCampaign({...newCampaign, subject: e.target.value})}
-                      placeholder="Enter subject line"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="campaign-content">Content</Label>
-                    <Textarea
-                      id="campaign-content"
-                      value={newCampaign.content}
-                      onChange={(e) => setNewCampaign({...newCampaign, content: e.target.value})}
-                      placeholder="Enter campaign content"
-                      rows={4}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="campaign-audience">Audience</Label>
-                    <Select value={newCampaign.audience} onValueChange={(value) => setNewCampaign({...newCampaign, audience: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Users</SelectItem>
-                        <SelectItem value="active">Active Users</SelectItem>
-                        <SelectItem value="premium">Premium Users</SelectItem>
-                        <SelectItem value="new">New Users</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={handleCreateCampaign} className="w-full">
-                    <Send className="h-4 w-4 mr-2" />
-                    Create Campaign
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Templates Tab */}
-        <TabsContent value="templates" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Email Templates</span>
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Template
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {templates.map((template) => (
-                      <div key={template.id} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                            {getTypeBadge(template.type)}
-                            <Badge variant="outline">{template.category}</Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTemplate(template.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500">Usage Count</p>
-                            <p className="font-medium">{template.usage}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Last Modified</p>
-                            <p className="font-medium">{template.lastModified}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create New Template</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="template-name">Template Name</Label>
-                    <Input
-                      id="template-name"
-                      value={newTemplate.name}
-                      onChange={(e) => setNewTemplate({...newTemplate, name: e.target.value})}
-                      placeholder="Enter template name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="template-type">Type</Label>
-                    <Select value={newTemplate.type} onValueChange={(value) => setNewTemplate({...newTemplate, type: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="push">Push Notification</SelectItem>
-                        <SelectItem value="sms">SMS</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="template-category">Category</Label>
-                    <Select value={newTemplate.category} onValueChange={(value) => setNewTemplate({...newTemplate, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="onboarding">Onboarding</SelectItem>
-                        <SelectItem value="content">Content</SelectItem>
-                        <SelectItem value="promotional">Promotional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="template-subject">Subject (Email only)</Label>
-                    <Input
-                      id="template-subject"
-                      value={newTemplate.subject}
-                      onChange={(e) => setNewTemplate({...newTemplate, subject: e.target.value})}
-                      placeholder="Enter subject line"
-                      disabled={newTemplate.type !== 'email'}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="template-content">Content</Label>
-                    <Textarea
-                      id="template-content"
-                      value={newTemplate.content}
-                      onChange={(e) => setNewTemplate({...newTemplate, content: e.target.value})}
-                      placeholder="Enter template content"
-                      rows={4}
-                    />
-                  </div>
-                  <Button onClick={handleCreateTemplate} className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Template
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Push Notifications Tab */}
-        <TabsContent value="notifications" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Push Notifications</span>
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Notification
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {notifications.map((notification) => (
-                      <div key={notification.id} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                            {getStatusBadge(notification.status)}
-                            <Badge variant={notification.type === 'info' ? 'default' : 'secondary'}>
-                              {notification.type}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteNotification(notification.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <p className="text-gray-600 text-sm">{notification.message}</p>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-500">Recipients</p>
-                            <p className="font-medium">{notification.recipients.toLocaleString()}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Status</p>
-                            <p className="font-medium">{notification.status}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500">Sent</p>
-                            <p className="font-medium">{notification.sent || 'Not sent'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Send Notification</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="notification-title">Title</Label>
-                    <Input
-                      id="notification-title"
-                      value={newNotification.title}
-                      onChange={(e) => setNewNotification({...newNotification, title: e.target.value})}
-                      placeholder="Enter notification title"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="notification-message">Message</Label>
-                    <Textarea
-                      id="notification-message"
-                      value={newNotification.message}
-                      onChange={(e) => setNewNotification({...newNotification, message: e.target.value})}
-                      placeholder="Enter notification message"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="notification-audience">Audience</Label>
-                    <Select value={newNotification.audience} onValueChange={(value) => setNewNotification({...newNotification, audience: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Users</SelectItem>
-                        <SelectItem value="active">Active Users</SelectItem>
-                        <SelectItem value="premium">Premium Users</SelectItem>
-                        <SelectItem value="new">New Users</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="notification-schedule">Schedule</Label>
-                    <Select value={newNotification.schedule} onValueChange={(value) => setNewNotification({...newNotification, schedule: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="now">Send Now</SelectItem>
-                        <SelectItem value="schedule">Schedule for Later</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={handleCreateNotification} className="w-full">
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Notification
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Email Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Email Notifications</Label>
-                    <p className="text-sm text-gray-500">Enable email notifications for users</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Marketing Emails</Label>
-                    <p className="text-sm text-gray-500">Allow marketing and promotional emails</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Double Opt-in</Label>
-                    <p className="text-sm text-gray-500">Require email confirmation for subscriptions</p>
-                  </div>
-                  <Switch />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Push Notification Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Push Notifications</Label>
-                    <p className="text-sm text-gray-500">Enable push notifications</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Recipe Updates</Label>
-                    <p className="text-sm text-gray-500">Notify about new recipes</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Challenge Reminders</Label>
-                    <p className="text-sm text-gray-500">Send cooking challenge reminders</p>
-                  </div>
-                  <Switch />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Email Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Open Rate</span>
-                    <span className="font-semibold">22.3%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Click Rate</span>
-                    <span className="font-semibold">3.1%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Bounce Rate</span>
-                    <span className="font-semibold">1.8%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Unsubscribe Rate</span>
-                    <span className="font-semibold">0.8%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">{activity.action}</p>
-                        <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                      </div>
-                      {getTypeBadge(activity.type)}
-                    </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                </TableBody>
+              </Table>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default AdminCommunicationsPage;
+}

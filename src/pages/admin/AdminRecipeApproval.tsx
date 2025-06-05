@@ -1,268 +1,338 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+
+import React, { useState, useEffect } from 'react';
+import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
+import { Search, Filter, MoreHorizontal, Check, X, Eye, MessageSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, ChefHat, CheckCircle, XCircle, Eye } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-interface PendingRecipe {
-  id: string;
-  title: string;
-  description: string;
-  image_url: string;
-  prep_time: number;
-  cooking_time: number;
-  servings: number;
-  difficulty: string;
-  calories: number;
-  cuisine_type: string;
-  created_at: string;
-  user_id: string;
-  is_published: boolean;
-}
+const AdminRecipeApproval = () => {
+  const { toast } = useToast();
+  const [recipes, setRecipes] = useState([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewNotes, setReviewNotes] = useState('');
+  const [reviewAction, setReviewAction] = useState<'approve' | 'reject'>('approve');
+  const [loading, setLoading] = useState(true);
 
-export default function AdminRecipeApproval() {
-  const [selectedRecipe, setSelectedRecipe] = useState<PendingRecipe | null>(null);
+  useEffect(() => {
+    fetchPendingRecipes();
+  }, []);
 
-  const { data: pendingRecipes, isLoading, refetch } = useQuery({
-    queryKey: ['pending-recipes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('is_published', false)
+  const fetchPendingRecipes = async () => {
+    try {
+      const { data: pendingRecipes, error } = await supabase
+        .from('recipe_approvals')
+        .select(`
+          *,
+          recipes (
+            id,
+            title,
+            description,
+            image_url,
+            difficulty,
+            category_id,
+            author_id
+          )
+        `)
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      return data?.map(recipe => ({
-        id: recipe.id,
-        title: recipe.title,
-        description: recipe.description,
-        image_url: recipe.image_url,
-        prep_time: recipe.prep_time || 0,
-        cooking_time: recipe.cooking_time || 0,
-        servings: recipe.servings,
-        difficulty: recipe.difficulty,
-        calories: recipe.calories,
-        cuisine_type: recipe.cuisine_type,
-        created_at: recipe.created_at,
-        user_id: recipe.user_id,
-        is_published: recipe.is_published,
-      })) || [];
+      setRecipes(pendingRecipes || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error fetching recipes',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
-  });
+  };
 
-  const handleApprove = async (recipeId: string) => {
+  const handleReviewRecipe = (recipe: any, action: 'approve' | 'reject') => {
+    setSelectedRecipe(recipe);
+    setReviewAction(action);
+    setReviewDialogOpen(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!selectedRecipe) return;
+
     try {
+      const updates = {
+        status: reviewAction,
+        review_notes: reviewNotes,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: (await supabase.auth.getUser()).data.user?.id
+      };
+
       const { error } = await supabase
+        .from('recipe_approvals')
+        .update(updates)
+        .eq('id', selectedRecipe.id);
+
+      if (error) throw error;
+
+      // Update recipe is_published status
+      const { error: recipeError } = await supabase
         .from('recipes')
-        .update({ 
-          is_published: true,
-          updated_at: new Date().toISOString()
+        .update({
+          is_published: reviewAction === 'approve'
         })
-        .eq('id', recipeId);
+        .eq('id', selectedRecipe.recipe_id);
 
-      if (error) throw error;
-
-      toast({
-        title: "Recipe Approved",
-        description: "The recipe has been published successfully."
-      });
-
-      refetch();
-    } catch (error) {
-      console.error('Error approving recipe:', error);
-      toast({
-        title: "Error",
-        description: "Failed to approve recipe. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleReject = async (recipeId: string) => {
-    try {
-      const { error } = await supabase
-        .from('recipes')
-        .delete()
-        .eq('id', recipeId);
-
-      if (error) throw error;
+      if (recipeError) throw recipeError;
 
       toast({
-        title: "Recipe Rejected",
-        description: "The recipe has been removed."
+        title: `Recipe ${reviewAction}d successfully`,
+        description: `The recipe has been ${reviewAction}d and the author will be notified.`
       });
 
-      refetch();
+      setReviewDialogOpen(false);
+      setReviewNotes('');
       setSelectedRecipe(null);
-    } catch (error) {
-      console.error('Error rejecting recipe:', error);
+      fetchPendingRecipes();
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to reject recipe. Please try again.",
-        variant: "destructive"
+        title: 'Error reviewing recipe',
+        description: error.message,
+        variant: 'destructive'
       });
     }
   };
 
-  if (isLoading) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Pending</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-50 text-green-700">Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getDifficultyBadge = (difficulty: string) => {
+    const colors = {
+      Easy: 'bg-green-100 text-green-800',
+      Medium: 'bg-yellow-100 text-yellow-800',
+      Hard: 'bg-red-100 text-red-800'
+    };
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-wasfah-bright-teal"></div>
-      </div>
+      <Badge variant="outline" className={colors[difficulty as keyof typeof colors] || ''}>
+        {difficulty}
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return (
+      <AdminPageWrapper title="Recipe Approval">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading recipes...</div>
+        </div>
+      </AdminPageWrapper>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Recipe Approval</h1>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          {pendingRecipes?.length || 0} Pending
-        </Badge>
-      </div>
-
-      {!pendingRecipes || pendingRecipes.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">All caught up!</h3>
-            <p className="text-gray-600">No recipes pending approval at the moment.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recipe List */}
-          <div className="space-y-4">
-            {pendingRecipes.map((recipe) => (
-              <Card 
-                key={recipe.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  selectedRecipe?.id === recipe.id ? 'ring-2 ring-wasfah-bright-teal' : ''
-                }`}
-                onClick={() => setSelectedRecipe(recipe)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    {recipe.image_url && (
-                      <img
-                        src={recipe.image_url}
-                        alt={recipe.title}
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">{recipe.title}</h3>
-                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                        {recipe.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock size={14} />
-                          <span>{recipe.prep_time + recipe.cooking_time}m</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users size={14} />
-                          <span>{recipe.servings}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <ChefHat size={14} />
-                          <span>{recipe.difficulty}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Recipe Details */}
-          <div className="sticky top-6">
-            {selectedRecipe ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Recipe Details</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedRecipe(null)}
-                    >
-                      <XCircle size={16} />
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {selectedRecipe.image_url && (
-                    <img
-                      src={selectedRecipe.image_url}
-                      alt={selectedRecipe.title}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  )}
-                  
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">{selectedRecipe.title}</h3>
-                    <p className="text-gray-600 mb-4">{selectedRecipe.description}</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <strong>Prep Time:</strong> {selectedRecipe.prep_time}m
-                    </div>
-                    <div>
-                      <strong>Cook Time:</strong> {selectedRecipe.cooking_time}m
-                    </div>
-                    <div>
-                      <strong>Servings:</strong> {selectedRecipe.servings}
-                    </div>
-                    <div>
-                      <strong>Difficulty:</strong> {selectedRecipe.difficulty}
-                    </div>
-                    <div>
-                      <strong>Calories:</strong> {selectedRecipe.calories}
-                    </div>
-                    <div>
-                      <strong>Cuisine:</strong> {selectedRecipe.cuisine_type}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      onClick={() => handleApprove(selectedRecipe.id)}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Approve
-                    </Button>
-                    <Button
-                      onClick={() => handleReject(selectedRecipe.id)}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Reject
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Eye className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Select a Recipe</h3>
-                  <p className="text-gray-600">Click on a recipe from the list to view details and take action.</p>
-                </CardContent>
-              </Card>
-            )}
+    <AdminPageWrapper title="Recipe Approval">
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Recipe Approval</h1>
+            <p className="text-muted-foreground">Review and approve user-submitted recipes.</p>
           </div>
         </div>
-      )}
-    </div>
+
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search recipes..."
+              className="pl-8 w-full md:w-80"
+            />
+          </div>
+        </div>
+
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Recipe</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Difficulty</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Submitted</TableHead>
+                <TableHead className="w-[120px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recipes.map((recipe: any) => (
+                <TableRow key={recipe.id}>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={recipe.recipes?.image_url || '/placeholder.svg'}
+                        alt={recipe.recipes?.title}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div>
+                        <div className="font-medium">{recipe.recipes?.title}</div>
+                        <div className="text-sm text-gray-500">{recipe.recipes?.description?.substring(0, 50)}...</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div className="font-medium">{recipe.recipes?.category_id || 'N/A'}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{getDifficultyBadge(recipe.recipes?.difficulty || 'Medium')}</TableCell>
+                  <TableCell>{getStatusBadge(recipe.status)}</TableCell>
+                  <TableCell>{new Date(recipe.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleReviewRecipe(recipe, 'approve')}
+                        disabled={recipe.status !== 'pending'}
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleReviewRecipe(recipe, 'reject')}
+                        disabled={recipe.status !== 'pending'}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Contact Author
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
+                {reviewAction === 'approve' ? 'Approve' : 'Reject'} Recipe
+              </DialogTitle>
+              <DialogDescription>
+                {reviewAction === 'approve' 
+                  ? 'This recipe will be published and visible to all users.'
+                  : 'This recipe will be rejected and the author will be notified.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedRecipe && (
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <img
+                    src={selectedRecipe.recipes?.image_url || '/placeholder.svg'}
+                    alt={selectedRecipe.recipes?.title}
+                    className="w-12 h-12 rounded-lg object-cover"
+                  />
+                  <div>
+                    <div className="font-medium">{selectedRecipe.recipes?.title}</div>
+                    <div className="text-sm text-gray-500">{selectedRecipe.recipes?.category_id}</div>
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium">
+                  {reviewAction === 'approve' ? 'Approval Notes' : 'Rejection Reason'}
+                </label>
+                <Textarea
+                  placeholder={
+                    reviewAction === 'approve' 
+                      ? 'Add any notes for approval (optional)...'
+                      : 'Please provide a reason for rejection...'
+                  }
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setReviewDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitReview}
+                className={reviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+              >
+                {reviewAction === 'approve' ? 'Approve Recipe' : 'Reject Recipe'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing <strong>{recipes.length}</strong> pending recipes
+          </p>
+        </div>
+      </div>
+    </AdminPageWrapper>
   );
-}
+};
+
+export default AdminRecipeApproval;

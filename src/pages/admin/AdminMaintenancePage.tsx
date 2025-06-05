@@ -1,149 +1,187 @@
 
 import React, { useState } from 'react';
 import { AdminPageWrapper } from '@/components/admin/AdminPageWrapper';
-import { AlertTriangle, Server, Database, Wrench, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Wrench, 
+  AlertTriangle, 
+  Database, 
+  RefreshCw, 
+  Download, 
+  Upload,
+  Clock,
+  Shield,
+  Activity
+} from 'lucide-react';
 
 const AdminMaintenancePage = () => {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-
-  const systemStatus = [
-    { name: 'API Server', status: 'healthy', uptime: '99.9%' },
-    { name: 'Database', status: 'healthy', uptime: '99.8%' },
-    { name: 'File Storage', status: 'warning', uptime: '98.5%' },
-    { name: 'Cache System', status: 'healthy', uptime: '99.7%' },
-  ];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy': return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-      case 'error': return <XCircle className="h-5 w-5 text-red-500" />;
-      default: return <Server className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      healthy: 'bg-green-100 text-green-800',
-      warning: 'bg-yellow-100 text-yellow-800',
-      error: 'bg-red-100 text-red-800'
-    };
-    return <Badge className={variants[status as keyof typeof variants]}>{status}</Badge>;
-  };
+  const [maintenanceMessage, setMaintenanceMessage] = useState('System is under maintenance. Please check back later.');
 
   return (
     <AdminPageWrapper title="System Maintenance">
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-semibold">System Maintenance</h1>
-            <p className="text-muted-foreground">Monitor system health and perform maintenance tasks.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Database className="h-4 w-4 mr-2" />
-              Database Backup
-            </Button>
-            <Button variant="outline">
-              <Wrench className="h-4 w-4 mr-2" />
-              System Check
-            </Button>
+            <p className="text-muted-foreground">Manage system operations and maintenance tasks.</p>
           </div>
         </div>
 
-        {/* Maintenance Mode Toggle */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Maintenance Mode
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium">Enable Maintenance Mode</h3>
-                <p className="text-sm text-muted-foreground">
-                  Temporarily disable user access for system maintenance
-                </p>
-              </div>
-              <Switch
-                checked={maintenanceMode}
-                onCheckedChange={setMaintenanceMode}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {maintenanceMode && (
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              Maintenance mode is currently active. Users will see the maintenance message.
+            </AlertDescription>
+          </Alert>
+        )}
 
-        {/* System Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="h-5 w-5" />
+                Maintenance Mode
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="maintenance-switch">Enable Maintenance Mode</Label>
+                  <p className="text-sm text-gray-600">Put the system in maintenance mode</p>
+                </div>
+                <Switch
+                  id="maintenance-switch"
+                  checked={maintenanceMode}
+                  onCheckedChange={setMaintenanceMode}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="maintenance-message">Maintenance Message</Label>
+                <Textarea
+                  id="maintenance-message"
+                  value={maintenanceMessage}
+                  onChange={(e) => setMaintenanceMessage(e.target.value)}
+                  placeholder="Enter maintenance message for users"
+                  className="mt-2"
+                />
+              </div>
+              
+              <Button className="w-full">
+                Update Maintenance Settings
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Database Operations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start">
+                <Download className="h-4 w-4 mr-2" />
+                Create Database Backup
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Upload className="h-4 w-4 mr-2" />
+                Restore Database
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Optimize Database
+              </Button>
+              <Button variant="destructive" className="w-full justify-start">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Clear Cache
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>System Status</CardTitle>
+            <CardTitle>Scheduled Maintenance Tasks</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {systemStatus.map((system, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {getStatusIcon(system.status)}
-                    <div>
-                      <h3 className="font-medium">{system.name}</h3>
-                      <p className="text-sm text-muted-foreground">Uptime: {system.uptime}</p>
-                    </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <h4 className="font-medium">Daily Database Backup</h4>
+                    <p className="text-sm text-gray-600">Automated backup at 2:00 AM</p>
                   </div>
-                  {getStatusBadge(system.status)}
                 </div>
-              ))}
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-green-100 text-green-800">Active</Badge>
+                  <Button variant="outline" size="sm">Configure</Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <h4 className="font-medium">Security Scan</h4>
+                    <p className="text-sm text-gray-600">Weekly security audit</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-green-100 text-green-800">Active</Badge>
+                  <Button variant="outline" size="sm">Configure</Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Activity className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <h4 className="font-medium">Performance Monitoring</h4>
+                    <p className="text-sm text-gray-600">Continuous system monitoring</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-green-100 text-green-800">Active</Badge>
+                  <Button variant="outline" size="sm">Configure</Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Maintenance Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Database Maintenance</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <Database className="h-4 w-4 mr-2" />
-                Optimize Database
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button variant="outline" className="h-20 flex-col">
+                <RefreshCw className="h-6 w-6 mb-2" />
+                Restart Services
               </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Database className="h-4 w-4 mr-2" />
-                Clean Old Logs
+              <Button variant="outline" className="h-20 flex-col">
+                <Database className="h-6 w-6 mb-2" />
+                Rebuild Index
               </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Database className="h-4 w-4 mr-2" />
-                Backup Database
+              <Button variant="outline" className="h-20 flex-col">
+                <Activity className="h-6 w-6 mb-2" />
+                Health Check
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">System Maintenance</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <Server className="h-4 w-4 mr-2" />
-                Clear Cache
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Wrench className="h-4 w-4 mr-2" />
-                System Health Check
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Shield className="h-4 w-4 mr-2" />
-                Security Scan
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminPageWrapper>
   );
