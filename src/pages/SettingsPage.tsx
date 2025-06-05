@@ -1,185 +1,115 @@
 
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Bell, 
-  Moon, 
-  Globe, 
-  Shield, 
-  CreditCard, 
-  LogOut,
-  ChevronRight,
-  Settings as SettingsIcon,
-  Crown
+import { Card, CardContent } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { User, CreditCard, Bell, Moon, Settings, Languages,
+  HelpCircle, Smartphone, UserX, Award, Globe, Shield
 } from 'lucide-react';
+import { SignOut } from '@/components/auth/SignOut';
 import { useRTL } from '@/contexts/RTLContext';
+import { LanguageSelector } from '@/components/language/LanguageSelector';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate, useParams } from 'react-router-dom';
 
 const SettingsPage = () => {
-  const { t, direction } = useRTL();
+  const { direction, language, t } = useRTL();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { lang } = useParams();
-  const currentLang = lang || 'en';
 
-  const quickSettings = [
+  const settingGroups = [
     {
-      icon: Moon,
-      label: t("Dark Mode", "الوضع المظلم"),
-      description: t("Toggle dark theme", "تبديل المظهر المظلم"),
-      hasToggle: true,
-      isEnabled: false
+      title: t("User Settings", "إعدادات المستخدم", "Kullanıcı Ayarları"),
+      items: [
+        { id: 'profile', icon: <User className="h-6 w-6 text-wasfah-deep-teal" />, label: t("Profile", "الملف الشخصي", "Profil"), path: "/profile" },
+        { id: 'body-info', icon: <User className="h-6 w-6 text-pink-600" />, label: t("Body Information", "معلومات الجسم", "Vücut Bilgileri"), path: "/body-information" },
+        { id: 'preferences', icon: <UserX className="h-6 w-6 text-gray-600" />, label: t("Dietary Preferences", "التفضيلات الغذائية", "Beslenme Tercihleri"), path: "/dietary-preferences" },
+      ]
     },
     {
-      icon: Bell,
-      label: t("Notifications", "الإشعارات"),
-      description: t("Manage notification preferences", "إدارة تفضيلات الإشعارات"),
-      hasToggle: true,
-      isEnabled: true
+      title: t("App Settings", "إعدادات التطبيق", "Uygulama Ayarları"),
+      items: [
+        { id: 'notifications', icon: <Bell className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Notifications", "الإشعارات", "Bildirimler"), path: "/notifications" },
+        { id: 'appearance', icon: <Moon className="h-6 w-6 text-purple-600" />, label: t("Appearance", "المظهر", "Görünüm"), path: "/appearance" },
+        { id: 'connected-devices', icon: <Smartphone className="h-6 w-6 text-green-600" />, label: t("Connected Devices", "الأجهزة المتصلة", "Bağlı Cihazlar"), path: "/connected-devices" },
+      ]
     },
     {
-      icon: Globe,
-      label: t("Language", "اللغة"),
-      description: t("Change app language", "تغيير لغة التطبيق"),
-      hasToggle: false,
-      currentValue: direction === 'rtl' ? 'العربية' : 'English'
+      title: t("Services", "الخدمات", "Hizmetler"),
+      items: [
+        { id: 'loyalty-program', icon: <Award className="h-6 w-6 text-amber-500" />, label: t("Loyalty Program", "برنامج الولاء", "Sadakat Programı"), path: "/loyalty-program" },
+        { id: 'subscription', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Subscription", "الاشتراك", "Abonelik"), path: "/subscription" },
+      ]
+    },
+    {
+      title: t("Account & Support", "الحساب والدعم", "Hesap ve Destek"),
+      items: [
+        { id: 'privacy', icon: <Shield className="h-6 w-6 text-green-600" />, label: t("Privacy & Data", "الخصوصية والبيانات", "Gizlilik ve Veri"), path: "/privacy" },
+        { id: 'payment-methods', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Payment Methods", "طرق الدفع", "Ödeme Yöntemleri"), path: "/payment-methods" },
+        { id: 'help', icon: <HelpCircle className="h-6 w-6 text-orange-500" />, label: t("Help & Support", "المساعدة والدعم", "Yardım ve Destek"), path: "/help" },
+        { id: 'delete-account', icon: <UserX className="h-6 w-6 text-red-500" />, label: t("Delete Account", "حذف الحساب", "Hesabı Sil"), path: "/delete-account" },
+      ]
     }
   ];
 
-  const isAdmin = user?.user_metadata?.isAdmin || user?.user_metadata?.role === 'admin';
+  // Add admin panel if user is admin
+  if (user?.user_metadata?.isAdmin) {
+    settingGroups.unshift({
+      title: t("Administration", "الإدارة", "Yönetim"),
+      items: [
+        { id: 'admin-panel', icon: <Settings className="h-6 w-6 text-purple-600" />, label: t("Admin Panel", "لوحة الإدارة", "Yönetici Paneli"), path: "/admin" },
+      ]
+    });
+  }
 
   return (
-    <PageContainer
-      header={{
-        title: t("Quick Settings", "الإعدادات السريعة"),
-        showBackButton: true
-      }}
-      className="pb-24"
-    >
-      <div className={`space-y-6 p-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`} dir={direction}>
-        {/* Header */}
-        <div className="bg-gradient-to-br from-wasfah-bright-teal to-wasfah-deep-teal p-6 rounded-lg text-white text-center">
-          <h1 className="text-2xl font-bold mb-2">{t("Quick Settings", "الإعدادات السريعة")}</h1>
-          <p className="opacity-90">{t("Access frequently used settings", "الوصول إلى الإعدادات المستخدمة بكثرة")}</p>
+    <PageContainer header={{ title: t("Settings", "الإعدادات", "Ayarlar"), showBackButton: true }}>
+      <div className="p-4 pb-24 space-y-6">
+        <div className="bg-gradient-to-br from-wasfah-bright-teal to-wasfah-deep-teal p-6 rounded-lg text-white text-center mb-6">
+          <h1 className="text-2xl font-bold mb-2">{t("Settings", "الإعدادات", "Ayarlar")}</h1>
+          <p className="opacity-90">{t("Customize your WasfahAI experience", "خصص تجربتك مع وصفة الذكية", "WasfahAI deneyiminizi özelleştirin")}</p>
         </div>
 
-        {/* Admin Panel Access - Show only for admins */}
-        {isAdmin && (
-          <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
-            <CardContent className="p-4">
-              <Button 
-                variant="default" 
-                className="w-full flex items-center justify-between bg-purple-600 hover:bg-purple-700"
-                onClick={() => navigate('/admin')}
-              >
-                <div className="flex items-center gap-2">
-                  <Crown className="h-5 w-5" />
-                  {t("Admin Panel", "لوحة الإدارة")}
-                </div>
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t("Quick Access", "وصول سريع")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {quickSettings.map((item, itemIndex) => {
-              const Icon = item.icon;
-              return (
-                <div 
-                  key={itemIndex}
-                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-wasfah-bright-teal/10 rounded-lg">
-                      <Icon className="h-5 w-5 text-wasfah-bright-teal" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{item.label}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {item.description}
-                      </p>
-                      {item.currentValue && (
-                        <p className="text-sm text-wasfah-bright-teal">
-                          {t("Current", "الحالي")}: {item.currentValue}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {item.hasToggle ? (
-                      <Switch 
-                        checked={item.isEnabled} 
-                        onCheckedChange={() => {}}
-                      />
-                    ) : (
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-
-        {/* All Settings Button */}
-        <Card>
+        {/* Active Language Card */}
+        <Card className="overflow-hidden">
           <CardContent className="p-4">
-            <Button 
-              variant="default" 
-              className="w-full flex items-center justify-between bg-wasfah-bright-teal hover:bg-wasfah-teal"
-              onClick={() => navigate(`/${currentLang}/settings`)}
-            >
-              <div className="flex items-center gap-2">
-                <SettingsIcon className="h-5 w-5" />
-                {t("All Settings", "جميع الإعدادات")}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Globe className="h-6 w-6 text-wasfah-bright-teal mr-3 rtl:ml-3 rtl:mr-0" />
+                <div>
+                  <h3 className="font-medium">{t("Language", "اللغة", "Dil")}</h3>
+                  <p className="text-xs text-gray-500">
+                    {language === 'ar' ? 'العربية' : language === 'en' ? 'English' : language === 'tr' ? 'Türkçe' : language}
+                  </p>
+                </div>
               </div>
-              <ChevronRight className="h-5 w-5" />
-            </Button>
+              <LanguageSelector />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/profile`)}>
-            <CardContent className="p-4 text-center">
-              <User className="h-8 w-8 mx-auto mb-2 text-wasfah-bright-teal" />
-              <h3 className="font-medium">{t("Profile", "الملف الشخصي")}</h3>
-            </CardContent>
-          </Card>
+        {/* Render setting groups */}
+        {settingGroups.map((group, groupIndex) => (
+          <div className="space-y-3" key={groupIndex}>
+            <h2 className="text-lg font-bold text-wasfah-deep-teal">{group.title}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {group.items.map((item) => (
+                <Link to={item.path} key={item.id}>
+                  <Card className="hover:shadow-md transition-all duration-300 card-3d">
+                    <CardContent className="p-4 flex items-center space-x-3 rtl:space-x-reverse">
+                      <div className="rounded-full p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                        {item.icon}
+                      </div>
+                      <span className="font-medium">{item.label}</span>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/privacy`)}>
-            <CardContent className="p-4 text-center">
-              <Shield className="h-8 w-8 mx-auto mb-2 text-green-600" />
-              <h3 className="font-medium">{t("Privacy", "الخصوصية")}</h3>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/subscription`)}>
-            <CardContent className="p-4 text-center">
-              <CreditCard className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-medium">{t("Subscription", "الاشتراك")}</h3>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/${currentLang}/help`)}>
-            <CardContent className="p-4 text-center">
-              <LogOut className="h-8 w-8 mx-auto mb-2 text-red-500" />
-              <h3 className="font-medium">{t("Help", "المساعدة")}</h3>
-            </CardContent>
-          </Card>
+        {/* Sign Out Button */}
+        <div className="pt-4">
+          <SignOut />
         </div>
       </div>
     </PageContainer>

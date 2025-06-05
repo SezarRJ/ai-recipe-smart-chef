@@ -27,7 +27,7 @@ interface MainCategory {
 
 interface AIFilters {
   dietary: string;
-  cookingTime: string;
+  cookTime: string;
   difficulty: string;
   cuisine: string;
 }
@@ -100,7 +100,7 @@ export default function FindByIngredients() {
 
   const AI_FILTER_OPTIONS = {
     dietary: ['Normal', 'Healthy', 'Vegetarian', 'Vegan', 'Gluten-Free'],
-    cookingTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'],
+    cookTime: ['Under 30 mins', '30-60 mins', '1-2 hours', 'Over 2 hours'],
     difficulty: ['Beginner', 'Intermediate', 'Expert'],
     cuisine: ['Levant', 'Italian', 'Mexican', 'Chinese', 'Indian', 'American'],
   };
@@ -129,7 +129,7 @@ export default function FindByIngredients() {
   );
   const [filters, setFilters] = useState<AIFilters>({
     dietary: '',
-    cookingTime: '',
+    cookTime: '',
     difficulty: '',
     cuisine: '',
   });
@@ -351,19 +351,19 @@ Focus on practical recipes that can be made with the ingredients provided.`;
           ];
         }
 
-        // Transform to Recipe format
+        // Transform to Recipe format with correct properties for @/types/index Recipe interface
         results = aiRecipes.map((recipe: any, index: number): Recipe => ({
           id: `ai-recipe-${Date.now()}-${index}`,
           title: recipe.title || `Recipe with ${ingredientNames.join(', ')}`,
           description: recipe.description || `A recipe using ${ingredientNames.join(', ')}`,
-          image_url: '',
           image: '',
-          prep_time: recipe.prep_time || 15,
+          image_url: '',
           prepTime: recipe.prep_time || 15,
-          cook_time: recipe.cook_time || 30,
+          prep_time: recipe.prep_time || 15,
           cookTime: recipe.cook_time || 30,
+          cook_time: recipe.cook_time || 30,
           servings: recipe.servings || 4,
-          difficulty: recipe.difficulty || 'Medium' as 'Easy' | 'Medium' | 'Hard',
+          difficulty: recipe.difficulty || 'Medium',
           calories: recipe.calories || 300,
           rating: 0,
           ratingCount: 0,
@@ -372,27 +372,30 @@ Focus on practical recipes that can be made with the ingredients provided.`;
           categories: [],
           tags: ['AI Generated'],
           isFavorite: false,
+          cuisineType: recipe.cuisine_type || 'Fusion',
+          cuisine_type: recipe.cuisine_type || 'Fusion',
+          status: 'published' as const,
           author_id: 'ai-chef',
+          is_verified: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          is_verified: true,
-          cuisine_type: recipe.cuisine_type || 'Fusion',
-          cuisineType: recipe.cuisine_type || 'Fusion',
-          status: 'published' as 'draft' | 'published' | 'pending_review',
           ingredients: Array.isArray(recipe.ingredients) ?
             recipe.ingredients.map((ing: any) => ({
               id: `ing-${Math.random()}`,
               name: typeof ing === 'string' ? ing : (ing.name || ing.ingredient || 'Unknown'),
               amount: typeof ing === 'object' ? (ing.amount || ing.quantity || 1) : 1,
-              unit: typeof ing === 'object' ? (ing.unit || 'cup') : 'cup'
+              unit: typeof ing === 'object' ? (ing.unit || 'cup') : 'cup',
+              inPantry: false
             })) :
             ingredientNames.map(ing => ({
               id: `ing-${Math.random()}`,
               name: ing,
               amount: 1,
-              unit: 'cup'
+              unit: 'cup',
+              inPantry: false
             }))
         }));
+
       }
 
       setSearchResults(results);

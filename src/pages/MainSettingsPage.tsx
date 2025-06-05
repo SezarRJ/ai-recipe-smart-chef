@@ -4,60 +4,62 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { User, CreditCard, Bell, Moon, Settings, Languages,
-  HelpCircle, Smartphone, UserX, Award, Globe, Shield, Crown
+  HelpCircle, Smartphone, UserX, Award, Globe, Shield
 } from 'lucide-react';
 import { SignOut } from '@/components/auth/SignOut';
 import { useRTL } from '@/contexts/RTLContext';
 import { LanguageSelector } from '@/components/language/LanguageSelector';
 import { useAuth } from '@/hooks/useAuth';
-import { useParams } from 'react-router-dom';
 
 const MainSettingsPage = () => {
   const { direction, language, t } = useRTL();
   const { user } = useAuth();
-  const { lang } = useParams();
-  const currentLang = lang || language || 'en';
 
   const settingGroups = [
     {
       title: t("User Settings", "إعدادات المستخدم", "Kullanıcı Ayarları"),
       items: [
-        { id: 'profile', icon: <User className="h-6 w-6 text-wasfah-deep-teal" />, label: t("Profile", "الملف الشخصي", "Profil"), path: `/${currentLang}/profile` },
-        { id: 'preferences', icon: <UserX className="h-6 w-6 text-gray-600" />, label: t("Dietary Preferences", "التفضيلات الغذائية", "Beslenme Tercihleri"), path: `/${currentLang}/dietary-preferences` },
+        { id: 'profile', icon: <User className="h-6 w-6 text-wasfah-deep-teal" />, label: t("Profile", "الملف الشخصي", "Profil"), path: "/profile" },
+        { id: 'preferences', icon: <UserX className="h-6 w-6 text-gray-600" />, label: t("Preferences", "التفضيلات", "Tercihler"), path: "/dietary-preferences" },
       ]
     },
     {
       title: t("App Settings", "إعدادات التطبيق", "Uygulama Ayarları"),
       items: [
-        { id: 'notifications', icon: <Bell className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Notifications", "الإشعارات", "Bildirimler"), path: `/${currentLang}/notifications` },
-        { id: 'appearance', icon: <Moon className="h-6 w-6 text-purple-600" />, label: t("Appearance", "المظهر", "Görünüm"), path: `/${currentLang}/appearance` },
-        { id: 'connected-devices', icon: <Smartphone className="h-6 w-6 text-green-600" />, label: t("Connected Devices", "الأجهزة المتصلة", "Bağlı Cihazlar"), path: `/${currentLang}/connected-devices` },
+        { id: 'notifications', icon: <Bell className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Notifications", "الإشعارات", "Bildirimler"), path: "/notifications" },
+        { id: 'appearance', icon: <Moon className="h-6 w-6 text-purple-600" />, label: t("Appearance", "المظهر", "Görünüm"), path: "/appearance" },
+        { id: 'connected-devices', icon: <Smartphone className="h-6 w-6 text-green-600" />, label: t("Connected Devices", "الأجهزة المتصلة", "Bağlı Cihazlar"), path: "/connected-devices" },
       ]
     },
     {
       title: t("Services", "الخدمات", "Hizmetler"),
       items: [
-        { id: 'loyalty-program', icon: <Award className="h-6 w-6 text-amber-500" />, label: t("Loyalty Program", "برنامج الولاء", "Sadakat Programı"), path: `/${currentLang}/loyalty-program` },
-        { id: 'subscription', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Subscription", "الاشتراك", "Abonelik"), path: `/${currentLang}/subscription` },
+        { id: 'loyalty-program', icon: <Award className="h-6 w-6 text-amber-500" />, label: t("Loyalty Program", "برنامج الولاء", "Sadakat Programı"), path: "/loyalty-program" },
+        { id: 'subscription', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Subscription", "الاشتراك", "Abonelik"), path: "/subscription" },
       ]
     },
     {
       title: t("Account & Support", "الحساب والدعم", "Hesap ve Destek"),
       items: [
-        { id: 'privacy', icon: <Shield className="h-6 w-6 text-green-600" />, label: t("Privacy & Data", "الخصوصية والبيانات", "Gizlilik ve Veri"), path: `/${currentLang}/privacy` },
-        { id: 'payment-methods', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Payment Methods", "طرق الدفع", "Ödeme Yöntemleri"), path: `/${currentLang}/payment-methods` },
-        { id: 'help', icon: <HelpCircle className="h-6 w-6 text-orange-500" />, label: t("Help & Support", "المساعدة والدعم", "Yardım ve Destek"), path: `/${currentLang}/help` },
-        { id: 'delete-account', icon: <UserX className="h-6 w-6 text-red-500" />, label: t("Delete Account", "حذف الحساب", "Hesabı Sil"), path: `/${currentLang}/delete-account` },
+        { id: 'privacy', icon: <Shield className="h-6 w-6 text-green-600" />, label: t("Privacy & Data", "الخصوصية والبيانات", "Gizlilik ve Veri"), path: "/privacy" },
+        { id: 'payment-methods', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Payment Methods", "طرق الدفع", "Ödeme Yöntemleri"), path: "/payment-methods" },
+        { id: 'help', icon: <HelpCircle className="h-6 w-6 text-orange-500" />, label: t("Help & Support", "المساعدة والدعم", "Yardım ve Destek"), path: "/help" },
+        { id: 'delete-account', icon: <UserX className="h-6 w-6 text-red-500" />, label: t("Delete Account", "حذف الحساب", "Hesabı Sil"), path: "/delete-account" },
       ]
     }
   ];
 
-  // Add admin panel if user is admin
-  if (user?.user_metadata?.isAdmin) {
-    settingGroups.unshift({
+  // Add admin panel - check multiple conditions for admin access
+  const isAdmin = user?.role === 'admin' || 
+                  user?.role === 'super_admin' || 
+                  user?.user_metadata?.isAdmin ||
+                  user?.email === 'admin@wasfah.ai'; // fallback for demo
+
+  if (isAdmin) {
+    settingGroups.push({
       title: t("Administration", "الإدارة", "Yönetim"),
       items: [
-        { id: 'admin-panel', icon: <Crown className="h-6 w-6 text-purple-600" />, label: t("Admin Panel", "لوحة الإدارة", "Yönetici Paneli"), path: "/admin" },
+        { id: 'admin-panel', icon: <Settings className="h-6 w-6 text-purple-600" />, label: t("Admin Panel", "لوحة الإدارة", "Yönetici Paneli"), path: "/admin" },
       ]
     });
   }
@@ -69,26 +71,6 @@ const MainSettingsPage = () => {
           <h1 className="text-2xl font-bold mb-2">{t("Settings", "الإعدادات", "Ayarlar")}</h1>
           <p className="opacity-90">{t("Customize your WasfahAI experience", "خصص تجربتك مع وصفة الذكية", "WasfahAI deneyiminizi özelleştirin")}</p>
         </div>
-
-        {/* Admin Panel Access - Show prominently for admins */}
-        {user?.user_metadata?.isAdmin && (
-          <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 mb-6">
-            <CardContent className="p-4">
-              <Link to="/admin" className="block">
-                <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                  <div className="rounded-full p-3 bg-purple-600 flex items-center justify-center">
-                    <Crown className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-purple-900">{t("Admin Panel", "لوحة الإدارة", "Yönetici Paneli")}</h3>
-                    <p className="text-sm text-purple-700">{t("Manage app settings and content", "إدارة إعدادات التطبيق والمحتوى", "Uygulama ayarlarını ve içeriği yönetin")}</p>
-                  </div>
-                  <div className="text-purple-600">›</div>
-                </div>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Active Language Card */}
         <Card className="overflow-hidden">

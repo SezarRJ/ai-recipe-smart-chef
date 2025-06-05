@@ -1,131 +1,103 @@
 
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { AlertTriangle, Trash2 } from 'lucide-react';
+import { useRTL } from '@/contexts/RTLContext';
 
-const DeleteAccountPage = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+export default function DeleteAccountPage() {
+  const { t } = useRTL();
   const [confirmText, setConfirmText] = useState('');
   const [confirmCheckbox, setConfirmCheckbox] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDeleteAccount = async () => {
-    if (confirmText !== 'DELETE' || !confirmCheckbox) {
-      toast({
-        title: 'Confirmation Required',
-        description: 'Please confirm by typing DELETE and checking the checkbox',
-        variant: 'destructive'
-      });
-      return;
-    }
+  const isDeleteEnabled = confirmText === 'DELETE' && confirmCheckbox;
 
-    setIsDeleting(true);
-    try {
-      // Delete user account
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      toast({
-        title: 'Account Deleted',
-        description: 'Your account has been permanently deleted'
-      });
-
-      navigate('/');
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete account. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsDeleting(false);
-    }
+  const handleCheckboxChange = (checked: boolean | "indeterminate") => {
+    setConfirmCheckbox(checked === true);
   };
 
   return (
-    <PageContainer
-      header={{
-        title: 'Delete Account',
-        showBackButton: true,
-      }}
-      className="max-w-2xl mx-auto"
-    >
-      <Card className="border-red-200">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="h-6 w-6 text-red-500" />
-            <CardTitle className="text-red-700">Delete Your Account</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-            <h3 className="font-semibold text-red-800 mb-2">Warning: This action cannot be undone</h3>
-            <ul className="text-sm text-red-700 space-y-1">
-              <li>• All your recipes will be permanently deleted</li>
-              <li>• Your meal plans and favorites will be lost</li>
-              <li>• Your pantry data will be removed</li>
-              <li>• You won't be able to recover this data</li>
-            </ul>
-          </div>
+    <PageContainer header={{ title: t('Delete Account', 'حذف الحساب'), showBackButton: true }}>
+      <div className="space-y-6 pb-20">
+        <div className="bg-gradient-to-br from-red-500 to-pink-600 p-6 rounded-lg text-white text-center mb-6">
+          <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">{t('Delete Account', 'حذف الحساب')}</h1>
+          <p className="opacity-90">{t('This action cannot be undone', 'هذا الإجراء لا يمكن التراجع عنه')}</p>
+        </div>
 
-          <div className="space-y-4">
+        <Card className="border-red-200">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center">
+              <Trash2 className="h-5 w-5 mr-2" />
+              {t('Warning', 'تحذير')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                {t('Deleting your account will permanently remove:', 'حذف حسابك سيؤدي إلى إزالة دائمة لـ:')}
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-4">
+                <li>{t('All your recipes and meal plans', 'جميع وصفاتك وخطط الوجبات')}</li>
+                <li>{t('Your profile and cooking history', 'ملفك الشخصي وتاريخ الطبخ')}</li>
+                <li>{t('Saved favorites and preferences', 'المفضلات والتفضيلات المحفوظة')}</li>
+                <li>{t('Subscription and payment information', 'معلومات الاشتراك والدفع')}</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 space-y-4">
             <div>
-              <Label htmlFor="confirm">Type "DELETE" to confirm:</Label>
+              <label className="text-sm font-medium mb-2 block">
+                {t('Type "DELETE" to confirm:', 'اكتب "DELETE" للتأكيد:')}
+              </label>
               <Input
-                id="confirm"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder="DELETE"
-                className="mt-1"
+                className="border-red-200 focus:border-red-500"
               />
             </div>
 
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="confirm-checkbox"
+                id="confirm-delete"
                 checked={confirmCheckbox}
-                onCheckedChange={(checked) => setConfirmCheckbox(checked === true)}
+                onCheckedChange={handleCheckboxChange}
               />
-              <Label htmlFor="confirm-checkbox" className="text-sm">
-                I understand that this action cannot be undone
-              </Label>
+              <label htmlFor="confirm-delete" className="text-sm">
+                {t('I understand this action is permanent and irreversible', 'أفهم أن هذا الإجراء دائم ولا يمكن إلغاؤه')}
+              </label>
             </div>
-          </div>
 
-          <div className="flex gap-3 pt-4">
             <Button
-              variant="outline"
-              onClick={() => navigate('/profile')}
-              className="flex-1"
+              variant="destructive"
+              className="w-full"
+              disabled={!isDeleteEnabled}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Cancel
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t('Delete My Account Forever', 'حذف حسابي إلى الأبد')}
             </Button>
-            <Button
-              onClick={handleDeleteAccount}
-              disabled={confirmText !== 'DELETE' || !confirmCheckbox || isDeleting}
-              className="flex-1 bg-red-600 hover:bg-red-700"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Account'}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <h4 className="font-medium mb-2">{t('Need help instead?', 'تحتاج مساعدة بدلاً من ذلك؟')}</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              {t('If you are having issues with your account, our support team can help.', 'إذا كنت تواجه مشاكل مع حسابك، يمكن لفريق الدعم مساعدتك.')}
+            </p>
+            <Button variant="outline" className="w-full">
+              {t('Contact Support', 'الاتصال بالدعم')}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </PageContainer>
   );
-};
-
-export default DeleteAccountPage;
+}

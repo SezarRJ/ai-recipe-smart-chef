@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Settings, User, Heart, Book, ShoppingCart, CreditCard,
@@ -9,57 +9,52 @@ import {
   Camera, Scale, Smartphone, Shield, Wrench, Users, MapPin
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MenuPage() {
   const { t } = useRTL();
-  const { lang } = useParams();
-  const { language } = useLanguage();
-  
-  const currentLanguage = lang || language || 'en';
 
   const menuItems = [
     {
       id: 'favorites',
       icon: <Heart className="h-6 w-6 text-red-500" />,
       title: t('Favorites', 'المفضلة', 'Favoriler'),
-      link: `/${currentLanguage}/favorites`,
+      link: '/favorites',
     },
     {
       id: 'recipes',
       icon: <Book className="h-6 w-6 text-wasfah-deep-teal" />,
       title: t('My Recipes', 'وصفاتي', 'Tariflerim'),
-      link: `/${currentLanguage}/recipes`,
+      link: '/recipes',
     },
     {
       id: 'services',
       icon: <Wrench className="h-6 w-6 text-purple-500" />,
       title: t('Services', 'الخدمات', 'Hizmetler'),
-      link: `/${currentLanguage}/services`,
+      link: '/services',
     },
     {
       id: 'loyalty',
       icon: <Award className="h-6 w-6 text-amber-500" />,
       title: t('Loyalty Program', 'برنامج الولاء', 'Sadakat Programı'),
-      link: `/${currentLanguage}/loyalty-program`,
+      link: '/loyalty-program',
     },
     {
       id: 'subscription',
       icon: <CreditCard className="h-6 w-6 text-purple-500" />,
       title: t('Subscription', 'الاشتراك', 'Abonelik'),
-      link: `/${currentLanguage}/subscription`,
+      link: '/subscription',
     },
     {
       id: 'settings',
       icon: <Settings className="h-6 w-6 text-gray-500" />,
       title: t('Settings', 'الإعدادات', 'Ayarlar'),
-      link: `/${currentLanguage}/settings`,
+      link: '/settings',
     },
     {
       id: 'admin',
       icon: <Shield className="h-6 w-6 text-purple-600" />,
       title: t('Admin Panel', 'لوحة الإدارة', 'Yönetici Paneli'),
-      link: `/${currentLanguage}/admin`,
+      link: '/admin',
     },
   ];
 

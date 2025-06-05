@@ -36,6 +36,12 @@ const NewHomePage = () => {
       path: "/tools",
       color: "bg-indigo-500/10"
     },
+    {
+      image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=150&h=150&fit=crop&crop=center",
+      label: t("Services", "الخدمات"),
+      path: "/services",
+      color: "bg-purple-500/10"
+    },
   ];
 
   return (
@@ -75,7 +81,7 @@ const NewHomePage = () => {
               {t("Main Features", "الميزات الرئيسية")}
             </h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
             {mainFeatures.map((feature, index) => (
               <Link
                 key={index}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,6 +80,7 @@ const SystemSettingsPage = () => {
     });
   }
 
+  // Add account management section
   settingGroups.push({
     title: t("Account Management", "إدارة الحساب", "Hesap Yönetimi"),
     items: [

@@ -1,225 +1,100 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Star, Zap, CreditCard, Shield, Users } from 'lucide-react';
-import { PaymentModal } from '@/components/ui/payment-modal';
-
-const subscriptionPlans = [
-  {
-    id: 'basic',
-    name: 'Basic',
-    price: 4.99,
-    period: 'month',
-    description: 'Perfect for casual cooking',
-    features: [
-      'Access to 1000+ recipes',
-      'Basic meal planning',
-      'Recipe bookmarks',
-      'Community access',
-      'Email support'
-    ],
-    icon: Star,
-    popular: false
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 9.99,
-    period: 'month',
-    description: 'Best for cooking enthusiasts',
-    features: [
-      'Access to 5000+ premium recipes',
-      'Advanced meal planning',
-      'Nutrition tracking',
-      'Shopping list generation',
-      'Video tutorials',
-      'Priority support',
-      'Ad-free experience'
-    ],
-    icon: Crown,
-    popular: true
-  },
-  {
-    id: 'family',
-    name: 'Family',
-    price: 14.99,
-    period: 'month',
-    description: 'Perfect for families',
-    features: [
-      'Everything in Premium',
-      'Up to 6 family accounts',
-      'Kid-friendly recipes',
-      'Family meal planning',
-      'Bulk shopping lists',
-      'Family nutrition tracking',
-      'Custom dietary profiles'
-    ],
-    icon: Users,
-    popular: false
-  }
-];
+import { Check, Crown, Star, Zap } from 'lucide-react';
+import { useRTL } from '@/contexts/RTLContext';
 
 export default function SubscriptionPage() {
-  const [paymentModal, setPaymentModal] = useState<{
-    isOpen: boolean;
-    planName: string;
-    amount: number;
-    features: string[];
-  }>({
-    isOpen: false,
-    planName: '',
-    amount: 0,
-    features: []
-  });
+  const { t } = useRTL();
 
-  const handleSubscribe = (plan: typeof subscriptionPlans[0]) => {
-    setPaymentModal({
-      isOpen: true,
-      planName: plan.name,
-      amount: plan.price,
-      features: plan.features
-    });
-  };
-
-  const closePaymentModal = () => {
-    setPaymentModal(prev => ({ ...prev, isOpen: false }));
-  };
+  const plans = [
+    {
+      name: t('Free', 'مجاني'),
+      price: t('$0/month', '0 ريال/شهر'),
+      features: [
+        t('Basic recipes', 'وصفات أساسية'),
+        t('Community access', 'الوصول للمجتمع'),
+        t('Recipe saving', 'حفظ الوصفات')
+      ],
+      icon: <Star className="h-6 w-6" />,
+      color: 'border-gray-200'
+    },
+    {
+      name: t('Premium', 'مميز'),
+      price: t('$9.99/month', '37.50 ريال/شهر'),
+      features: [
+        t('All free features', 'جميع ميزات النسخة المجانية'),
+        t('Video instructions', 'تعليمات فيديو'),
+        t('Voice guidance', 'إرشاد صوتي'),
+        t('Advanced timers', 'مؤقتات متقدمة'),
+        t('Nutrition tracking', 'تتبع التغذية'),
+        t('Meal planning', 'تخطيط الوجبات')
+      ],
+      icon: <Crown className="h-6 w-6" />,
+      color: 'border-amber-500',
+      popular: true
+    },
+    {
+      name: t('Pro Chef', 'شيف محترف'),
+      price: t('$19.99/month', '75 ريال/شهر'),
+      features: [
+        t('All premium features', 'جميع ميزات النسخة المميزة'),
+        t('AI recipe creation', 'إنشاء وصفات بالذكاء الاصطناعي'),
+        t('Professional techniques', 'تقنيات احترافية'),
+        t('Priority support', 'دعم أولوية'),
+        t('Custom meal plans', 'خطط وجبات مخصصة')
+      ],
+      icon: <Zap className="h-6 w-6" />,
+      color: 'border-purple-500'
+    }
+  ];
 
   return (
-    <PageContainer 
-      header={{ 
-        title: 'Subscription Plans', 
-        showBackButton: true 
-      }}
-    >
-      <div className="container px-4 py-6 pb-32 space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl md:text-3xl font-bold">Choose Your Plan</h1>
-          <p className="text-gray-600 text-sm md:text-base">Unlock premium features and enhance your cooking journey</p>
+    <PageContainer header={{ title: t('Subscription Plans', 'خطط الاشتراك'), showBackButton: true }}>
+      <div className="space-y-6 pb-20">
+        <div className="bg-gradient-to-br from-purple-500 to-pink-600 p-6 rounded-lg text-white text-center mb-6">
+          <Crown className="h-12 w-12 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">{t('Unlock Premium Features', 'افتح الميزات المميزة')}</h1>
+          <p className="opacity-90">{t('Choose the plan that fits your cooking journey', 'اختر الخطة التي تناسب رحلة الطبخ الخاصة بك')}</p>
         </div>
 
-        {/* Current Subscription Status */}
-        <Card className="border-2 border-green-200 bg-green-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <Check className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-800">Free Plan</h3>
-                  <p className="text-sm text-green-600">Currently active</p>
-                </div>
-              </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Active
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Subscription Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {subscriptionPlans.map((plan) => (
-            <Card 
-              key={plan.id} 
-              className={`relative ${plan.popular ? 'border-2 border-wasfah-bright-teal' : ''}`}
-            >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {plans.map((plan, index) => (
+            <Card key={index} className={`relative ${plan.color} ${plan.popular ? 'ring-2 ring-amber-500' : ''}`}>
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-wasfah-bright-teal text-white px-3 py-1">
-                    Most Popular
-                  </Badge>
-                </div>
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-500">
+                  {t('Most Popular', 'الأكثر شعبية')}
+                </Badge>
               )}
-              
               <CardHeader className="text-center">
-                <div className="w-12 h-12 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                  <plan.icon className="h-6 w-6 text-blue-600" />
+                <div className="mx-auto mb-4 p-3 bg-gray-100 rounded-full w-fit">
+                  {plan.icon}
                 </div>
-                <CardTitle className="text-lg md:text-xl">{plan.name}</CardTitle>
-                <div className="space-y-1">
-                  <div className="text-2xl md:text-3xl font-bold">
-                    ${plan.price}
-                    <span className="text-base md:text-lg font-normal text-gray-500">/{plan.period}</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{plan.description}</p>
-                </div>
+                <CardTitle className="text-xl">{plan.name}</CardTitle>
+                <div className="text-3xl font-bold text-wasfah-bright-teal">{plan.price}</div>
               </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-2">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+              <CardContent>
+                <ul className="space-y-3 mb-6">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center space-x-2">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
-                
                 <Button 
-                  className="w-full" 
-                  variant={plan.popular ? 'default' : 'outline'}
-                  onClick={() => handleSubscribe(plan)}
+                  className={`w-full ${plan.popular ? 'bg-amber-500 hover:bg-amber-600' : 'bg-wasfah-bright-teal hover:bg-wasfah-teal'}`}
                 >
-                  Choose {plan.name}
+                  {plan.name === 'Free' ? t('Current Plan', 'الخطة الحالية') : t('Upgrade Now', 'ترقية الآن')}
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
-
-        {/* Features Comparison */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Why Subscribe?</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center space-y-2">
-              <Zap className="h-8 w-8 text-wasfah-bright-teal mx-auto" />
-              <h3 className="font-semibold">Premium Recipes</h3>
-              <p className="text-sm text-gray-600">Access thousands of exclusive recipes from top chefs</p>
-            </div>
-            <div className="text-center space-y-2">
-              <Shield className="h-8 w-8 text-green-500 mx-auto" />
-              <h3 className="font-semibold">Ad-Free Experience</h3>
-              <p className="text-sm text-gray-600">Enjoy cooking without interruptions</p>
-            </div>
-            <div className="text-center space-y-2">
-              <CreditCard className="h-8 w-8 text-purple-500 mx-auto" />
-              <h3 className="font-semibold">Advanced Planning</h3>
-              <p className="text-sm text-gray-600">Smart meal planning and shopping lists</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      {/* Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-50 safe-area-bottom">
-        <div className="max-w-md mx-auto flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
-          <div className="text-center md:text-left">
-            <p className="text-sm font-medium">Start your premium journey</p>
-            <p className="text-xs text-gray-600">7-day free trial • Cancel anytime</p>
-          </div>
-          <Button 
-            onClick={() => handleSubscribe(subscriptionPlans[1])}
-            className="bg-wasfah-bright-teal hover:bg-wasfah-teal w-full md:w-auto"
-          >
-            Try Premium
-          </Button>
-        </div>
-      </div>
-
-      <PaymentModal
-        isOpen={paymentModal.isOpen}
-        onClose={closePaymentModal}
-        planName={paymentModal.planName}
-        amount={paymentModal.amount}
-        features={paymentModal.features}
-      />
     </PageContainer>
   );
 }

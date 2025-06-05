@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Smartphone, Wifi, WifiOff, Plus, Trash2, Bluetooth } from 'lucide-react';
+import { Smartphone, Wifi, WifiOff, Bluetooth, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRTL } from '@/contexts/RTLContext';
 
 interface ConnectedDevice {
   id: string;
@@ -18,6 +19,8 @@ interface ConnectedDevice {
 
 export default function ConnectedDevicesPage() {
   const { toast } = useToast();
+  const { t } = useRTL();
+  
   const [devices, setDevices] = useState<ConnectedDevice[]>([
     {
       id: '1',
@@ -41,15 +44,15 @@ export default function ConnectedDevicesPage() {
   const handleScanDevices = () => {
     setScanning(true);
     toast({
-      title: "Scanning for devices",
-      description: "Looking for nearby smart kitchen devices...",
+      title: t("Scanning for devices", "البحث عن الأجهزة"),
+      description: t("Looking for nearby smart kitchen devices...", "البحث عن أجهزة المطبخ الذكية القريبة..."),
     });
     
     setTimeout(() => {
       setScanning(false);
       toast({
-        title: "Scan complete",
-        description: "No new devices found. Make sure your device is in pairing mode.",
+        title: t("Scan complete", "اكتمل البحث"),
+        description: t("No new devices found. Make sure your device is in pairing mode.", "لم يتم العثور على أجهزة جديدة. تأكد من أن جهازك في وضع الاقتران."),
       });
     }, 3000);
   };
@@ -63,8 +66,8 @@ export default function ConnectedDevicesPage() {
       )
     );
     toast({
-      title: "Device disconnected",
-      description: "The device has been disconnected successfully.",
+      title: t("Device disconnected", "تم فصل الجهاز"),
+      description: t("The device has been disconnected successfully.", "تم فصل الجهاز بنجاح."),
     });
   };
 
@@ -77,16 +80,16 @@ export default function ConnectedDevicesPage() {
       )
     );
     toast({
-      title: "Device connected",
-      description: "The device has been connected successfully.",
+      title: t("Device connected", "تم توصيل الجهاز"),
+      description: t("The device has been connected successfully.", "تم توصيل الجهاز بنجاح."),
     });
   };
 
   const handleRemove = (deviceId: string) => {
     setDevices(devices => devices.filter(device => device.id !== deviceId));
     toast({
-      title: "Device removed",
-      description: "The device has been removed from your account.",
+      title: t("Device removed", "تم حذف الجهاز"),
+      description: t("The device has been removed from your account.", "تم حذف الجهاز من حسابك."),
     });
   };
 
@@ -112,12 +115,12 @@ export default function ConnectedDevicesPage() {
   };
 
   return (
-    <PageContainer header={{ title: 'Connected Devices', showBackButton: true }}>
-      <div className="p-4 space-y-6">
+    <PageContainer header={{ title: t('Connected Devices', 'الأجهزة المتصلة'), showBackButton: true }}>
+      <div className="p-4 space-y-6 pb-24">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Connected Devices</h1>
-            <p className="text-gray-600">Manage your smart kitchen devices</p>
+            <h1 className="text-2xl font-bold">{t('Connected Devices', 'الأجهزة المتصلة')}</h1>
+            <p className="text-gray-600">{t('Manage your smart kitchen devices', 'إدارة أجهزة المطبخ الذكية')}</p>
           </div>
           <Button 
             onClick={handleScanDevices} 
@@ -125,7 +128,7 @@ export default function ConnectedDevicesPage() {
             className="flex items-center gap-2"
           >
             <Bluetooth size={16} />
-            {scanning ? 'Scanning...' : 'Scan for Devices'}
+            {scanning ? t('Scanning...', 'جاري البحث...') : t('Scan for Devices', 'البحث عن الأجهزة')}
           </Button>
         </div>
 
@@ -143,21 +146,21 @@ export default function ConnectedDevicesPage() {
                           {device.status === 'connected' ? (
                             <>
                               <Wifi size={12} className="mr-1" />
-                              Connected
+                              {t('Connected', 'متصل')}
                             </>
                           ) : (
                             <>
                               <WifiOff size={12} className="mr-1" />
-                              Disconnected
+                              {t('Disconnected', 'غير متصل')}
                             </>
                           )}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>Last seen: {device.lastSeen}</span>
+                        <span>{t('Last seen:', 'آخر ظهور:')} {device.lastSeen}</span>
                         {device.batteryLevel && (
                           <span className={getBatteryColor(device.batteryLevel)}>
-                            Battery: {device.batteryLevel}%
+                            {t('Battery:', 'البطارية:')} {device.batteryLevel}%
                           </span>
                         )}
                       </div>
@@ -170,7 +173,7 @@ export default function ConnectedDevicesPage() {
                         size="sm"
                         onClick={() => handleDisconnect(device.id)}
                       >
-                        Disconnect
+                        {t('Disconnect', 'قطع الاتصال')}
                       </Button>
                     ) : (
                       <Button
@@ -178,7 +181,7 @@ export default function ConnectedDevicesPage() {
                         size="sm"
                         onClick={() => handleConnect(device.id)}
                       >
-                        Connect
+                        {t('Connect', 'اتصال')}
                       </Button>
                     )}
                     <Button
@@ -200,10 +203,10 @@ export default function ConnectedDevicesPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <Bluetooth className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Connected Devices</h3>
-              <p className="text-gray-600 mb-4">Connect smart kitchen devices to enhance your cooking experience</p>
+              <h3 className="text-lg font-medium mb-2">{t('No Connected Devices', 'لا توجد أجهزة متصلة')}</h3>
+              <p className="text-gray-600 mb-4">{t('Connect smart kitchen devices to enhance your cooking experience', 'قم بتوصيل أجهزة المطبخ الذكية لتحسين تجربة الطبخ')}</p>
               <Button onClick={handleScanDevices}>
-                Scan for Devices
+                {t('Scan for Devices', 'البحث عن الأجهزة')}
               </Button>
             </CardContent>
           </Card>

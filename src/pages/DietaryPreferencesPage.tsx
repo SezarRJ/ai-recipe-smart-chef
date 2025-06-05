@@ -1,210 +1,145 @@
 
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
-import { NutritionTip } from '@/components/nutrition/NutritionTip';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Leaf, Wheat, Milk, Fish, Nut, ShieldX } from 'lucide-react';
+import { useRTL } from '@/contexts/RTLContext';
+import { toast } from '@/hooks/use-toast';
 
-export default function DietaryPreferencesPage() {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('diets');
-  
-  const dietaryPlans = [
-    { id: 'vegetarian', label: 'Vegetarian', description: 'No meat, may include dairy and eggs' },
-    { id: 'vegan', label: 'Vegan', description: 'No animal products at all' },
-    { id: 'keto', label: 'Ketogenic', description: 'High fat, adequate protein, low carbs' },
-    { id: 'paleo', label: 'Paleo', description: 'Based on foods presumed to be available to paleolithic humans' },
-    { id: 'Mediterranean', label: 'Mediterranean', description: 'Plant-based foods, healthy fats, limited red meat' },
-    { id: 'gluten-free', label: 'Gluten-Free', description: 'Avoids gluten, a mixture of proteins found in wheat' },
-    { id: 'dairy-free', label: 'Dairy-Free', description: 'Avoids milk and ingredients derived from milk' },
-    { id: 'pescatarian', label: 'Pescatarian', description: 'Vegetarian diet that includes fish' }
-  ];
-  
-  const allergens = [
-    { id: 'peanuts', label: 'Peanuts' },
-    { id: 'treenuts', label: 'Tree Nuts' },
-    { id: 'dairy', label: 'Dairy' },
-    { id: 'eggs', label: 'Eggs' },
-    { id: 'fish', label: 'Fish' },
-    { id: 'shellfish', label: 'Shellfish' },
-    { id: 'soy', label: 'Soy' },
-    { id: 'wheat', label: 'Wheat/Gluten' },
-    { id: 'sesame', label: 'Sesame' }
-  ];
-  
-  const [selectedDiets, setSelectedDiets] = useState(['vegetarian']);
-  const [selectedAllergens, setSelectedAllergens] = useState(['shellfish']);
-  const [avoidIngredients, setAvoidIngredients] = useState(['MSG']);
-  
-  const [newAvoidIngredient, setNewAvoidIngredient] = useState('');
-  
-  const handleDietToggle = (diet: string) => {
-    setSelectedDiets(prev => 
-      prev.includes(diet) 
-        ? prev.filter(d => d !== diet) 
-        : [...prev, diet]
-    );
+const DietaryPreferencesPage = () => {
+  const { direction, language, t } = useRTL();
+  const [preferences, setPreferences] = useState({
+    vegetarian: false,
+    vegan: false,
+    glutenFree: false,
+    dairyFree: false,
+    nutFree: false,
+    seafoodFree: false,
+    halal: false,
+    kosher: false,
+    keto: false,
+    paleo: false,
+  });
+
+  const handlePreferenceChange = (key: string, checked: boolean) => {
+    setPreferences(prev => ({ ...prev, [key]: checked }));
   };
-  
-  const handleAllergenToggle = (allergen: string) => {
-    setSelectedAllergens(prev => 
-      prev.includes(allergen) 
-        ? prev.filter(a => a !== allergen) 
-        : [...prev, allergen]
-    );
-  };
-  
-  const handleAddAvoidIngredient = () => {
-    if (newAvoidIngredient && !avoidIngredients.includes(newAvoidIngredient)) {
-      setAvoidIngredients([...avoidIngredients, newAvoidIngredient]);
-      setNewAvoidIngredient('');
-    }
-  };
-  
-  const handleRemoveAvoidIngredient = (ingredient: string) => {
-    setAvoidIngredients(prev => prev.filter(i => i !== ingredient));
-  };
-  
-  const handleSavePreferences = () => {
+
+  const handleSave = () => {
     toast({
-      title: "Preferences Saved",
-      description: "Your dietary preferences have been updated successfully.",
+      title: t("Preferences Saved", "تم حفظ التفضيلات", "Tercihler Kaydedildi"),
+      description: t("Your dietary preferences have been updated", "تم تحديث تفضيلاتك الغذائية", "Beslenme tercihleriniz güncellendi"),
     });
   };
-  
+
+  const dietaryOptions = [
+    {
+      key: 'vegetarian',
+      icon: <Leaf className="h-5 w-5 text-green-500" />,
+      title: t("Vegetarian", "نباتي", "Vejetaryen"),
+      description: t("No meat or fish", "بدون لحوم أو أسماك", "Et veya balık yok")
+    },
+    {
+      key: 'vegan',
+      icon: <Leaf className="h-5 w-5 text-green-600" />,
+      title: t("Vegan", "نباتي صرف", "Vegan"),
+      description: t("No animal products", "بدون منتجات حيوانية", "Hayvansal ürün yok")
+    },
+    {
+      key: 'glutenFree',
+      icon: <Wheat className="h-5 w-5 text-amber-500" />,
+      title: t("Gluten Free", "خالي من الغلوتين", "Glutensiz"),
+      description: t("No gluten-containing grains", "بدون حبوب تحتوي على الغلوتين", "Gluten içeren tahıl yok")
+    },
+    {
+      key: 'dairyFree',
+      icon: <Milk className="h-5 w-5 text-blue-500" />,
+      title: t("Dairy Free", "خالي من الألبان", "Sütsüz"),
+      description: t("No milk or dairy products", "بدون حليب أو منتجات ألبان", "Süt veya süt ürünleri yok")
+    },
+    {
+      key: 'nutFree',
+      icon: <Nut className="h-5 w-5 text-orange-500" />,
+      title: t("Nut Free", "خالي من المكسرات", "Fındıksız"),
+      description: t("No nuts or tree nuts", "بدون مكسرات", "Fındık veya ağaç fındığı yok")
+    },
+    {
+      key: 'seafoodFree',
+      icon: <Fish className="h-5 w-5 text-cyan-500" />,
+      title: t("Seafood Free", "خالي من المأكولات البحرية", "Deniz Ürünleri Yok"),
+      description: t("No fish or shellfish", "بدون أسماك أو محار", "Balık veya kabuklu deniz ürünü yok")
+    },
+    {
+      key: 'halal',
+      icon: <ShieldX className="h-5 w-5 text-green-700" />,
+      title: t("Halal", "حلال", "Helal"),
+      description: t("Islamic dietary laws", "القوانين الغذائية الإسلامية", "İslami beslenme kuralları")
+    },
+    {
+      key: 'kosher',
+      icon: <ShieldX className="h-5 w-5 text-blue-700" />,
+      title: t("Kosher", "كوشر", "Koşer"),
+      description: t("Jewish dietary laws", "القوانين الغذائية اليهودية", "Yahudi beslenme kuralları")
+    },
+    {
+      key: 'keto',
+      icon: <Leaf className="h-5 w-5 text-purple-500" />,
+      title: t("Ketogenic", "كيتوجيني", "Ketojenik"),
+      description: t("Low carb, high fat", "قليل الكربوهيدرات، عالي الدهون", "Düşük karbonhidrat, yüksek yağ")
+    },
+    {
+      key: 'paleo',
+      icon: <Leaf className="h-5 w-5 text-brown-500" />,
+      title: t("Paleo", "باليو", "Paleo"),
+      description: t("Stone age diet", "نظام العصر الحجري", "Taş devri diyeti")
+    }
+  ];
+
   return (
-    <PageContainer header={{ title: 'Dietary Preferences', showBackButton: true }}>
-      <div className="space-y-6 pb-6 px-4">
-        <NutritionTip 
-          tip="Setting up your dietary preferences helps our AI suggest recipes that align with your needs and restrictions."
-          source="Nutrition AI"
-        />
-        
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="diets">Diet Plans</TabsTrigger>
-            <TabsTrigger value="allergens">Allergens</TabsTrigger>
-            <TabsTrigger value="avoid">Avoid List</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="diets" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Dietary Plans</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {dietaryPlans.map(diet => (
-                    <div key={diet.id} className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor={diet.id} className="font-medium">{diet.label}</Label>
-                        <p className="text-xs text-gray-500">{diet.description}</p>
-                      </div>
-                      <Switch
-                        id={diet.id}
-                        checked={selectedDiets.includes(diet.id)}
-                        onCheckedChange={() => handleDietToggle(diet.id)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="allergens" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Allergens to Avoid</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {allergens.map(allergen => (
-                    <div key={allergen.id} className="flex items-center space-x-3">
-                      <Checkbox 
-                        id={allergen.id}
-                        checked={selectedAllergens.includes(allergen.id)}
-                        onCheckedChange={() => handleAllergenToggle(allergen.id)}
-                      />
-                      <Label htmlFor={allergen.id} className="cursor-pointer">{allergen.label}</Label>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-500 mt-4">
-                  Recipes containing these allergens will be clearly marked with warnings.
-                  For severe allergies, always double-check ingredients.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="avoid" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Ingredients to Avoid</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <Label htmlFor="avoid-ingredient" className="mb-2 block">Add ingredient to avoid:</Label>
-                  <div className="flex space-x-2">
-                    <input 
-                      id="avoid-ingredient"
-                      type="text" 
-                      value={newAvoidIngredient}
-                      onChange={(e) => setNewAvoidIngredient(e.target.value)}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="e.g., Cilantro" 
-                    />
-                    <Button 
-                      type="button" 
-                      onClick={handleAddAvoidIngredient}
-                      disabled={!newAvoidIngredient}
-                    >
-                      Add
-                    </Button>
+    <PageContainer header={{ title: t("Dietary Preferences", "التفضيلات الغذائية", "Beslenme Tercihleri"), showBackButton: true }}>
+      <div className="p-4 pb-24 space-y-6" dir={direction}>
+        <div className="bg-gradient-to-br from-green-500 to-teal-600 p-6 rounded-lg text-white text-center mb-6">
+          <Leaf className="h-12 w-12 mx-auto mb-3" />
+          <h1 className="text-2xl font-bold mb-2">{t("Dietary Preferences", "التفضيلات الغذائية", "Beslenme Tercihleri")}</h1>
+          <p className="opacity-90">{t("Set your dietary restrictions and preferences", "ضع قيودك وتفضيلاتك الغذائية", "Beslenme kısıtlamalarınızı ve tercihlerinizi belirleyin")}</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("Select Your Preferences", "اختر تفضيلاتك", "Tercihlerinizi Seçin")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dietaryOptions.map((option) => (
+                <div key={option.key} className="flex items-start space-x-3 rtl:space-x-reverse p-3 border rounded-lg hover:bg-gray-50">
+                  <Checkbox
+                    id={option.key}
+                    checked={preferences[option.key as keyof typeof preferences]}
+                    onCheckedChange={(checked) => handlePreferenceChange(option.key, checked as boolean)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor={option.key} className="flex items-center gap-2 font-medium cursor-pointer">
+                      {option.icon}
+                      {option.title}
+                    </Label>
+                    <p className="text-sm text-gray-600 mt-1">{option.description}</p>
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  {avoidIngredients.length > 0 ? (
-                    avoidIngredients.map((ingredient, index) => (
-                      <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-md">
-                        <span>{ingredient}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleRemoveAvoidIngredient(ingredient)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">No ingredients added yet.</p>
-                  )}
-                </div>
-                
-                <p className="text-sm text-gray-500 mt-4">
-                  Add ingredients you prefer not to use in recipes. This could be due to personal taste, 
-                  preference or non-severe sensitivities.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        
-        <Button 
-          className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
-          onClick={handleSavePreferences}
-        >
-          Save Preferences
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Button onClick={handleSave} className="w-full bg-green-500 hover:bg-green-600">
+          {t("Save Preferences", "حفظ التفضيلات", "Tercihleri Kaydet")}
         </Button>
       </div>
     </PageContainer>
   );
-}
+};
+
+export default DietaryPreferencesPage;
