@@ -1,68 +1,155 @@
 
 import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-type UserRole = 'user' | 'admin' | 'super_admin';
-
-interface AuthState {
-  user: User | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  role: UserRole | null;
+export interface User {
+  id: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+  role?: 'user' | 'admin' | 'super_admin';
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+    [key: string]: any;
+  };
 }
 
 export const useAuth = () => {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    loading: true,
-    isAuthenticated: false,
-    role: null,
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+  const checkUser = async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
       
-      if (session?.user) {
-        const role = await getUserRole(session.user.id);
-        setAuthState({
-          user: session.user,
-          loading: false,
-          isAuthenticated: true,
-          role,
+      if (authUser) {
+        // Get user role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', authUser.id)
+          .single();
+
+        // Get profile data
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', authUser.id)
+          .single();
+
+        const userRole = roleData?.role as 'user' | 'admin' | 'super_admin' || 'user';
+
+        setUser({
+          id: authUser.id,
+          email: authUser.email!,
+          full_name: profileData?.full_name || authUser.user_metadata?.full_name || undefined,
+          avatar_url: profileData?.avatar_url || authUser.user_metadata?.avatar_url || undefined,
+          role: userRole,
+          user_metadata: authUser.user_metadata || {}
         });
       } else {
-        setAuthState({
-          user: null,
-          loading: false,
-          isAuthenticated: false,
-          role: null,
-        });
+        setUser(null);
       }
-    };
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error checking user:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    getInitialSession();
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    // Listen for auth changes
+      if (error) throw error;
+
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully signed in.'
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Sign in failed',
+        description: err.message,
+        variant: 'destructive'
+      });
+      throw err;
+    }
+  };
+
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Account created!',
+        description: 'Please check your email to verify your account.'
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Sign up failed',
+        description: err.message,
+        variant: 'destructive'
+      });
+      throw err;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      setUser(null);
+      toast({
+        title: 'Signed out',
+        description: 'You have been successfully signed out.'
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Sign out failed',
+        description: err.message,
+        variant: 'destructive'
+      });
+      throw err;
+    }
+  };
+
+  const hasRole = (role: 'admin' | 'super_admin') => {
+    if (!user) return false;
+    if (role === 'admin') {
+      return user.role === 'admin' || user.role === 'super_admin';
+    }
+    return user.role === role;
+  };
+
+  useEffect(() => {
+    checkUser();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          const role = await getUserRole(session.user.id);
-          setAuthState({
-            user: session.user,
-            loading: false,
-            isAuthenticated: true,
-            role,
-          });
-        } else {
-          setAuthState({
-            user: null,
-            loading: false,
-            isAuthenticated: false,
-            role: null,
-          });
+      (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          checkUser();
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
         }
       }
     );
@@ -70,19 +157,14 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const getUserRole = async (userId: string): Promise<UserRole> => {
-    try {
-      const { data, error } = await supabase.rpc('get_user_role', {
-        user_id: userId
-      });
-
-      if (error) throw error;
-      return (data as UserRole) || 'user';
-    } catch (error) {
-      console.error('Error getting user role:', error);
-      return 'user';
-    }
+  return {
+    user,
+    loading,
+    error,
+    signIn,
+    signUp,
+    signOut,
+    hasRole,
+    isAuthenticated: !!user
   };
-
-  return authState;
 };
