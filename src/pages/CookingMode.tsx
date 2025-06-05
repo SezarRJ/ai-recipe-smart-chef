@@ -51,7 +51,6 @@ const CookingMode = () => {
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        user_id: "user-1",
         is_public: true
       });
       setLoading(false);
