@@ -94,6 +94,16 @@ const ActivityMonitorPage = () => <div>Activity Monitor Page (Coming Soon!)</div
 const HealthGoalsPage = () => <div>Health Goals Page (Coming Soon!)</div>;
 const MealTimingPage = () => <div>Meal Timing Page (Coming Soon!)</div>;
 
+// Default recipe for VoiceRecipeAssistant
+const defaultRecipe = {
+  title: "Sample Recipe",
+  instructions: [
+    "Prepare your ingredients",
+    "Follow the cooking steps",
+    "Enjoy your meal"
+  ]
+};
+
 const App = () => {
   return (
     <ThemeProvider>
@@ -150,6 +160,7 @@ const App = () => {
                   <Route path="/ai-features" element={<AIFeaturesPage />} />
                   <Route path="/ai/scan-dish" element={<ScanDishPage />} />
                   <Route path="/ai/recipe-finder" element={<AIFindByIngredientsPage />} />
+                  <Route path="/ai-find-by-ingredients" element={<AIFindByIngredientsPage />} />
                   <Route path="/ai/cooking-assistant" element={<AICookingAssistantPage />} />
                   <Route path="/ai/recipe-personalizer" element={<RecipePersonalizerPage />} />
                   <Route path="/ai/meal-planner" element={<SmartMealPlannerPage />} />
@@ -157,7 +168,7 @@ const App = () => {
                   <Route path="/ai/fitness-coach" element={<FitnessNutritionCoachPage />} />
                   <Route path="/ai/mood-recipes" element={<MoodBasedRecipes />} />
                   <Route path="/ai/smart-adaptation" element={<SmartRecipeAdaptation />} />
-                  <Route path="/ai/voice-assistant" element={<VoiceRecipeAssistantPage />} />
+                  <Route path="/ai/voice-assistant" element={<VoiceRecipeAssistantPage recipe={defaultRecipe} />} />
 
                   {/* --- Tools Hub and Sub-pages --- */}
                   <Route path="/tools" element={<ToolsPage />} />
