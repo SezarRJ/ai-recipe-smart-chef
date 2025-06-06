@@ -77,122 +77,15 @@ const ServicesPage = () => {
       ]
     },
     {
-      title: t("Smart Tools", "الأدوات الذكية"),
-      description: t("Essential cooking tools and calculators", "أدوات الطبخ الأساسية والحاسبات"),
-      services: [
-        {
-          name: t("Nutrition Calculator", "حاسبة التغذية"),
-          description: t("Calculate nutritional values", "احسب القيم الغذائية"),
-          icon: Calculator,
-          path: "/tools/nutrition-calculator",
-          isPremium: false
-        },
-        {
-          name: t("Recipe Scaler", "مقياس الوصفات"),
-          description: t("Scale recipes for any serving size", "اضبط الوصفات لأي عدد حصص"),
-          icon: Scale,
-          path: "/tools/recipe-scaler",
-          isPremium: false
-        },
-        {
-          name: t("Cooking Timer", "مؤقت الطبخ"),
-          description: t("Multiple timers for cooking", "مؤقتات متعددة للطبخ"),
-          icon: Timer,
-          path: "/tools/cooking-timer",
-          isPremium: false
-        },
-        {
-          name: t("Unit Converter", "محول الوحدات"),
-          description: t("Convert cooking measurements", "حول قياسات الطبخ"),
-          icon: Scale,
-          path: "/tools/unit-converter",
-          isPremium: false
-        },
-        {
-          name: t("Temperature Guide", "دليل درجات الحرارة"),
-          description: t("Cooking temperature reference", "مرجع درجات حرارة الطبخ"),
-          icon: Thermometer,
-          path: "/tools/temperature-guide",
-          isPremium: false
-        }
-      ]
-    },
-    {
-      title: t("Smart Discovery", "الاكتشاف الذكي"),
+    title: t("Smart Discovery", "الاكتشاف الذكي"),
       description: t("Find and discover new recipes", "اعثر على واكتشف وصفات جديدة"),
       services: [
         {
-          name: t("Scan Dish", "مسح الطبق"),
-          description: t("Identify dishes from photos", "تعرف على الأطباق من الصور"),
-          icon: Camera,
-          path: "/ai/scan-dish",
-          isPremium: true
-        },
-        {
-          name: t("Recipe Finder", "محدد الوصفات"),
-          description: t("Find recipes by ingredients", "اعثر على وصفات بالمكونات"),
-          icon: BookOpen,
-          path: "/ai/recipe-finder",
-          isPremium: false
-        },
-        {
-          name: t("Global Cuisine", "المطبخ العالمي"),
-          description: t("Explore international cuisines", "استكشف المطابخ العالمية"),
-          icon: ChefHat,
-          path: "/global-cuisine",
-          isPremium: false
-        }
+          }
       ]
     },
     {
-      title: t("Health & Wellness", "الصحة والعافية"),
-      description: t("Track your health and nutrition", "تتبع صحتك وتغذيتك"),
-      services: [
-        {
-          name: t("Health Tracking", "تتبع الصحة"),
-          description: t("Monitor your health metrics", "راقب مؤشراتك الصحية"),
-          icon: Heart,
-          path: "/health-tracking-home",
-          isPremium: false
-        },
-        {
-          name: t("Micronutrient Tracker", "متتبع المغذيات الدقيقة"),
-          description: t("Track vitamins and minerals", "تتبع الفيتامينات والمعادن"),
-          icon: Target,
-          path: "/micronutrient-tracker",
-          isPremium: true
-        },
-        {
-          name: t("Body Information", "معلومات الجسم"),
-          description: t("Track body measurements", "تتبع قياسات الجسم"),
-          icon: Users,
-          path: "/body-information",
-          isPremium: false
-        }
-      ]
-    },
-    {
-      title: t("Social & Community", "المجتمع والتواصل"),
-      description: t("Connect with other cooking enthusiasts", "تواصل مع عشاق الطبخ الآخرين"),
-      services: [
-        {
-          name: t("Community", "المجتمع"),
-          description: t("Join cooking community", "انضم إلى مجتمع الطبخ"),
-          icon: Users,
-          path: "/community",
-          isPremium: false
-        },
-        {
-          name: t("Loyalty Program", "برنامج الولاء"),
-          description: t("Earn rewards for cooking", "اكسب مكافآت للطبخ"),
-          icon: Award,
-          path: "/loyalty-program",
-          isPremium: false
-        }
-      ]
-    },
-    {
-      title: t("Premium Features", "الميزات المميزة"),
+   title: t("Premium Features", "الميزات المميزة"),
       description: t("Unlock advanced cooking features", "افتح ميزات الطبخ المتقدمة"),
       services: [
         {
