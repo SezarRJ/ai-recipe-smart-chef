@@ -7,7 +7,6 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/use-toast';
 import { RTLProvider } from '@/contexts/RTLContext';
 import { supabase } from './integrations/supabase/client';
 import { useUserHealth } from '@/hooks/useUserHealth';
@@ -24,7 +23,6 @@ const BodyInformationPage = React.lazy(() => import('@/pages/BodyInformationPage
 const DietaryPreferencesPage = React.lazy(() => import('@/pages/DietaryPreferencesPage'));
 
 function App() {
-  const { toast } = useToast();
   const [session, setSession] = useState(null);
 	const {
 		isHealthGoalsOpen,
@@ -65,8 +63,8 @@ function App() {
             <Route path="/meal-timing" element={<MealTimingPage />} />
           </Routes>
         </Suspense>
+        <Toaster />
       </Router>
-      <Toaster />
     </RTLProvider>
   );
 }
