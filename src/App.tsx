@@ -9,6 +9,13 @@ const MealTimingPage = () => <div>Meal Timing Page (Coming Soon!)</div>;
 
 // ... (your existing placeholder components and imports) ...
 
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { RTLProvider } from '@/contexts/RTLContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+
 const App = () => {
   // ... (your existing state and useEffect) ...
 
@@ -56,7 +63,7 @@ const App = () => {
                   <Route path="/services" element={<ServicesPage />} />
                   <Route path="/recipes" element={<RecipesPage />} />
 
-                  {/* --- Health & Wellness Feature Routes (ADD THESE) --- */}
+                  {/* --- Health & Wellness Feature Routes --- */}
                   <Route path="/health/nutrition-tracking" element={<NutritionTrackingPage />} />
                   <Route path="/health/weight-management" element={<WeightManagementPage />} />
                   <Route path="/health/activity-monitor" element={<ActivityMonitorPage />} />
