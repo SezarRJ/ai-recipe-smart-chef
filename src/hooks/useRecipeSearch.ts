@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Recipe } from '@/types/index';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +16,7 @@ export const useRecipeSearch = () => {
   const [showResults, setShowResults] = useState(false);
   
   const searchRecipes = async (addedIngredients: Ingredient[], customDrinkOptions: DrinkOptions | null, selectedCategory: any, selectedSubcategory: any) => {
-    const isAlcoholicDrinkSearch = selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
+    const isAlcoholicDrinkSearch = selectedCategory?.id === 'alcohol' && selectedSubcategory;
     
     if (!isAlcoholicDrinkSearch && addedIngredients.length === 0) {
       toast({

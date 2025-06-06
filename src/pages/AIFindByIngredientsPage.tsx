@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -7,7 +8,7 @@ import { FilterPanel } from '@/components/ingredients/FilterPanel';
 import { SearchSummary } from '@/components/ingredients/SearchSummary';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
-import { DrinkCustomizationForm, DrinkOptions as DrinkFormOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
 import { useLocation } from 'react-router-dom';
 import { StepIndicator } from '@/components/ingredients/StepIndicator';
 import { RecipeSearchResults } from '@/components/ingredients/RecipeSearchResults';
@@ -44,7 +45,7 @@ export default function FindByIngredients() {
     cuisine: '',
   });
   const [addedIngredients, setAddedIngredients] = useState<Ingredient[]>([]);
-  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkFormOptions | null>(null);
+  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkOptions | null>(null);
 
   useEffect(() => {
     if (stateIngredients.length > 0) {
@@ -129,7 +130,7 @@ export default function FindByIngredients() {
     });
   };
 
-  const handleGenerateCustomDrink = (options: DrinkFormOptions) => {
+  const handleGenerateCustomDrink = (options: DrinkOptions) => {
     setCustomDrinkOptions(options);
     setCurrentStep(4);
   };
@@ -152,7 +153,7 @@ export default function FindByIngredients() {
     setShowResults(false);
   };
 
-  const showDrinkCustomizationForm = currentStep === 3 && selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
+  const showDrinkCustomizationForm = currentStep === 3 && selectedCategory?.id === 'alcohol' && selectedSubcategory;
 
   if (showResults) {
     return (
