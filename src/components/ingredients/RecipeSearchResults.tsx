@@ -21,13 +21,18 @@ export const RecipeSearchResults: React.FC<RecipeSearchResultsProps> = ({
     <PageContainer
       header={{
         title: t('Search Results', 'نتائج البحث'),
-        showBackButton: true,
-        onBack
+        showBackButton: true
       }}
       className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
     >
       <div className="space-y-6 pb-6">
         <div className="text-center">
+          <button 
+            onClick={onBack}
+            className="mb-4 px-4 py-2 text-wasfah-deep-teal hover:underline flex items-center justify-center"
+          >
+            <span>← {t('Back to Search', 'العودة للبحث')}</span>
+          </button>
           <h2 className="text-2xl font-bold mb-2">
             {t(`Found ${searchResults.length} recipes`, `تم العثور على ${searchResults.length} وصفة`)}
           </h2>

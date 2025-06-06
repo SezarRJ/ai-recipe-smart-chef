@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -14,7 +13,7 @@ import { StepIndicator } from '@/components/ingredients/StepIndicator';
 import { RecipeSearchResults } from '@/components/ingredients/RecipeSearchResults';
 import { useRecipeSearch } from '@/hooks/useRecipeSearch';
 import { mainCategories, AI_FILTER_OPTIONS, PANTRY_ITEMS } from '@/components/ingredients/constants';
-import { MainCategory, AIFilters, Ingredient } from '@/components/ingredients/types';
+import { AIFilters, Ingredient } from '@/components/ingredients/types';
 
 export default function FindByIngredients() {
   const { toast } = useToast();
@@ -32,7 +31,7 @@ export default function FindByIngredients() {
 
   const [currentStep, setCurrentStep] = useState(stateIngredients.length > 0 ? 4 : 1);
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(
     stateIngredients.length > 0 ? mainCategories[0] : null
   );
   const [selectedSubcategory, setSelectedSubcategory] = useState<{ name: string; icon: React.ElementType; requiresCustomForm?: boolean } | null>(
@@ -60,7 +59,7 @@ export default function FindByIngredients() {
     }
   }, []);
 
-  const handleCategorySelect = (category: MainCategory) => {
+  const handleCategorySelect = (category: any) => {
     setSelectedCategory(category);
     setSelectedSubcategory(null);
     if (!stateIngredients.length) {

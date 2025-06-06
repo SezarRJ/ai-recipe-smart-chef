@@ -21,6 +21,7 @@ const NutritionGoalsPage = React.lazy(() => import('@/pages/NutritionGoalsPage')
 const HealthTrackingPage = React.lazy(() => import('@/pages/HealthTrackingPage'));
 const BodyInformationPage = React.lazy(() => import('@/pages/BodyInformationPage'));
 const DietaryPreferencesPage = React.lazy(() => import('@/pages/DietaryPreferencesPage'));
+const FindByIngredientsPage = React.lazy(() => import('@/pages/FindByIngredientsPage'));
 
 function App() {
   const [session, setSession] = useState(null);
@@ -55,6 +56,7 @@ function App() {
             <Route path="/recipes" element={<RecipesPage />} />
             <Route path="/cooking-mode/:id" element={<CookingMode />} />
             <Route path="/ai-find-by-ingredients" element={<AIFindByIngredientsPage />} />
+            <Route path="/find-by-ingredients" element={<FindByIngredientsPage />} />
             <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
             <Route path="/health-tracking" element={<HealthTrackingPage />} />
             <Route path="/body-information" element={<BodyInformationPage />} />
