@@ -3,7 +3,8 @@ import {
   ChefHat, Salad, Soup, Package2, Utensils,
   Cookie, IceCream, Cake, Sparkles, GlassWater,
   Wine, Beer, Coffee, Wheat, Egg, Milk, Drumstick,
-  LeafyGreen, Fish, Carrot
+  LeafyGreen, Fish, Carrot, Martini, Flame, Calendar,
+  Wrench, Crown
 } from 'lucide-react';
 import { MainCategory, PantryItem, FilterOptions } from './types';
 
@@ -39,12 +40,23 @@ export const mainCategories: MainCategory[] = [
     icon: Coffee,
     subcategories: [
       { name: 'Detox', icon: GlassWater },
-      { name: 'Cocktails', icon: Wine },
-      { name: 'Alcoholic', icon: Beer, requiresCustomForm: true },
+      { name: 'Cocktails', icon: Martini },
       { name: 'Hot Drinks', icon: Coffee },
       { name: 'Others', icon: GlassWater }
     ]
   },
+  {
+    id: 'alcohol',
+    name: 'Alcohol Drinks',
+    icon: Wine,
+    subcategories: [
+      { name: 'Spirit', icon: Wine },
+      { name: 'By Flavor', icon: Sparkles },
+      { name: 'By Occasion', icon: Calendar },
+      { name: 'By Technique', icon: Wrench },
+      { name: 'Classics', icon: Crown }
+    ]
+  }
 ];
 
 export const AI_FILTER_OPTIONS: FilterOptions = {
