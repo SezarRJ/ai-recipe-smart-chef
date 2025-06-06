@@ -1,4 +1,3 @@
-
 import React, { useState, ElementType, useEffect } from 'react';
 import {
   Utensils, Cake, Coffee, Camera, Mic, Soup, Salad, Egg, Milk, Drumstick,
@@ -57,7 +56,6 @@ export default function FindByIngredients() {
   // Get ingredients from previous page if navigated from ingredient selection
   const stateIngredients = location.state?.selectedIngredients || [];
 
-  // --- Categories, Filters, Pantry ---
   const mainCategories: MainCategory[] = [
     {
       id: 'food',
@@ -118,7 +116,6 @@ export default function FindByIngredients() {
     { id: 'p10', name: 'Carrots', quantity: '5', unit: 'pcs', icon: Carrot },
   ];
 
-  // --- State ---
   const [currentStep, setCurrentStep] = useState(stateIngredients.length > 0 ? 4 : 1);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<MainCategory | null>(
@@ -139,7 +136,6 @@ export default function FindByIngredients() {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
-  // Initialize ingredients from previous page
   useEffect(() => {
     if (stateIngredients.length > 0) {
       const initialIngredients: Ingredient[] = stateIngredients.map((name: string, index: number) => ({
@@ -153,7 +149,6 @@ export default function FindByIngredients() {
     }
   }, []);
 
-  // --- Handlers ---
   const handleCategorySelect = (category: MainCategory) => {
     setSelectedCategory(category);
     setSelectedSubcategory(null);
@@ -229,7 +224,6 @@ export default function FindByIngredients() {
     setCurrentStep(4);
   };
 
-  // --- AI-powered Search ---
   const handleSearchRecipes = async () => {
     const isAlcoholicDrinkSearch = selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
     if (!isAlcoholicDrinkSearch && addedIngredients.length === 0) {
@@ -418,7 +412,6 @@ Focus on practical recipes that can be made with the ingredients provided.`;
     }
   };
 
-  // --- Step Indicator ---
   const renderStepIndicator = () => (
     <div className="flex justify-center mb-6">
       <div className="flex space-x-2">
@@ -440,7 +433,6 @@ Focus on practical recipes that can be made with the ingredients provided.`;
 
   const showDrinkCustomizationForm = currentStep === 3 && selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
 
-  // --- Results View ---
   if (showResults) {
     return (
       <PageContainer
@@ -478,7 +470,6 @@ Focus on practical recipes that can be made with the ingredients provided.`;
     );
   }
 
-  // --- Main Multi-Step UI ---
   return (
     <PageContainer
       header={{
