@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -155,6 +154,9 @@ const App = () => {
                   <Route path="/health/activity-monitor" element={<ActivityMonitorPage />} />
                   <Route path="/health/health-goals" element={<HealthGoalsPage />} />
                   <Route path="/health/meal-timing" element={<MealTimingPage />} />
+                  <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
+                  <Route path="/meal-timing" element={<MealTimingPage />} />
+                  <Route path="/micronutrient-tracker" element={<MicronutrientTracker />} />
 
                   {/* --- AI Features Hub and Sub-pages --- */}
                   <Route path="/ai-features" element={<AIFeaturesPage />} />

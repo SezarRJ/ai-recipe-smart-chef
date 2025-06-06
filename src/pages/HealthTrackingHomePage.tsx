@@ -37,9 +37,41 @@ const HealthTrackingHomePage = () => {
       icon: <Apple className="h-6 w-6" />,
       title: "Nutrition Tracking",
       description: "Track macros, calories, and nutrients from your meals",
-      path: "/health-tracking",
+      path: "/nutrition-goals",
       color: "from-green-500 to-emerald-500",
       stats: "1,650 kcal today"
+    },
+    {
+      icon: <Scale className="h-6 w-6" />,
+      title: "Weight Management", 
+      description: "Track weight changes and body composition",
+      path: "/body-information",
+      color: "from-blue-500 to-cyan-500",
+      stats: "Goal: -2kg"
+    },
+    {
+      icon: <Activity className="h-6 w-6" />,
+      title: "Activity Monitor",
+      description: "Connect fitness trackers and monitor activity",
+      path: "/connected-devices",
+      color: "from-orange-500 to-red-500",
+      stats: "25 min today"
+    },
+    {
+      icon: <Target className="h-6 w-6" />,
+      title: "Health Goals",
+      description: "Set and track personalized health objectives",
+      path: "/nutrition-goals",
+      color: "from-indigo-500 to-purple-500",
+      stats: "3/5 active"
+    },
+    {
+      icon: <Clock className="h-6 w-6" />,
+      title: "Meal Timing",
+      description: "Optimize meal timing for better health",
+      path: "/meal-timing",
+      color: "from-teal-500 to-green-500",
+      stats: "On track"
     },
     {
       icon: <Pill className="h-6 w-6" />,
@@ -49,38 +81,6 @@ const HealthTrackingHomePage = () => {
       color: "from-purple-500 to-violet-500",
       stats: "3 nutrients low",
       isNew: true
-    },
-    {
-      icon: <Scale className="h-6 w-6" />,
-      title: "Weight Management",
-      description: "Track weight changes and body composition",
-      path: "/health-tracking",
-      color: "from-blue-500 to-cyan-500",
-      stats: "Goal: -2kg"
-    },
-    {
-      icon: <Activity className="h-6 w-6" />,
-      title: "Activity Monitor",
-      description: "Connect fitness trackers and monitor activity",
-      path: "/health-tracking",
-      color: "from-orange-500 to-red-500",
-      stats: "25 min today"
-    },
-    {
-      icon: <Target className="h-6 w-6" />,
-      title: "Health Goals",
-      description: "Set and track personalized health objectives",
-      path: "/health-tracking",
-      color: "from-indigo-500 to-purple-500",
-      stats: "3/5 active"
-    },
-    {
-      icon: <Clock className="h-6 w-6" />,
-      title: "Meal Timing",
-      description: "Optimize meal timing for better health",
-      path: "/health-tracking",
-      color: "from-teal-500 to-green-500",
-      stats: "On track"
     }
   ];
 
@@ -245,7 +245,7 @@ const HealthTrackingHomePage = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
-          <Link to="/health-tracking">
+          <Link to="/nutrition-goals">
             <Button className="w-full h-16 bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal hover:from-wasfah-teal hover:to-wasfah-bright-teal">
               <Plus className="h-5 w-5 mr-2" />
               Log Food
