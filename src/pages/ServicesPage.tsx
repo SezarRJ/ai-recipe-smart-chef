@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -20,7 +19,9 @@ import {
   ChefHat,
   BookOpen,
   Award,
-  TrendingUp
+  TrendingUp,
+  Search,
+  Eye
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 
@@ -77,15 +78,34 @@ const ServicesPage = () => {
       ]
     },
     {
-    title: t("Smart Discovery", "الاكتشاف الذكي"),
+      title: t("Smart Discovery", "الاكتشاف الذكي"),
       description: t("Find and discover new recipes", "اعثر على واكتشف وصفات جديدة"),
       services: [
         {
-          }
+          name: t("Recipe Finder", "باحث الوصفات"),
+          description: t("Find recipes by ingredients", "ابحث عن الوصفات بالمكونات"),
+          icon: Search,
+          path: "/ai-find-by-ingredients",
+          isPremium: false
+        },
+        {
+          name: t("Dish Scanner", "ماسح الأطباق"),
+          description: t("Scan dishes to get recipes", "امسح الأطباق للحصول على الوصفات"),
+          icon: Camera,
+          path: "/ai/scan-dish",
+          isPremium: false
+        },
+        {
+          name: t("Recipe Explorer", "مستكشف الوصفات"),
+          description: t("Explore recipes by cuisine", "استكشف الوصفات حسب المطبخ"),
+          icon: Eye,
+          path: "/recipes",
+          isPremium: false
+        }
       ]
     },
     {
-   title: t("Premium Features", "الميزات المميزة"),
+      title: t("Premium Features", "الميزات المميزة"),
       description: t("Unlock advanced cooking features", "افتح ميزات الطبخ المتقدمة"),
       services: [
         {
