@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // Updated interface for DrinkOptions that will be consistent with AIFindByIngredientsPage
 export interface DrinkOptions {
   type: string;
-  strength: number; // Ensuring this is a number, not a string
+  strength: number; // This is correctly defined as a number
   flavor: string;
   temperature: string;
   themes?: string[]; 
