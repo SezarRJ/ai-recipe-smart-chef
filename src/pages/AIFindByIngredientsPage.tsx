@@ -1,3 +1,4 @@
+
 import React, { useState, ElementType, useEffect } from 'react';
 import {
   Utensils, Cake, Coffee, Camera, Mic, Soup, Salad, Egg, Milk, Drumstick,
@@ -47,6 +48,8 @@ interface PantryItem {
   unit: string;
   icon?: ElementType;
 }
+
+// Note: Removed the local DrinkOptions interface definition to use the imported one
 
 export default function FindByIngredients() {
   const { toast } = useToast();
