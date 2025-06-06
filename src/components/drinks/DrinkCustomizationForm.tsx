@@ -1,4 +1,3 @@
-
 // src/components/drinks/DrinkCustomizationForm.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,8 @@ export interface DrinkOptions {
   flavor: string;
   temperature: string;
   themes?: string[]; 
-  alcoholType?: string; // Added for compatibility
-  occasion?: string; // Added for compatibility
+  alcoholType: string; // Required for compatibility
+  occasion?: string; // Optional for compatibility
 }
 
 interface DrinkCustomizationFormProps {

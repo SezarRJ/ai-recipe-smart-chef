@@ -12,7 +12,8 @@ import { SearchSummary } from '@/components/ingredients/SearchSummary';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
-import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { DrinkCustomizationForm } from '@/components/drinks/DrinkCustomizationForm';
+import type { DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
 import { Recipe } from '@/types/index';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
@@ -46,15 +47,6 @@ interface PantryItem {
   quantity: string;
   unit: string;
   icon?: ElementType;
-}
-
-interface DrinkOptions {
-  type: string;
-  alcoholType: string;
-  strength: string;
-  flavor: string;
-  occasion: string;
-  temperature: string;
 }
 
 export default function FindByIngredients() {
