@@ -3,13 +3,7 @@ import React, { ElementType } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search } from 'lucide-react';
-
-interface DrinkOptions {
-  type: string;
-  strength: string;
-  flavor: string;
-  temperature: string;
-}
+import { DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
 
 interface MainCategory {
   id: string;
@@ -68,7 +62,7 @@ export const SearchSummary: React.FC<SearchSummaryProps> = ({
               <div className="text-sm text-gray-600 mb-2">Custom Drink Options:</div>
               <div className="text-xs space-y-1">
                 <div>Type: {customDrinkOptions.type}</div>
-                <div>Strength: {customDrinkOptions.strength}</div>
+                <div>Strength: {customDrinkOptions.strength < 33 ? 'Mild' : customDrinkOptions.strength > 66 ? 'Strong' : 'Medium'}</div>
                 <div>Flavor: {customDrinkOptions.flavor}</div>
                 <div>Temperature: {customDrinkOptions.temperature}</div>
               </div>
