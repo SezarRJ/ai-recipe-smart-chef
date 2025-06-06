@@ -1,3 +1,4 @@
+
 // src/components/drinks/DrinkCustomizationForm.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 // Updated interface for DrinkOptions that will be consistent with AIFindByIngredientsPage
 export interface DrinkOptions {
   type: string;
-  strength: number;
+  strength: number; // Ensuring this is a number, not a string
   flavor: string;
   temperature: string;
   themes?: string[]; 
