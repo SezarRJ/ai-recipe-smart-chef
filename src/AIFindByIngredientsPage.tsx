@@ -16,6 +16,7 @@ import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkC
 import { Recipe } from '@/types/index';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
+import { mainCategories, AI_FILTER_OPTIONS, PANTRY_ITEMS } from '@/components/ingredients/constants';
 
 interface MainCategory {
   id: string;
@@ -240,7 +241,7 @@ export default function FindByIngredients() {
 
   // --- AI-powered Search ---
   const handleSearchRecipes = async () => {
-    const isAlcoholicDrinkSearch = selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
+    const isAlcoholicDrinkSearch = selectedCategory?.id === 'alcohol' && selectedSubcategory?.requiresCustomForm;
     if (!isAlcoholicDrinkSearch && addedIngredients.length === 0) {
       toast({
         title: t('Error', 'خطأ'),
@@ -452,7 +453,7 @@ Focus on practical recipes that can be made with the ingredients provided.`;
     </div>
   );
 
-  const showDrinkCustomizationForm = currentStep === 3 && selectedCategory?.id === 'drinks' && selectedSubcategory?.requiresCustomForm;
+  const showDrinkCustomizationForm = currentStep === 3 && selectedCategory?.id === 'alcohol' && selectedSubcategory?.requiresCustomForm;
 
   // --- Results View ---
   if (showResults) {

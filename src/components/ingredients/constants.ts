@@ -40,9 +40,8 @@ export const mainCategories: MainCategory[] = [
     icon: Coffee,
     subcategories: [
       { name: 'Detox', icon: GlassWater },
+      { name: 'Cocktails', icon: Martini },
       { name: 'Hot Drinks', icon: Coffee },
-      { name: 'Cold Drinks', icon: GlassWater },
-      { name: 'Smoothies', icon: GlassWater },
       { name: 'Others', icon: GlassWater }
     ]
   },
@@ -51,7 +50,6 @@ export const mainCategories: MainCategory[] = [
     name: 'Alcohol Drinks',
     icon: Wine,
     subcategories: [
-      { name: 'Cocktails', icon: Martini, requiresCustomForm: true },
       { name: 'Spirit', icon: Wine, requiresCustomForm: true },
       { name: 'By Flavor', icon: Sparkles, requiresCustomForm: true },
       { name: 'By Occasion', icon: Calendar, requiresCustomForm: true },
