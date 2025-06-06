@@ -1,3 +1,4 @@
+
 import React, { useState, ElementType, useEffect } from 'react';
 import {
   Utensils, Cake, Coffee, Camera, Mic, Soup, Salad, Egg, Milk, Drumstick,
@@ -12,8 +13,7 @@ import { SearchSummary } from '@/components/ingredients/SearchSummary';
 import { RecipeGrid } from '@/components/recipe/RecipeGrid';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
-import { DrinkCustomizationForm } from '@/components/drinks/DrinkCustomizationForm';
-import type { DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
 import { Recipe } from '@/types/index';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
