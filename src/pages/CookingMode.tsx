@@ -23,11 +23,15 @@ const CookingMode = () => {
         id: id || '1',
         title: "Mediterranean Chickpea Salad",
         description: "A fresh and healthy Mediterranean-style chickpea salad",
+        image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
         image_url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
+        prepTime: 15,
         prep_time: 15,
+        cookTime: 0,
         cook_time: 0,
         servings: 4,
         difficulty: "Easy",
+        cuisineType: "Mediterranean",
         cuisine_type: "Mediterranean",
         calories: 320,
         rating: 4.5,
@@ -52,6 +56,12 @@ const CookingMode = () => {
           { id: "7", name: "Feta cheese", amount: 100, unit: "grams" },
           { id: "8", name: "Fresh parsley", amount: 0.25, unit: "cup" }
         ],
+        categories: [],
+        tags: ["Mediterranean", "Healthy", "Vegetarian"],
+        isFavorite: false,
+        status: "published" as const,
+        author_id: "chef-1",
+        is_verified: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       });
