@@ -7,13 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 
-// Updated interface to match what's expected in AIFindByIngredientsPage.tsx
+// Updated interface for DrinkOptions that will be consistent with AIFindByIngredientsPage
 export interface DrinkOptions {
   type: string;
   strength: number;
   flavor: string;
   temperature: string;
-  themes?: string[]; // Keep themes as optional for backward compatibility
+  themes?: string[]; 
+  alcoholType?: string; // Added for compatibility
+  occasion?: string; // Added for compatibility
 }
 
 interface DrinkCustomizationFormProps {
@@ -64,6 +66,8 @@ export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({ 
       flavor,
       temperature,
       themes,
+      alcoholType: type, // Set alcoholType same as type for compatibility
+      occasion: themes?.length ? themes[0] : undefined // Set first theme as occasion for compatibility
     };
     onGenerateDrink(options);
   };
