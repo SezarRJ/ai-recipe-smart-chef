@@ -7,7 +7,7 @@ import { FilterPanel } from '@/components/ingredients/FilterPanel';
 import { SearchSummary } from '@/components/ingredients/SearchSummary';
 import { useToast } from '@/hooks/use-toast';
 import { useRTL } from '@/contexts/RTLContext';
-import { DrinkCustomizationForm, DrinkOptions } from '@/components/drinks/DrinkCustomizationForm';
+import { DrinkCustomizationForm, DrinkOptions as DrinkFormOptions } from '@/components/drinks/DrinkCustomizationForm';
 import { useLocation } from 'react-router-dom';
 import { StepIndicator } from '@/components/ingredients/StepIndicator';
 import { RecipeSearchResults } from '@/components/ingredients/RecipeSearchResults';
@@ -44,7 +44,7 @@ export default function FindByIngredients() {
     cuisine: '',
   });
   const [addedIngredients, setAddedIngredients] = useState<Ingredient[]>([]);
-  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkOptions | null>(null);
+  const [customDrinkOptions, setCustomDrinkOptions] = useState<DrinkFormOptions | null>(null);
 
   useEffect(() => {
     if (stateIngredients.length > 0) {
@@ -129,7 +129,7 @@ export default function FindByIngredients() {
     });
   };
 
-  const handleGenerateCustomDrink = (options: DrinkOptions) => {
+  const handleGenerateCustomDrink = (options: DrinkFormOptions) => {
     setCustomDrinkOptions(options);
     setCurrentStep(4);
   };
