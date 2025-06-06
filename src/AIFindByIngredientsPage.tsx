@@ -1,4 +1,3 @@
-
 import React, { useState, ElementType, useEffect } from 'react';
 import {
   Utensils, Cake, Coffee, Camera, Mic, Soup, Salad, Egg, Milk, Drumstick,
@@ -49,12 +48,13 @@ interface PantryItem {
   icon?: ElementType;
 }
 
-// Local DrinkOptions interface that matches the component
+// Local DrinkOptions interface that matches the component exactly
 interface LocalDrinkOptions {
   type: string;
-  strength: string; // Changed from number to string to match the component
+  strength: string;
   flavor: string;
   temperature: string;
+  alcoholType: string; // Add missing property
   themes?: string[];
 }
 
@@ -234,12 +234,13 @@ export default function FindByIngredients() {
   };
 
   const handleGenerateCustomDrink = (options: DrinkOptions) => {
-    // Convert DrinkOptions to LocalDrinkOptions
+    // Convert DrinkOptions to LocalDrinkOptions with all required properties
     const localOptions: LocalDrinkOptions = {
       type: options.type,
       strength: options.strength.toString(), // Convert number to string
       flavor: options.flavor,
       temperature: options.temperature,
+      alcoholType: options.alcoholType || 'beer', // Add alcoholType with default
       themes: options.themes,
     };
     setCustomDrinkOptions(localOptions);

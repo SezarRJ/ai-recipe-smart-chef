@@ -1,13 +1,3 @@
-// ... (your existing imports) ...
-
-// --- NEW Placeholder Components for Health & Wellness Features ---
-const NutritionTrackingPage = () => <div>Nutrition Tracking Page (Coming Soon!)</div>;
-const WeightManagementPage = () => <div>Weight Management Page (Coming Soon!)</div>;
-const ActivityMonitorPage = () => <div>Activity Monitor Page (Coming Soon!)</div>;
-const HealthGoalsPage = () => <div>Health Goals Page (Coming Soon!)</div>;
-const MealTimingPage = () => <div>Meal Timing Page (Coming Soon!)</div>;
-
-// ... (your existing placeholder components and imports) ...
 
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -16,9 +6,95 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { RTLProvider } from '@/contexts/RTLContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 
-const App = () => {
-  // ... (your existing state and useEffect) ...
+// Import all page components
+import LandingPage from '@/pages/LandingPage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import NewHomePage from '@/NewHomePage';
+import RecipeDetailPage from '@/pages/RecipeDetailPage';
+import CookingMode from '@/pages/CookingMode';
+import ProfilePage from '@/pages/ProfilePage';
+import MainSettingsPage from '@/pages/MainSettingsPage';
+import BodyInformationPage from '@/pages/BodyInformationPage';
+import AppearancePage from '@/pages/AppearancePage';
+import NotificationsPage from '@/pages/NotificationsPage';
+import DietaryPreferencesPage from '@/pages/DietaryPreferencesPage';
+import ConnectedDevicesPage from '@/pages/ConnectedDevicesPage';
+import LoyaltyProgramPage from '@/pages/LoyaltyProgramPage';
+import SubscriptionPage from '@/pages/SubscriptionPage';
+import PrivacyDataPage from '@/pages/PrivacyDataPage';
+import PaymentMethodsPage from '@/pages/PaymentMethodsPage';
+import HelpSupportPage from '@/pages/HelpSupportPage';
+import DeleteAccountPage from '@/pages/DeleteAccountPage';
+import AboutUsPage from '@/pages/AboutUsPage';
+import ContactPage from '@/pages/ContactPage';
+import GlobalCuisinePage from '@/pages/GlobalCuisinePage';
+import MealPlanPage from '@/pages/MealPlanPage';
+import HealthTrackingHomePage from '@/pages/HealthTrackingHomePage';
+import MicronutrientTracker from '@/components/ai/MicronutrientTracker';
+import PantryPage from '@/pages/PantryPage';
+import FavoritesPage from '@/pages/FavoritesPage';
+import CommunityPage from '@/pages/CommunityPage';
+import ServicesPage from '@/pages/ServicesPage';
+import RecipesPage from '@/pages/RecipesPage';
+import AIFeaturesPage from '@/pages/AIFeaturesPage';
+import ScanDishPage from '@/pages/ScanDishPage';
+import AIFindByIngredientsPage from '@/AIFindByIngredientsPage';
+import AICookingAssistantPage from '@/components/ai/AICookingAssistantPage';
+import RecipePersonalizerPage from '@/components/ai/RecipePersonalizerPage';
+import SmartMealPlannerPage from '@/components/ai/SmartMealPlannerPage';
+import DietaryAIAdvisorPage from '@/components/ai/DietaryAIAdvisorPage';
+import FitnessNutritionCoachPage from '@/components/ai/FitnessNutritionCoachPage';
+import MoodBasedRecipes from '@/components/ai/MoodBasedRecipes';
+import SmartRecipeAdaptation from '@/components/ai/SmartRecipeAdaptation';
+import VoiceRecipeAssistantPage from '@/components/ai/VoiceRecipeAssistant';
+import ToolsPage from '@/pages/ToolsPage';
+import NutritionCalculatorPage from '@/pages/admin/AdminAnalyticsPage';
+import RecipeScalerPage from '@/pages/admin/AdminRecipesPage';
+import CookingTimerPage from '@/pages/admin/AdminSettingsPage';
+import UnitConverterPage from '@/pages/admin/AdminUsersPage';
+import TemperatureGuidePage from '@/pages/admin/AdminSystemPage';
+import SubstitutionGuidePage from '@/pages/admin/AdminSecurityPage';
+import CookingTechniquesPage from '@/pages/admin/AdminMaintenancePage';
+import QuickRecipesPage from '@/pages/admin/AdminRewardsPage';
+import AdminRoute from '@/components/admin/AdminAuthGuard';
+import AdminPage from '@/pages/AdminPage';
+import AdminDashboard from '@/pages/AdminDashboard';
+import AdminUsers from '@/pages/admin/AdminUsers';
+import AdminRecipes from '@/pages/admin/AdminRecipes';
+import AdminIngredients from '@/pages/admin/AdminIngredientsPage';
+import AdminIngredientImagesManager from '@/components/AdminIngredientImagesManager';
+import ImageControlPage from '@/pages/admin/ImageControlPage';
+import AdminAnalyticsPage from '@/pages/admin/AdminAnalyticsPage';
+import AdminSettingsPage from '@/pages/admin/AdminSettingsPage';
+import AdminSecurityPage from '@/pages/admin/AdminSecurityPage';
+import AdminIntegrationsPage from '@/pages/admin/AdminIntegrationsPage';
+import AdminIntegrationsManager from '@/pages/admin/AdminIntegrationsManager';
+import AdminUserTypesPage from '@/pages/admin/AdminUserTypesPage';
+import AdminAccountingPage from '@/pages/admin/AdminAccountingPage';
+import AdminSystemPage from '@/pages/admin/AdminSystemPage';
+import AdminMaintenancePage from '@/pages/admin/AdminMaintenancePage';
+import AdminRewardsPage from '@/pages/admin/AdminRewardsPage';
+import AdminCommunicationsPage from '@/pages/admin/AdminCommunicationsPage';
+import AdminAdvertisementsPage from '@/pages/admin/AdminAdvertisementsPage';
+import ContentLibraryPage from '@/pages/admin/ContentLibraryPage';
+import TranslationsPage from '@/pages/admin/TranslationsPage';
+import LanguagesPage from '@/pages/admin/LanguagesPage';
+import AdminNotificationSystem from '@/pages/admin/AdminNotificationSystem';
+import SubscriptionsPage from '@/pages/admin/SubscriptionsPage';
+import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
+import AdvertisementPage from '@/pages/admin/AdvertisementPage';
+import NotFoundPage from '@/pages/NotFoundPage';
+import BottomToolbar from '@/components/layout/BottomToolbar';
 
+// --- NEW Placeholder Components for Health & Wellness Features ---
+const NutritionTrackingPage = () => <div>Nutrition Tracking Page (Coming Soon!)</div>;
+const WeightManagementPage = () => <div>Weight Management Page (Coming Soon!)</div>;
+const ActivityMonitorPage = () => <div>Activity Monitor Page (Coming Soon!)</div>;
+const HealthGoalsPage = () => <div>Health Goals Page (Coming Soon!)</div>;
+const MealTimingPage = () => <div>Meal Timing Page (Coming Soon!)</div>;
+
+const App = () => {
   return (
     <ThemeProvider>
       <LanguageProvider>
