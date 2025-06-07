@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,9 +13,11 @@ import { PageContainer } from '@/components/layout/PageContainer';
 
 interface IngredientImage {
   id: string;
-  ingredient_name: string;
+  name: string;
   image_url: string;
-  alt_text: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function FindByIngredients() {
@@ -34,12 +35,21 @@ export default function FindByIngredients() {
         .order('ingredient_name');
       
       if (error) throw error;
-      return data as IngredientImage[];
+      
+      // Transform database fields to match our interface
+      return (data || []).map(item => ({
+        id: item.id,
+        name: item.ingredient_name,
+        image_url: item.image_url,
+        category: 'general',
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      })) as IngredientImage[];
     }
   });
 
   const filteredIngredients = ingredientImages?.filter(ingredient =>
-    ingredient.ingredient_name.toLowerCase().includes(searchQuery.toLowerCase())
+    ingredient.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
   const handleIngredientToggle = (ingredient: string) => {
@@ -64,7 +74,6 @@ export default function FindByIngredients() {
       return;
     }
 
-    // Navigate to AI Find by Ingredients page with selected ingredients
     navigate('/ai-find-by-ingredients', { 
       state: { 
         selectedIngredients,
@@ -161,23 +170,23 @@ export default function FindByIngredients() {
                 <Card
                   key={ingredient.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedIngredients.includes(ingredient.ingredient_name)
+                    selectedIngredients.includes(ingredient.name)
                       ? 'ring-2 ring-wasfah-bright-teal bg-wasfah-bright-teal/10'
                       : 'hover:bg-gray-50'
                   }`}
-                  onClick={() => handleIngredientToggle(ingredient.ingredient_name)}
+                  onClick={() => handleIngredientToggle(ingredient.name)}
                 >
                   <CardContent className="p-3 text-center">
                     {ingredient.image_url && (
                       <img
                         src={ingredient.image_url}
-                        alt={ingredient.alt_text || ingredient.ingredient_name}
+                        alt={ingredient.name}
                         className="w-12 h-12 object-cover rounded-full mx-auto mb-2"
                         loading="lazy"
                       />
                     )}
-                    <h4 className="font-medium text-xs mb-1">{ingredient.ingredient_name}</h4>
-                    {selectedIngredients.includes(ingredient.ingredient_name) && (
+                    <h4 className="font-medium text-xs mb-1">{ingredient.name}</h4>
+                    {selectedIngredients.includes(ingredient.name) && (
                       <div className="mt-1">
                         <Plus className="h-3 w-3 text-wasfah-bright-teal mx-auto" />
                       </div>

@@ -1,103 +1,91 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { Card, CardContent } from '@/components/ui/card';
+import { Share2, Heart, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RecipeGrid } from '@/components/recipe/RecipeGrid';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Share2, Users, TrendingUp, Star } from 'lucide-react';
-import { mockRecipes } from '@/data/mockData';
+import { useRTL } from '@/contexts/RTLContext';
 
 const SharedRecipesPage = () => {
-  const [activeTab, setActiveTab] = useState('shared-by-me');
+  const { t } = useRTL();
 
-  const sharedStats = {
-    totalShared: 24,
-    totalViews: 1248,
-    totalLikes: 186,
-    totalComments: 43
-  };
+  const mockRecipes = [
+    {
+      id: 1,
+      title: t('Chicken Tikka Masala', 'دجاج تيكا ماسالا'),
+      author: t('Chef Sarah', 'الشيف سارة'),
+      image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=300&h=200&fit=crop',
+      likes: 124,
+      cookTime: 45,
+      servings: 4
+    },
+    {
+      id: 2,
+      title: t('Mediterranean Pasta', 'باستا البحر المتوسط'),
+      author: t('Chef Marco', 'الشيف ماركو'),
+      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=300&h=200&fit=crop',
+      likes: 89,
+      cookTime: 30,
+      servings: 6
+    }
+  ];
 
   return (
     <PageContainer
       header={{
-        title: 'Shared Recipes',
+        title: t('Shared Recipes', 'الوصفات المشتركة'),
         showBackButton: true,
-        showSearch: true
       }}
     >
-      <div className="space-y-6 pb-20">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Share2 className="h-8 w-8 text-wasfah-bright-teal mx-auto mb-2" />
-              <div className="text-2xl font-bold">{sharedStats.totalShared}</div>
-              <div className="text-sm text-gray-600">Shared</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{sharedStats.totalViews}</div>
-              <div className="text-sm text-gray-600">Views</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{sharedStats.totalLikes}</div>
-              <div className="text-sm text-gray-600">Likes</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <TrendingUp className="h-8 w-8 text-green-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{sharedStats.totalComments}</div>
-              <div className="text-sm text-gray-600">Comments</div>
-            </CardContent>
-          </Card>
+      <div className="space-y-6 pb-6">
+        <div className="text-center space-y-4">
+          <Share2 className="h-12 w-12 mx-auto text-wasfah-deep-teal" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('Community Recipes', 'وصفات المجتمع')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {t('Discover amazing recipes shared by our community', 'اكتشف وصفات رائعة يشاركها مجتمعنا')}
+          </p>
         </div>
 
-        {/* Share New Recipe Button */}
-        <Button className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share New Recipe
-        </Button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {mockRecipes.map((recipe) => (
+            <Card key={recipe.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="h-48 overflow-hidden">
+                <img 
+                  src={recipe.image} 
+                  alt={recipe.title}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-2">{recipe.title}</h3>
+                <p className="text-sm text-gray-600 mb-3">{t('By', 'بواسطة')} {recipe.author}</p>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center">
+                      <Heart className="h-4 w-4 text-red-500 mr-1" />
+                      <span className="text-sm">{recipe.likes}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 text-gray-500 mr-1" />
+                      <span className="text-sm">{recipe.cookTime} {t('min', 'دقيقة')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 text-gray-500 mr-1" />
+                      <span className="text-sm">{recipe.servings}</span>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Tabs for different views */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="shared-by-me">My Shared</TabsTrigger>
-            <TabsTrigger value="community">Community</TabsTrigger>
-            <TabsTrigger value="trending">Trending</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="shared-by-me" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Recipes I've Shared</h3>
-              <Badge variant="outline">24 recipes</Badge>
-            </div>
-            <RecipeGrid recipes={mockRecipes} columns={2} cardSize="medium" />
-          </TabsContent>
-
-          <TabsContent value="community" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Community Recipes</h3>
-              <Badge variant="outline">1.2k recipes</Badge>
-            </div>
-            <RecipeGrid recipes={mockRecipes} columns={2} cardSize="medium" />
-          </TabsContent>
-
-          <TabsContent value="trending" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Trending This Week</h3>
-              <Badge variant="outline">Hot 🔥</Badge>
-            </div>
-            <RecipeGrid recipes={mockRecipes} columns={2} cardSize="medium" />
-          </TabsContent>
-        </Tabs>
+                <Button className="w-full" variant="outline">
+                  {t('View Recipe', 'عرض الوصفة')}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </PageContainer>
   );

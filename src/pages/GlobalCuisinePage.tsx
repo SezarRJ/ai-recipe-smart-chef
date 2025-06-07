@@ -63,6 +63,15 @@ const GlobalCuisinePage = () => {
     }
   };
 
+  // Transform recipes to ensure proper string types
+  const transformedRecipes = mockRecipes.map(recipe => ({
+    ...recipe,
+    id: String(recipe.id),
+    author_id: String(recipe.author_id || '1'),
+    created_at: recipe.created_at || new Date().toISOString(),
+    updated_at: recipe.updated_at || new Date().toISOString()
+  }));
+
   return (
     <PageContainer
       header={{
@@ -149,7 +158,7 @@ const GlobalCuisinePage = () => {
               </div>
             ) : 'Recommended for you'}
           </h2>
-          <RecipeGrid recipes={mockRecipes} columns={2} cardSize="medium" />
+          <RecipeGrid recipes={transformedRecipes} columns={2} cardSize="medium" />
         </div>
       </div>
     </PageContainer>

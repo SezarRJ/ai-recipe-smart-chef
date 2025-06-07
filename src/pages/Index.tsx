@@ -5,30 +5,37 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { TodayMealPlan } from '@/components/home/TodayMealPlan';
 import { LoyaltyCard } from '@/components/home/LoyaltyCard';
 import { SubscriptionBanner } from '@/components/home/SubscriptionBanner';
+import { ServicesSection } from '@/components/home/ServicesSection';
 import { mockMealPlan } from '@/data/mockData';
 import { useRTL } from '@/contexts/RTLContext';
 
-const NewHomePage = () => {
+const HomePage = () => {
   const { t, direction } = useRTL();
 
   const mainFeatures = [
     {
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop&crop=center",
+      image: "/images/ingredients-table.png",
       label: t("By Ingredients", "حسب المكونات"),
       path: "/ai-find-by-ingredients",
       color: "bg-emerald-500/10"
     },
     {
-      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=150&h=150&fit=crop&crop=center",
+      image: "/images/Globalcuisine.png",
       label: t("Global Cuisine", "المطبخ العالمي"),
       path: "/global-cuisine",
       color: "bg-blue-500/10"
     },
     {
-      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=150&h=150&fit=crop&crop=center",
+      image: "/images/Aifeatures.png",
       label: t("AI Features", "ميزات الذكاء الاصطناعي"),
       path: "/ai-features",
       color: "bg-cyan-500/10"
+    },
+    {
+      image: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=150&h=150&fit=crop&crop=center",
+      label: t("Alcohol Drinks", "المشروبات الكحولية"),
+      path: "/alcohol-drinks",
+      color: "bg-amber-500/10"
     }
   ];
 
@@ -69,7 +76,7 @@ const NewHomePage = () => {
               {t("Main Features", "الميزات الرئيسية")}
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
             {mainFeatures.map((feature, index) => (
               <Link
                 key={index}
@@ -91,6 +98,11 @@ const NewHomePage = () => {
           </div>
         </div>
 
+        {/* Services Section */}
+        <div className="px-4">
+          <ServicesSection />
+        </div>
+
         {/* Your meal plan today */}
         <div className="px-4">
           <TodayMealPlan mealPlan={mockMealPlan} />
@@ -100,4 +112,4 @@ const NewHomePage = () => {
   );
 };
 
-export default NewHomePage;
+export default HomePage;

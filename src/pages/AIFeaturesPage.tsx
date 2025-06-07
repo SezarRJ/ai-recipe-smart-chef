@@ -29,30 +29,6 @@ export default function AIFeaturesPage() {
       path: '/ai/scan-dish',
     },
     {
-      icon: <Brain className="h-8 w-8 text-purple-500" />,
-      title: t('AI Recipe Finder', 'باحث الوصفات الذكي'),
-      description: t('Find recipes based on ingredients you have, dietary needs, or preferences', 'البحث عن الوصفات بناءً على المكونات المتوفرة لديك، أو الاحتياجات الغذائية، أو التفضيلات'),
-      path: '/ai/recipe-finder',
-    },
-    {
-      icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
-      title: t('AI Cooking Assistant', 'مساعد الطبخ بالذكاء الاصطناعي'),
-      description: t('Ask questions, get cooking tips, and troubleshoot recipes with an AI chatbot', 'اطرح الأسئلة، احصل على نصائح الطبخ، واستكشف أخطاء الوصفات مع روبوت الدردشة'),
-      path: '/ai/cooking-assistant',
-    },
-    {
-      icon: <BookOpen className="h-8 w-8 text-orange-500" />,
-      title: t('Recipe Personalizer', 'مخصص الوصفات'),
-      description: t('Adjust recipes to your taste, skill level, or available ingredients', 'تعديل الوصفات لتناسب ذوقك، مستوى مهارتك، أو المكونات المتوفرة'),
-      path: '/ai/recipe-personalizer',
-    },
-    {
-      icon: <Lightbulb className="h-8 w-8 text-yellow-500" />,
-      title: t('Smart Meal Planner', 'مخطط الوجبات الذكي'),
-      description: t('Generate personalized meal plans based on your goals and preferences', 'أنشئ خطط وجبات مخصصة بناءً على أهدافك وتفضيلاتك'),
-      path: '/ai/meal-planner',
-    },
-    {
       icon: <Leaf className="h-8 w-8 text-emerald-500" />,
       title: t('Dietary AI Advisor', 'مستشار الحمية بالذكاء الاصطناعي'),
       description: t('Get AI-driven advice for specific diets (Keto, Vegan, Gluten-Free, etc.)', 'احصل على نصائح مدعومة بالذكاء الاصطناعي لأنظمة غذائية محددة (كيتو، نباتي، خالي من الغلوتين، إلخ.)'),
@@ -63,26 +39,7 @@ export default function AIFeaturesPage() {
       title: t('Fitness & Nutrition Coach', 'مدرب اللياقة والتغذية'),
       description: t('AI guidance for fitness goals, calorie tracking, and macros', 'توجيهات الذكاء الاصطناعي لأهداف اللياقة البدنية، تتبع السعرات الحرارية، والمغذيات الكبرى'),
       path: '/ai/fitness-coach',
-    },
-    // --- NEW AI Features ---
-    {
-      icon: <Smile className="h-8 w-8 text-pink-500" />,
-      title: t('Mood-Based Recipes', 'وصفات حسب الحالة المزاجية'),
-      description: t('Get recipe suggestions tailored to your current mood.', 'احصل على اقتراحات وصفات مصممة خصيصًا لحالتك المزاجية الحالية.'),
-      path: '/ai/mood-recipes',
-    },
-    {
-      icon: <Brain className="h-8 w-8 text-indigo-500" />, // Reusing Brain, or find another relevant icon
-      title: t('Smart Recipe Adaptation', 'التكيف الذكي للوصفات'),
-      description: t('Adapt recipes for allergies, equipment, or ingredient substitutions.', 'تكييف الوصفات للحساسية، المعدات، أو بدائل المكونات.'),
-      path: '/ai/smart-adaptation',
-    },
-    {
-      icon: <Mic className="h-8 w-8 text-cyan-500" />,
-      title: t('Voice Recipe Assistant', 'مساعد الوصفات الصوتي'),
-      description: t('Hands-free cooking with voice-controlled instructions and tips.', 'الطبخ بدون استخدام اليدين مع تعليمات ونصائح يتم التحكم فيها بالصوت.'),
-      path: '/ai/voice-assistant',
-    },
+      },
   ];
 
   return (
