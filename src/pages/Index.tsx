@@ -31,7 +31,7 @@ const HomePage = () => {
       color: "bg-cyan-500/10"
     },
     {
-      image: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=150&h=150&fit=crop&crop=center",
+      image: "/images/Alcoho-Drinks.jpg",
       label: t("Alcohol Drinks", "المشروبات الكحولية"),
       path: "/alcohol-drinks",
       color: "bg-amber-500/10"
