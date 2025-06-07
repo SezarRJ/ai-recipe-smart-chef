@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,10 +59,8 @@ const FindByIngredientsPage = () => {
     const mockIngredientImages: IngredientImage[] = [
       {
         id: '1',
-        ingredient_name: 'Tomato',
         name: 'Tomato',
         image_url: 'https://images.unsplash.com/photo-1546470427-e-576x300?crop=1',
-        alt_text: 'Fresh tomato',
         category: 'vegetables',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -97,7 +96,7 @@ const FindByIngredientsPage = () => {
   };
 
   const filteredIngredients = availableIngredients.filter(ingredient =>
-    ingredient.ingredient_name.toLowerCase().includes(searchTerm.toLowerCase())
+    ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -165,15 +164,15 @@ const FindByIngredientsPage = () => {
                 <Card 
                   key={ingredient.id} 
                   className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => addIngredient(ingredient.ingredient_name)}
+                  onClick={() => addIngredient(ingredient.name)}
                 >
                   <CardContent className="p-4 text-center">
                     <img
                       src={ingredient.image_url}
-                      alt={ingredient.alt_text}
+                      alt={ingredient.name}
                       className="w-full h-20 object-cover rounded-md mb-2"
                     />
-                    <p className="text-sm font-medium">{ingredient.ingredient_name}</p>
+                    <p className="text-sm font-medium">{ingredient.name}</p>
                     <Button size="sm" className="mt-2 w-full">
                       <Plus className="h-4 w-4 mr-1" />
                       {t("Add", "إضافة")}

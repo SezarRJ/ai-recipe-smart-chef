@@ -2,6 +2,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import './styles/typography.css';
 
 @layer base {
   :root {
@@ -17,7 +18,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: var(--wasfah-bright-teal);
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     --card: 0 0% 100%;
     --card-foreground: var(--wasfah-deep-teal);
@@ -79,6 +80,7 @@
   body {
     @apply bg-gradient-to-br from-wasfah-light-gray to-white text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-primary);
   }
   
   html {
@@ -87,21 +89,21 @@
 
   /* Improved focus styles for better accessibility */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-wasfah-bright-teal rounded-sm;
+    @apply outline-2 outline-offset-2 outline-wasfah-bright-teal rounded-lg;
   }
 }
 
 @layer utilities {
   .glass-card {
-    @apply backdrop-blur-sm bg-white/90 border border-wasfah-mint/20 shadow-lg;
+    @apply backdrop-blur-lg bg-white/80 border border-wasfah-mint/30 shadow-xl;
   }
   
   .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:border-wasfah-mint/40;
+    @apply transition-all duration-300 hover:shadow-xl hover:border-wasfah-mint/50 hover:-translate-y-1;
   }
   
   .card-3d {
-    @apply shadow-md border border-wasfah-mint/20 transition-transform duration-200 hover:translate-y-[-2px] hover:shadow-lg;
+    @apply shadow-lg border border-wasfah-mint/20 transition-all duration-300 hover:translate-y-[-4px] hover:shadow-2xl;
   }
   
   .text-gradient {
@@ -109,11 +111,19 @@
   }
   
   .btn-wasfah {
-    @apply bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal text-white hover:from-wasfah-teal hover:to-wasfah-deep-teal transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal text-white hover:from-wasfah-teal hover:to-wasfah-deep-teal transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95;
+  }
+
+  .hero-overlay {
+    @apply absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent;
+  }
+
+  .food-gradient {
+    @apply bg-gradient-to-r from-yellow-300 via-orange-300 to-red-300 bg-clip-text text-transparent;
   }
 }
 
-/* Enhanced animations for mobile */
+/* Enhanced animations */
 @keyframes loadingBar {
   0% { width: 0%; }
   100% { width: 100%; }
@@ -122,60 +132,78 @@
 @keyframes pulse-glow {
   0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 0 0 rgba(255, 42, 0, 0);
+    box-shadow: 0 0 0 0 rgba(0, 149, 148, 0);
   }
   50% {
-    opacity: 0.8;
-    box-shadow: 0 0 20px 5px rgba(255, 42, 0, 0.3);
+    opacity: 0.9;
+    box-shadow: 0 0 30px 10px rgba(0, 149, 148, 0.3);
   }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
 }
 
-@keyframes wiggle {
-  0%, 100% { transform: rotate(-3deg); }
-  50% { transform: rotate(3deg); }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slide-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Mobile optimizations */
 @media (max-width: 640px) {
   :root {
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
   
   button, .btn {
-    @apply py-2.5 min-h-[44px]; /* Better touch targets */
+    @apply py-3 min-h-[48px] text-base;
   }
   
   input, select, textarea {
-    @apply text-base min-h-[44px]; /* Prevent zoom on iOS */
+    @apply text-base min-h-[48px] rounded-xl;
   }
 }
 
-/* Improved scrollbars for better UX */
+/* Improved scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-wasfah-light-gray;
+  @apply bg-wasfah-light-gray rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-wasfah-mint rounded-full;
+  @apply bg-wasfah-mint rounded-full hover:bg-wasfah-bright-teal;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-wasfah-bright-teal;
-}
-
-/* Ensure dropdown menus are visible */
+/* Dropdown improvements */
 [data-radix-popper-content-wrapper] {
-  @apply !bg-white border border-wasfah-mint/30 shadow-xl z-50;
+  @apply !bg-white/95 backdrop-blur-lg border border-wasfah-mint/30 shadow-2xl z-50 rounded-xl;
 }
 
 .dark [data-radix-popper-content-wrapper] {
@@ -184,13 +212,23 @@
 
 /* Animation classes */
 .animate-pulse-glow {
-  animation: pulse-glow 2s infinite ease-in-out;
+  animation: pulse-glow 3s infinite ease-in-out;
 }
 
 .animate-float {
-  animation: float 3s infinite ease-in-out;
+  animation: float 4s infinite ease-in-out;
 }
 
-.animate-wiggle {
-  animation: wiggle 1s ease-in-out;
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.6s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.4s ease-out;
 }

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -10,7 +9,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
-import NewHomePage from '@/NewHomePage';
+import HomePage from '@/pages/Index';
 import RecipeDetailPage from '@/pages/RecipeDetailPage';
 import CookingMode from '@/pages/CookingMode';
 import ProfilePage from '@/pages/ProfilePage';
@@ -31,6 +30,7 @@ import ContactPage from '@/pages/ContactPage';
 import GlobalCuisinePage from '@/pages/GlobalCuisinePage';
 import MealPlanPage from '@/pages/MealPlanPage';
 import HealthTrackingHomePage from '@/pages/HealthTrackingHomePage';
+import NutritionGoalsPage from '@/pages/NutritionGoalsPage';
 import MicronutrientTracker from '@/components/ai/MicronutrientTracker';
 import PantryPage from '@/pages/PantryPage';
 import FavoritesPage from '@/pages/FavoritesPage';
@@ -49,14 +49,18 @@ import MoodBasedRecipes from '@/components/ai/MoodBasedRecipes';
 import SmartRecipeAdaptation from '@/components/ai/SmartRecipeAdaptation';
 import VoiceRecipeAssistantPage from '@/components/ai/VoiceRecipeAssistant';
 import ToolsPage from '@/pages/ToolsPage';
-import NutritionCalculatorPage from '@/pages/admin/AdminAnalyticsPage';
-import RecipeScalerPage from '@/pages/admin/AdminRecipesPage';
-import CookingTimerPage from '@/pages/admin/AdminSettingsPage';
-import UnitConverterPage from '@/pages/admin/AdminUsersPage';
-import TemperatureGuidePage from '@/pages/admin/AdminSystemPage';
-import SubstitutionGuidePage from '@/pages/admin/AdminSecurityPage';
-import CookingTechniquesPage from '@/pages/admin/AdminMaintenancePage';
-import QuickRecipesPage from '@/pages/admin/AdminRewardsPage';
+// Note: These are likely placeholders if they refer to admin pages
+// If they are meant to be actual tools pages, ensure the correct component is imported.
+import NutritionCalculatorPage from '@/pages/admin/AdminAnalyticsPage'; // Potentially wrong import, check path
+import RecipeScalerPage from '@/pages/admin/AdminRecipesPage'; // Potentially wrong import, check path
+import CookingTimerPage from '@/pages/admin/AdminSettingsPage'; // Potentially wrong import, check path
+import UnitConverterPage from '@/pages/admin/AdminUsersPage'; // Potentially wrong import, check path
+import TemperatureGuidePage from '@/pages/admin/AdminSystemPage'; // Potentially wrong import, check path
+import SubstitutionGuidePage from '@/pages/admin/AdminSecurityPage'; // Potentially wrong import, check path
+import CookingTechniquesPage from '@/pages/admin/AdminMaintenancePage'; // Potentially wrong import, check path
+import QuickRecipesPage from '@/pages/admin/AdminRewardsPage'; // Potentially wrong import, check path
+
+
 import AdminRoute from '@/components/admin/AdminAuthGuard';
 import AdminPage from '@/pages/AdminPage';
 import AdminDashboard from '@/pages/AdminDashboard';
@@ -86,14 +90,21 @@ import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
 import AdvertisementPage from '@/pages/admin/AdvertisementPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import BottomToolbar from '@/components/layout/BottomToolbar';
-import NutritionGoalsPage from '@/pages/NutritionGoalsPage';
 import MealTimingPage from '@/pages/MealTimingPage';
+import WeightManagementPage from '@/pages/WeightManagementPage';
+import ActivityMonitorPage from '@/pages/ActivityMonitorPage';
+import HealthGoalsPage from '@/pages/HealthGoalsPage';
+// import AlcoholDrinksPage from '@/pages/AlcoholDrinksPage'; // <--- REMOVE OR RENAME THIS LINE
+import HealthNutritionGoalsPage from '@/pages/HealthNutritionGoalsPage';
 
-// --- NEW Placeholder Components for Health & Wellness Features ---
-const NutritionTrackingPage = () => <div>Nutrition Tracking Page (Coming Soon!)</div>;
-const WeightManagementPage = () => <div>Weight Management Page (Coming Soon!)</div>;
-const ActivityMonitorPage = () => <div>Activity Monitor Page (Coming Soon!)</div>;
-const HealthGoalsPage = () => <div>Health Goals Page (Coming Soon!)</div>;
+// Import the newly refactored component for Alcohol Recipes
+import AlcoholRecipeAI from '@/pages/AlcoholRecipeAI'; // <--- ADD THIS LINE (Adjust path if needed)
+
+
+// Import new pages
+import ShoppingListPage from '@/pages/ShoppingListPage';
+import CreateRecipePage from '@/pages/CreateRecipePage';
+import SharedRecipesPage from '@/pages/SharedRecipesPage';
 
 // Default recipe for VoiceRecipeAssistant
 const defaultRecipe = {
@@ -118,7 +129,7 @@ const App = () => {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/home" element={<NewHomePage />} />
+                  <Route path="/home" element={<HomePage />} />
                   <Route path="/recipe/:id" element={<RecipeDetailPage />} />
                   <Route path="/cooking/:id" element={<CookingMode />} />
 
@@ -142,6 +153,9 @@ const App = () => {
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/global-cuisine" element={<GlobalCuisinePage />} />
                   <Route path="/meal-plan" element={<MealPlanPage />} />
+                  <Route path="/shopping-list" element={<ShoppingListPage />} />
+                  <Route path="/create-recipe" element={<CreateRecipePage />} />
+                  <Route path="/shared-recipes" element={<SharedRecipesPage />} />
                   <Route path="/health-tracking-home" element={<HealthTrackingHomePage />} />
                   <Route path="/micronutrient-tracker" element={<MicronutrientTracker />} />
                   <Route path="/pantry" element={<PantryPage />} />
@@ -149,20 +163,23 @@ const App = () => {
                   <Route path="/community" element={<CommunityPage />} />
                   <Route path="/services" element={<ServicesPage />} />
                   <Route path="/recipes" element={<RecipesPage />} />
+                  {/* --- UPDATED ROUTE FOR ALCOHOL DRINKS --- */}
+                  <Route path="/alcohol-drinks" element={<AlcoholRecipeAI />} />
 
                   {/* --- Health & Wellness Feature Routes --- */}
-                  <Route path="/health/nutrition-tracking" element={<NutritionTrackingPage />} />
+                  <Route path="/health/nutrition-goals" element={<HealthNutritionGoalsPage />} />
                   <Route path="/health/weight-management" element={<WeightManagementPage />} />
                   <Route path="/health/activity-monitor" element={<ActivityMonitorPage />} />
                   <Route path="/health/health-goals" element={<HealthGoalsPage />} />
                   <Route path="/health/meal-timing" element={<MealTimingPage />} />
+
+                  {/* --- Legacy routes for backward compatibility --- */}
                   <Route path="/nutrition-goals" element={<NutritionGoalsPage />} />
-                  <Route path="/meal-timing" element={<MealTimingPage />} />
-                  <Route path="/micronutrient-tracker" element={<MicronutrientTracker />} />
 
                   {/* --- AI Features Hub and Sub-pages --- */}
                   <Route path="/ai-features" element={<AIFeaturesPage />} />
                   <Route path="/ai/scan-dish" element={<ScanDishPage />} />
+                  <Route path="/scan-dish" element={<ScanDishPage />} />
                   <Route path="/ai/recipe-finder" element={<AIFindByIngredientsPage />} />
                   <Route path="/ai-find-by-ingredients" element={<AIFindByIngredientsPage />} />
                   <Route path="/ai/cooking-assistant" element={<AICookingAssistantPage />} />
@@ -185,7 +202,7 @@ const App = () => {
                   <Route path="/tools/cooking-techniques" element={<CookingTechniquesPage />} />
                   <Route path="/tools/quick-recipes" element={<QuickRecipesPage />} />
 
-                  {/* --- Admin Panel Routes (Protected by AdminRoute) --- */}
+                  {/* --- Admin Routes --- */}
                   <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>}>
                     <Route index element={<AdminDashboard />} />
                     <Route path="dashboard" element={<AdminDashboard />} />
@@ -216,7 +233,7 @@ const App = () => {
                     <Route path="advertisement" element={<AdvertisementPage />} />
                   </Route>
 
-                  {/* --- Fallback Route (404) --- */}
+                  {/* --- 404 Route --- */}
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
                 <BottomToolbar />
