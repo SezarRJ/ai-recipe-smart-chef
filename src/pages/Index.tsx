@@ -37,7 +37,7 @@ const HomePage = () => {
       color: "bg-amber-500/10"
     },
     {
-      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=150&h=150&fit=crop&crop=center",
+      image: "/images/services.png",
       label: t("Services", "الخدمات"),
       path: "/services",
       color: "bg-purple-500/10"
