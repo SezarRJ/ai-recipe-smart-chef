@@ -1,498 +1,278 @@
-
-import React, { useState, useEffect } from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useRTL } from '@/contexts/RTLContext';
-import { GlassWater, Brain, Users, Heart, ChefHat } from 'lucide-react';
-
-// Placeholder component for BasicSearch
-const BasicSearch = ({ setRecipes, filters, setFilters, t }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearch = async () => {
-    const data = await fetchRecipes({ ...filters, query: searchQuery });
-    setRecipes(data);
-  };
-
-  return (
-    <div className="space-y-4">
-      <input
-        className="w-full p-2 border rounded-lg"
-        placeholder={t('Search by ingredient, mood, or occasion...', 'ابحث حسب المكون، المزاج، أو المناسبة...')}
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-      <div className="flex flex-wrap gap-2">
-        <select
-          className="p-2 border rounded-lg"
-          value={filters.mood}
-          onChange={(e) => setFilters({ ...filters, mood: e.target.value })}
-        >
-          <option value="">{t('Select Mood', 'اختر المزاج')}</option>
-          <option value="Relaxed">{t('Relaxed', 'مرتاح')}</option>
-          <option value="Festive">{t('Festive', 'احتفالي')}</option>
-          <option value="Romantic">{t('Romantic', 'رومانسي')}</option>
-        </select>
-        <select
-          className="p-2 border rounded-lg"
-          value={filters.occasion}
-          onChange={(e) => setFilters({ ...filters, occasion: e.target.value })}
-        >
-          <option value="">{t('Select Occasion', 'اختر المناسبة')}</option>
-          <option value="Party">{t('Party', 'حفلة')}</option>
-          <option value="Dinner">{t('Dinner', 'عشاء')}</option>
-          <option value="Casual">{t('Casual Night', 'ليلة عادية')}</option>
-        </select>
-        <select
-          className="p-2 border rounded-lg"
-          value={filters.glass}
-          onChange={(e) => setFilters({ ...filters, glass: e.target.value })}
-        >
-          <option value="">{t('Select Glass', 'اختر الكأس')}</option>
-          <option value="Martini">{t('Martini Glass', 'كأس مارتيني')}</option>
-          <option value="Highball">{t('Highball', 'هايبول')}</option>
-          <option value="Flute">{t('Flute', 'فلوت')}</option>
-        </select>
-        <select
-          className="p-2 border rounded-lg"
-          value={filters.abvRange}
-          onChange={(e) => setFilters({ ...filters, abvRange: e.target.value })}
-        >
-          <option value="">{t('Select ABV', 'اختر نسبة الكحول')}</option>
-          <option value="low">{t('Low (<10%)', 'منخفض (<10%)')}</option>
-          <option value="medium">{t('Medium (10-20%)', 'متوسط (10-20%)')}</option>
-          <option value="high">{t('High (>20%)', 'مرتفع (>20%)')}</option>
-        </select>
-        <select
-          className="p-2 border rounded-lg"
-          value={filters.dietary}
-          onChange={(e) => setFilters({ ...filters, dietary: e.target.value })}
-        >
-          <option value="">{t('Select Dietary', 'اختر النظام الغذائي')}</option>
-          <option value="vegetarian">{t('Vegetarian', 'نباتي')}</option>
-          <option value="gluten-free">{t('Gluten-Free', 'خالي من الغلوتين')}</option>
-        </select>
-      </div>
-      <button
-        className="w-full p-2 bg-wasfah-deep-teal text-white rounded-lg"
-        onClick={handleSearch}
-      >
-        {t('Search', 'بحث')}
-      </button>
-    </div>
-  );
-};
-
-// Placeholder component for AIDrinkGenerator
-const AIDrinkGenerator = ({ setRecipes, t }) => {
-  const [ingredients, setIngredients] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [sweetness, setSweetness] = useState('medium');
-  const [strength, setStrength] = useState('medium');
-
-  const handleGenerateRecipe = async () => {
-    if (!ingredients) return;
-    setIsLoading(true);
-    const ingredientList = ingredients.split(',').map(item => item.trim());
-    const newRecipe = await generateRecipe(ingredientList, { sweetness, strength });
-    setRecipes((prev) => [newRecipe, ...prev]);
-    setIngredients('');
-    setIsLoading(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <input
-        className="w-full p-2 border rounded-lg"
-        placeholder={t('Enter ingredients (e.g., vodka, lime, mint)', 'أدخل المكونات (مثل: الفودكا، الليمون، النعناع)')}
-        value={ingredients}
-        onChange={(e) => setIngredients(e.target.value)}
-      />
-      <div className="flex gap-2">
-        <select
-          className="p-2 border rounded-lg"
-          value={sweetness}
-          onChange={(e) => setSweetness(e.target.value)}
-        >
-          <option value="low">{t('Low Sweetness', 'حلاوة منخفضة')}</option>
-          <option value="medium">{t('Medium Sweetness', 'حلاوة متوسطة')}</option>
-          <option value="high">{t('High Sweetness', 'حلاوة مرتفعة')}</option>
-        </select>
-        <select
-          className="p-2 border rounded-lg"
-          value={strength}
-          onChange={(e) => setStrength(e.target.value)}
-        >
-          <option value="low">{t('Low Strength', 'قوة منخفضة')}</option>
-          <option value="medium">{t('Medium Strength', 'قوة متوسطة')}</option>
-          <option value="high">{t('High Strength', 'قوة مرتفعة')}</option>
-        </select>
-      </div>
-      <button
-        className="w-full p-2 bg-wasfah-deep-teal text-white rounded-lg"
-        onClick={handleGenerateRecipe}
-        disabled={isLoading}
-      >
-        {isLoading ? t('Generating...', 'جارٍ التوليد...') : t('Generate Recipe', 'إنشاء وصفة')}
-      </button>
-    </div>
-  );
-};
-
-// Placeholder component for CommunityFeed
-const CommunityFeed = ({ recipes, t, navigateToCommunity }) => {
-  const handleShareRecipe = async () => {
-    console.log('Share recipe');
-  };
-
-  return (
-    <div className="space-y-4">
-      <p className="text-gray-600">{t('Explore and share recipes with the community.', 'استكشف وشارك الوصفات مع المجتمع.')}</p>
-      <button
-        className="w-full p-2 bg-green-600 text-white rounded-lg"
-        onClick={navigateToCommunity}
-      >
-        {t('Join the Community', 'انضم إلى المجتمع')}
-      </button>
-      <button
-        className="w-full p-2 bg-blue-600 text-white rounded-lg"
-        onClick={handleShareRecipe}
-      >
-        {t('Share Your Recipe', 'شارك وصفتك')}
-      </button>
-      {recipes.map((recipe) => (
-        <div key={recipe.id} className="p-4 bg-white rounded-lg shadow">
-          <h3 className="font-bold">{recipe.name}</h3>
-          <p>{t('ABV', 'نسبة الكحول')}: {recipe.abv}</p>
-          <p>{t('Shared by', 'مشاركة بواسطة')}: {recipe.user || 'Anonymous'}</p>
-          <div className="flex gap-2 mt-2">
-            <button className="p-1 bg-gray-200 rounded">{t('Like', 'إعجاب')}</button>
-            <button className="p-1 bg-gray-200 rounded">{t('Comment', 'تعليق')}</button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Placeholder component for FavoritesList
-const FavoritesList = ({ recipes, saveToFavorites, navigateToCookMode, t }) => {
-  const [category, setCategory] = useState('All');
-  const [notes, setNotes] = useState({});
-
-  const handleAddNote = async (recipeId, note) => {
-    const updatedNotes = { ...notes, [recipeId]: note };
-    setNotes(updatedNotes);
-    localStorage.setItem('recipeNotes', JSON.stringify(updatedNotes));
-  };
-
-  return (
-    <div className="space-y-4">
-      <p className="text-gray-600">{t('Your saved drinks.', 'مشروباتك المحفوظة.')}</p>
-      <select
-        className="p-2 border rounded-lg"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-      >
-        <option value="All">{t('All', 'الكل')}</option>
-        <option value="Summer Drinks">{t('Summer Drinks', 'مشروبات الصيف')}</option>
-        <option value="Party Cocktails">{t('Party Cocktails', 'كوكتيلات الحفلات')}</option>
-      </select>
-      {recipes.map((recipe) => (
-        <div key={recipe.id} className="p-4 bg-white rounded-lg shadow flex justify-between">
-          <div>
-            <h3 className="font-bold">{recipe.name}</h3>
-            <p>{t('ABV', 'نسبة الكحول')}: {recipe.abv}</p>
-            <p>{t('Food Pairing', 'الاقتران بالطعام')}: {recipe.foodPairing}</p>
-            <input
-              className="w-full p-2 border rounded-lg mt-2"
-              placeholder={t('Add a note...', 'أضف ملاحظة...')}
-              value={notes[recipe.id] || ''}
-              onChange={(e) => handleAddNote(recipe.id, e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <button
-              className="p-2 bg-orange-500 text-white rounded-lg"
-              onClick={() => saveToFavorites(recipe.id)}
-            >
-              {t('Save', 'حفظ')}
-            </button>
-            <button
-              className="p-2 bg-wasfah-deep-teal text-white rounded-lg"
-              onClick={() => navigateToCookMode(recipe)}
-            >
-              {t('Cook Mode', 'وضع الطهي')}
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Placeholder component for CookMode
-const CookMode = ({ recipe, t }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [timer, setTimer] = useState(0);
-
-  const handleNextStep = () => {
-    if (currentStep < recipe.instructions.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleVoiceNarration = () => {
-    console.log('Narrate:', recipe.instructions[currentStep]);
-  };
-
-  const startTimer = (duration) => {
-    setTimer(duration);
-    setIsTimerRunning(true);
-  };
-
-  useEffect(() => {
-    let interval;
-    if (isTimerRunning && timer > 0) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    } else if (timer === 0) {
-      setIsTimerRunning(false);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning, timer]);
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-xl font-bold">{recipe.name}</h3>
-      <p>{t('Step', 'الخطوة')} {currentStep + 1}: {recipe.instructions[currentStep]}</p>
-      <div className="flex gap-2">
-        <button
-          className="p-2 bg-wasfah-deep-teal text-white rounded-lg"
-          onClick={handleNextStep}
-          disabled={currentStep === recipe.instructions.length - 1}
-        >
-          {t('Next Step', 'الخطوة التالية')}
-        </button>
-        <button
-          className="p-2 bg-gray-600 text-white rounded-lg"
-          onClick={handleVoiceNarration}
-        >
-          {t('Voice Narration', 'التعليق الصوتي')}
-        </button>
-        <button
-          className="p-2 bg-gray-600 text-white rounded-lg"
-          onClick={() => startTimer(30)}
-        >
-          {t('Start 30s Timer', 'بدء مؤقت 30 ثانية')}
-        </button>
-      </div>
-      {isTimerRunning && <p>{t('Time Remaining', 'الوقت المتبقي')}: {timer}s</p>}
-      <img src={recipe.image} alt={recipe.name} className="w-32 h-32 rounded-lg" />
-    </div>
-  );
-};
-
-// Mock API calls (replace with actual API endpoints)
-const fetchRecipes = async (filters = {}) => {
-  return [
+// Enhanced CommunityFeed with interactive elements and better UI
+const CommunityFeed = () => {
+  const [activeTab, setActiveTab] = useState('trending');
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentingOn, setCommentingOn] = useState(null);
+  const [posts, setPosts] = useState([
     {
-      id: '1',
-      name: 'Mojito',
-      abv: '12%',
-      image: 'https://example.com/mojito.jpg',
-      mood: 'Relaxed',
-      glass: 'Highball',
-      foodPairing: 'Grilled Shrimp',
-      serving: 'Chilled',
-      instructions: ['Muddle mint', 'Add lime juice', 'Shake with ice', 'Top with soda'],
-      user: 'User1',
-      prepTime: 'Quick',
-      dietary: 'Vegetarian',
+      id: 1,
+      user: "MixMasterPro",
+      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+      recipe: "Spicy Mango Margarita",
+      image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFuZ28lMjBtYXJnaGFyaXRhfGVufDB8fDB8fHww",
+      likes: 42,
+      comments: [
+        { id: 1, user: "DrinkEnthusiast", text: "This looks amazing! What type of tequila did you use?", time: "1 hour ago" },
+        { id: 2, user: "HomeBartender", text: "Tried this last night - huge hit with my friends!", time: "45 mins ago" }
+      ],
+      time: "2 hours ago",
+      saved: false
     },
     {
-      id: '2',
-      name: 'Margarita',
-      abv: '20%',
-      image: 'https://example.com/margarita.jpg',
-      mood: 'Festive',
-      glass: 'Margarita',
-      foodPairing: 'Tacos',
-      serving: 'On the rocks',
-      instructions: ['Shake tequila, lime, triple sec', 'Strain into salted glass'],
-      user: 'User2',
-      prepTime: 'Moderate',
-      dietary: 'Gluten-Free',
+      id: 2,
+      user: "CocktailQueen",
+      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+      recipe: "Elderflower Gin Fizz",
+      image: "https://images.unsplash.com/photo-1551533717-685bc1e9fafc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z2luJTIwZml6enxlbnwwfHwwfHx8MA%3D%3D",
+      likes: 28,
+      comments: [
+        { id: 1, user: "GinLover", text: "Elderflower makes everything better!", time: "30 mins ago" }
+      ],
+      time: "4 hours ago",
+      saved: false
     },
-  ];
-};
-
-const generateRecipe = async (ingredients, { sweetness, strength }) => {
-  return {
-    id: 'generated',
-    name: 'Custom Cocktail',
-    ingredients: ingredients.map(ing => `${ing} (${sweetness === 'low' ? 0.5 : sweetness === 'medium' ? 1 : 1.5} oz)`),
-    instructions: ['Muddle ingredients', 'Shake with ice', 'Strain into glass'],
-    abv: strength === 'low' ? '10%' : strength === 'medium' ? '15%' : '20%',
-    glass: 'Martini',
-    foodPairing: 'Grilled Shrimp',
-    serving: 'Chilled',
-    user: 'AI',
-    prepTime: 'Quick',
-    dietary: 'Vegetarian',
-  };
-};
-
-const AlcoholRecipeAI = () => {
-  const { t, direction } = useRTL();
-  const [activeTab, setActiveTab] = useState('basic-search');
-  const [recipes, setRecipes] = useState([]);
-  const [filters, setFilters] = useState({ mood: '', occasion: '', glass: '', abvRange: '', dietary: '', query: '' });
-  const [selectedRecipe, setSelectedRecipe] = useState(null);
-
-  useEffect(() => {
-    const loadRecipes = async () => {
-      const data = await fetchRecipes(filters);
-      setRecipes(data);
-    };
-    loadRecipes();
-  }, [filters]);
-
-  const saveToFavorites = async (recipeId) => {
-    try {
-      const favorites = localStorage.getItem('favorites') || '[]';
-      const updatedFavorites = [...JSON.parse(favorites), recipeId];
-      localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-      alert(t('Recipe saved to favorites!', 'تم حفظ الوصفة في المفضلة!'));
-    } catch (error) {
-      console.error('Error saving to favorites:', error);
+    {
+      id: 3,
+      user: "BartenderBen",
+      avatar: "https://randomuser.me/api/portraits/men/75.jpg",
+      recipe: "Smoked Old Fashioned",
+      image: "https://images.unsplash.com/photo-1605270012917-bf157c5a9541?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b2xkJTIwZmFzaGlvbmVkfGVufDB8fDB8fHww",
+      likes: 56,
+      comments: [],
+      time: "6 hours ago",
+      saved: false
     }
+  ]);
+
+  const handleLike = (postId) => {
+    setPosts(posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          likes: likedPosts.includes(postId) ? post.likes - 1 : post.likes + 1
+        };
+      }
+      return post;
+    }));
+    
+    setLikedPosts(prev => 
+      prev.includes(postId) 
+        ? prev.filter(id => id !== postId) 
+        : [...prev, postId]
+    );
   };
 
-  const navigateToCookMode = (recipe) => {
-    setSelectedRecipe(recipe);
-    setActiveTab('cook-mode');
+  const handleSave = (postId) => {
+    setPosts(posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          saved: !post.saved
+        };
+      }
+      return post;
+    }));
   };
 
-  const navigateToCommunity = () => {
-    console.log('Navigate to Community');
+  const handleAddComment = (postId) => {
+    if (!newComment.trim()) return;
+    
+    const updatedPosts = posts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          comments: [
+            ...post.comments,
+            {
+              id: Date.now(),
+              user: "You",
+              text: newComment,
+              time: "Just now"
+            }
+          ]
+        };
+      }
+      return post;
+    });
+    
+    setPosts(updatedPosts);
+    setNewComment('');
+    setCommentingOn(null);
   };
+
+  const filteredPosts = activeTab === 'trending' 
+    ? [...posts].sort((a, b) => b.likes - a.likes) 
+    : activeTab === 'recent' 
+      ? [...posts].sort((a, b) => new Date(b.time) - new Date(a.time))
+      : posts.filter(post => post.saved);
 
   return (
-    <PageContainer
-      header={{
-        title: t('Alcohol Recipes & AI', 'وصفات الكحول والذكاء الاصطناعي'),
-        showBackButton: true,
-      }}
-      className={`bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
-    >
-      <div className="space-y-6 pb-6" dir={direction}>
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2 text-wasfah-deep-teal">
-            {t('Craft Your Perfect Drink', 'اصنع مشروبك المثالي')}
-          </h2>
-          <p className="text-gray-600">
-            {t('Explore existing recipes or let AI create a new one for you.', 'استكشف الوصفات الموجودة أو دع الذكاء الاصطناعي ينشئ وصفة جديدة لك.')}
-          </p>
+    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+      <div className="flex items-center gap-2 mb-4">
+        <Users className="w-6 h-6 text-wasfah-deep-teal" />
+        <h3 className="text-2xl font-bold text-wasfah-deep-teal">Community Feed</h3>
+      </div>
+      <p className="text-gray-600 mb-6">See what others are mixing and share your creations</p>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setActiveTab('trending')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+              ${activeTab === 'trending' ? 'bg-white text-wasfah-deep-teal shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+          >
+            Trending
+          </button>
+          <button
+            onClick={() => setActiveTab('recent')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+              ${activeTab === 'recent' ? 'bg-white text-wasfah-deep-teal shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+          >
+            Recent
+          </button>
+          <button
+            onClick={() => setActiveTab('saved')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+              ${activeTab === 'saved' ? 'bg-white text-wasfah-deep-teal shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+          >
+            Saved
+          </button>
         </div>
+        
+        <button className="bg-wasfah-deep-teal text-white py-2 px-4 rounded-lg text-sm hover:bg-wasfah-dark-teal transition-colors flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+          Share Your Creation
+        </button>
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic-search">
-              <div className="flex items-center space-x-2">
-                <GlassWater className="h-5 w-5" />
-                <span>{t('Basic Search', 'بحث أساسي')}</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="ai-generator">
-              <div className="flex items-center space-x-2">
-                <Brain className="h-5 w-5" />
-                <span>{t('AI Recipe Generator', 'مولد وصفات الذكاء الاصطناعي')}</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="community">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5" />
-                <span>{t('Community', 'المجتمع')}</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="favorites">
-              <div className="flex items-center space-x-2">
-                <Heart className="h-5 w-5" />
-                <span>{t('Favorites', 'المفضلة')}</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="cook-mode">
-              <div className="flex items-center space-x-2">
-                <ChefHat className="h-5 w-5" />
-                <span>{t('Cook Mode', 'وضع الطهي')}</span>
-              </div>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="basic-search">
-            <BasicSearch setRecipes={setRecipes} filters={filters} setFilters={setFilters} t={t} />
-          </TabsContent>
-
-          <TabsContent value="ai-generator">
-            <AIDrinkGenerator setRecipes={setRecipes} t={t} />
-          </TabsContent>
-
-          <TabsContent value="community">
-            <CommunityFeed recipes={recipes} t={t} navigateToCommunity={navigateToCommunity} />
-          </TabsContent>
-
-          <TabsContent value="favorites">
-            <FavoritesList recipes={recipes} saveToFavorites={saveToFavorites} navigateToCookMode={navigateToCookMode} t={t} />
-          </TabsContent>
-
-          <TabsContent value="cook-mode">
-            {selectedRecipe ? (
-              <CookMode recipe={selectedRecipe} t={t} />
-            ) : (
-              <p>{t('Select a recipe to start cook mode.', 'اختر وصفة لبدء وضع الطهي.')}</p>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold text-wasfah-deep-teal">
-            {t('Discover Drinks', 'اكتشف المشروبات')}
-          </h3>
-          {recipes.length === 0 ? (
-            <p>{t('No recipes found.', 'لم يتم العثور على وصفات.')}</p>
-          ) : (
-            recipes.map((recipe) => (
-              <div
-                key={recipe.id}
-                className="p-4 bg-white rounded-lg shadow flex justify-between items-center cursor-pointer"
-                onClick={() => navigateToCookMode(recipe)}
-              >
+      {filteredPosts.length > 0 ? (
+        <div className="space-y-6">
+          {filteredPosts.map(post => (
+            <div key={post.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+              <div className="p-4 flex items-center gap-3">
+                <img 
+                  src={post.avatar} 
+                  alt={post.user} 
+                  className="w-10 h-10 rounded-full object-cover border-2 border-wasfah-deep-teal"
+                  onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100/CCCCCC/666666?text=U"; }}
+                />
                 <div>
-                  <h4 className="font-bold">{recipe.name}</h4>
-                  <p className="text-gray-600">{t('ABV', 'نسبة الكحول')}: {recipe.abv}</p>
-                  <p className="text-gray-600">{t('Glass', 'الكأس')}: {recipe.glass}</p>
-                  <p className="text-gray-600">{t('Mood', 'المزاج')}: {recipe.mood}</p>
-                  <p className="text-gray-600">{t('Food Pairing', 'الاقتران بالطعام')}: {recipe.foodPairing}</p>
-                  <p className="text-gray-600">{t('Serving', 'التقديم')}: {recipe.serving}</p>
-                  <p className="text-gray-600">{t('Prep Time', 'وقت التحضير')}: {recipe.prepTime}</p>
+                  <p className="font-medium">{post.user}</p>
+                  <p className="text-xs text-gray-500">{post.time}</p>
                 </div>
-                <button
-                  className="p-2 bg-orange-500 text-white rounded-lg"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    saveToFavorites(recipe.id);
-                  }}
+                <button 
+                  onClick={() => handleSave(post.id)}
+                  className="ml-auto"
+                  aria-label={post.saved ? "Unsave post" : "Save post"}
                 >
-                  {t('Save to Favorites', 'حفظ في المفضلة')}
+                  <Heart className={`w-5 h-5 ${post.saved ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
                 </button>
               </div>
-            ))
+              
+              <div className="px-4 pb-2">
+                <h4 className="text-lg font-bold text-wasfah-dark-teal">{post.recipe}</h4>
+              </div>
+              
+              <div className="relative h-64 bg-gray-100">
+                <img
+                  src={post.image}
+                  alt={post.recipe}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x400/CCCCCC/666666?text=No+Image"; }}
+                />
+              </div>
+              
+              <div className="p-4">
+                <div className="flex items-center gap-4 mb-3">
+                  <button 
+                    onClick={() => handleLike(post.id)}
+                    className="flex items-center gap-1"
+                    aria-label="Like post"
+                  >
+                    <Heart className={`w-5 h-5 ${likedPosts.includes(post.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
+                    <span className="text-sm">{post.likes}</span>
+                  </button>
+                  <button 
+                    onClick={() => setCommentingOn(commentingOn === post.id ? null : post.id)}
+                    className="flex items-center gap-1"
+                    aria-label="Comment on post"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={commentingOn === post.id ? "#2F8B84" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span className="text-sm">{post.comments.length}</span>
+                  </button>
+                  <button className="flex items-center gap-1 ml-auto text-gray-400 hover:text-wasfah-deep-teal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+                    <span className="text-sm">Share</span>
+                  </button>
+                </div>
+                
+                {commentingOn === post.id && (
+                  <div className="mt-4">
+                    <div className="space-y-3 mb-3 max-h-48 overflow-y-auto">
+                      {post.comments.length > 0 ? (
+                        post.comments.map(comment => (
+                          <div key={comment.id} className="flex gap-2">
+                            <div className="flex-shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                                {comment.user.charAt(0)}
+                              </div>
+                            </div>
+                            <div className="bg-gray-100 px-3 py-2 rounded-lg flex-1">
+                              <p className="font-medium text-sm">{comment.user}</p>
+                              <p className="text-sm">{comment.text}</p>
+                              <p className="text-xs text-gray-500 mt-1">{comment.time}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-gray-500 py-4">No comments yet</p>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Add a comment..."
+                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-wasfah-deep-teal"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                      />
+                      <button
+                        onClick={() => handleAddComment(post.id)}
+                        disabled={!newComment.trim()}
+                        className="bg-wasfah-deep-teal text-white px-3 rounded-lg disabled:opacity-50"
+                      >
+                        Post
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h4 className="text-lg font-medium text-gray-700 mb-2">
+            {activeTab === 'saved' ? 'No saved posts yet' : 'No posts to show'}
+          </h4>
+          <p className="text-gray-500 mb-4">
+            {activeTab === 'saved' 
+              ? 'Save posts you love to find them here later' 
+              : 'Be the first to share your creation!'}
+          </p>
+          {activeTab !== 'saved' && (
+            <button className="bg-wasfah-deep-teal text-white py-2 px-4 rounded-lg text-sm hover:bg-wasfah-dark-teal transition-colors">
+              Create Your First Post
+            </button>
           )}
         </div>
-      </div>
-    </PageContainer>
+      )}
+    </div>
   );
 };
-
-export default AlcoholRecipeAI;
