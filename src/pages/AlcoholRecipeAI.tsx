@@ -1,278 +1,520 @@
-// Enhanced CommunityFeed with interactive elements and better UI
-const CommunityFeed = () => {
-  const [activeTab, setActiveTab] = useState('trending');
-  const [likedPosts, setLikedPosts] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [commentingOn, setCommentingOn] = useState(null);
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      user: "MixMasterPro",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      recipe: "Spicy Mango Margarita",
-      image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWFuZ28lMjBtYXJnaGFyaXRhfGVufDB8fDB8fHww",
-      likes: 42,
-      comments: [
-        { id: 1, user: "DrinkEnthusiast", text: "This looks amazing! What type of tequila did you use?", time: "1 hour ago" },
-        { id: 2, user: "HomeBartender", text: "Tried this last night - huge hit with my friends!", time: "45 mins ago" }
-      ],
-      time: "2 hours ago",
-      saved: false
-    },
-    {
-      id: 2,
-      user: "CocktailQueen",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-      recipe: "Elderflower Gin Fizz",
-      image: "https://images.unsplash.com/photo-1551533717-685bc1e9fafc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Z2luJTIwZml6enxlbnwwfHwwfHx8MA%3D%3D",
-      likes: 28,
-      comments: [
-        { id: 1, user: "GinLover", text: "Elderflower makes everything better!", time: "30 mins ago" }
-      ],
-      time: "4 hours ago",
-      saved: false
-    },
-    {
-      id: 3,
-      user: "BartenderBen",
-      avatar: "https://randomuser.me/api/portraits/men/75.jpg",
-      recipe: "Smoked Old Fashioned",
-      image: "https://images.unsplash.com/photo-1605270012917-bf157c5a9541?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b2xkJTIwZmFzaGlvbmVkfGVufDB8fDB8fHww",
-      likes: 56,
-      comments: [],
-      time: "6 hours ago",
-      saved: false
-    }
-  ]);
 
-  const handleLike = (postId) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          likes: likedPosts.includes(postId) ? post.likes - 1 : post.likes + 1
-        };
-      }
-      return post;
-    }));
-    
-    setLikedPosts(prev => 
-      prev.includes(postId) 
-        ? prev.filter(id => id !== postId) 
-        : [...prev, postId]
+import React, { useState, useEffect } from 'react';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRTL } from '@/contexts/RTLContext';
+import { 
+  GlassWater, 
+  Brain, 
+  Search, 
+  Play, 
+  Users, 
+  Heart, 
+  UtensilsCrossed, 
+  Wine, 
+  Camera, 
+  Mic, 
+  Plus,
+  Filter,
+  Star,
+  Clock,
+  ChefHat,
+  Sparkles
+} from 'lucide-react';
+
+const AlcoholRecipeAI = () => {
+  const { t } = useRTL();
+  const [activeTab, setActiveTab] = useState('ai-creation');
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<any>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    type: '',
+    abv: '',
+    occasion: '',
+    difficulty: ''
+  });
+
+  // Mock data for drinks
+  const mockDrinks = [
+    {
+      id: '1',
+      name: 'Classic Mojito',
+      type: 'Cocktail',
+      abv: '8%',
+      difficulty: 'Easy',
+      time: '5 min',
+      image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87',
+      ingredients: ['White Rum', 'Mint', 'Lime', 'Sugar', 'Soda Water'],
+      instructions: ['Muddle mint with sugar', 'Add lime juice', 'Add rum', 'Top with soda'],
+      pairing: ['Light seafood', 'Cuban cuisine', 'Summer appetizers'],
+      servingSuggestion: 'Serve in a highball glass with ice and fresh mint garnish'
+    },
+    {
+      id: '2',
+      name: 'Old Fashioned',
+      type: 'Whiskey',
+      abv: '35%',
+      difficulty: 'Medium',
+      time: '3 min',
+      image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187',
+      ingredients: ['Bourbon', 'Sugar', 'Angostura Bitters', 'Orange Peel'],
+      instructions: ['Muddle sugar with bitters', 'Add bourbon', 'Stir with ice', 'Garnish with orange'],
+      pairing: ['Grilled meats', 'Dark chocolate', 'Cigars'],
+      servingSuggestion: 'Serve in a rocks glass over a large ice cube'
+    }
+  ];
+
+  const toggleFavorite = (drinkId: string) => {
+    setFavorites(prev => 
+      prev.includes(drinkId) 
+        ? prev.filter(id => id !== drinkId)
+        : [...prev, drinkId]
     );
   };
 
-  const handleSave = (postId) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          saved: !post.saved
-        };
-      }
-      return post;
-    }));
-  };
-
-  const handleAddComment = (postId) => {
-    if (!newComment.trim()) return;
-    
-    const updatedPosts = posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [
-            ...post.comments,
-            {
-              id: Date.now(),
-              user: "You",
-              text: newComment,
-              time: "Just now"
-            }
-          ]
-        };
-      }
-      return post;
-    });
-    
-    setPosts(updatedPosts);
-    setNewComment('');
-    setCommentingOn(null);
-  };
-
-  const filteredPosts = activeTab === 'trending' 
-    ? [...posts].sort((a, b) => b.likes - a.likes) 
-    : activeTab === 'recent' 
-      ? [...posts].sort((a, b) => new Date(b.time) - new Date(a.time))
-      : posts.filter(post => post.saved);
-
-  return (
-    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-      <div className="flex items-center gap-2 mb-4">
-        <Users className="w-6 h-6 text-wasfah-deep-teal" />
-        <h3 className="text-2xl font-bold text-wasfah-deep-teal">Community Feed</h3>
-      </div>
-      <p className="text-gray-600 mb-6">See what others are mixing and share your creations</p>
-
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('trending')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-              ${activeTab === 'trending' ? 'bg-white text-wasfah-deep-teal shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-          >
-            Trending
-          </button>
-          <button
-            onClick={() => setActiveTab('recent')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-              ${activeTab === 'recent' ? 'bg-white text-wasfah-deep-teal shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-          >
-            Recent
-          </button>
-          <button
-            onClick={() => setActiveTab('saved')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-              ${activeTab === 'saved' ? 'bg-white text-wasfah-deep-teal shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-          >
-            Saved
-          </button>
-        </div>
-        
-        <button className="bg-wasfah-deep-teal text-white py-2 px-4 rounded-lg text-sm hover:bg-wasfah-dark-teal transition-colors flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-          Share Your Creation
-        </button>
-      </div>
-
-      {filteredPosts.length > 0 ? (
-        <div className="space-y-6">
-          {filteredPosts.map(post => (
-            <div key={post.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-              <div className="p-4 flex items-center gap-3">
-                <img 
-                  src={post.avatar} 
-                  alt={post.user} 
-                  className="w-10 h-10 rounded-full object-cover border-2 border-wasfah-deep-teal"
-                  onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100/CCCCCC/666666?text=U"; }}
+  // AI Creation Component
+  const AICreationTab = () => (
+    <div className="space-y-6">
+      <Card className="border-wasfah-bright-teal/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-wasfah-bright-teal">
+            <Brain className="h-5 w-5" />
+            {t('AI-Powered Drink Creation', 'إنشاء المشروبات بالذكاء الاصطناعي')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center gap-2"
+              onClick={() => setIsCreating(true)}
+            >
+              <Plus className="h-6 w-6 text-wasfah-bright-teal" />
+              <span>{t('Use Pantry Ingredients', 'استخدم مكونات المخزن')}</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center gap-2"
+            >
+              <Camera className="h-6 w-6 text-wasfah-bright-teal" />
+              <span>{t('Scan & Upload Image', 'مسح ورفع صورة')}</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center gap-2"
+            >
+              <Mic className="h-6 w-6 text-wasfah-bright-teal" />
+              <span>{t('Voice Description', 'وصف صوتي')}</span>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-20 flex flex-col items-center gap-2"
+            >
+              <Sparkles className="h-6 w-6 text-wasfah-bright-teal" />
+              <span>{t('AI Suggestion', 'اقتراح الذكاء الاصطناعي')}</span>
+            </Button>
+          </div>
+          
+          {isCreating && (
+            <Card className="bg-wasfah-bright-teal/5">
+              <CardContent className="p-4">
+                <h4 className="font-semibold mb-3">{t('Tell me what you want', 'أخبرني ماذا تريد')}</h4>
+                <Input 
+                  placeholder={t('I want a refreshing cocktail for summer...', 'أريد كوكتيل منعش للصيف...')}
+                  className="mb-3"
                 />
-                <div>
-                  <p className="font-medium">{post.user}</p>
-                  <p className="text-xs text-gray-500">{post.time}</p>
+                <div className="flex gap-2">
+                  <Button size="sm" className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
+                    {t('Generate Recipe', 'إنشاء الوصفة')}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsCreating(false)}>
+                    {t('Cancel', 'إلغاء')}
+                  </Button>
                 </div>
-                <button 
-                  onClick={() => handleSave(post.id)}
-                  className="ml-auto"
-                  aria-label={post.saved ? "Unsave post" : "Save post"}
-                >
-                  <Heart className={`w-5 h-5 ${post.saved ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-                </button>
-              </div>
-              
-              <div className="px-4 pb-2">
-                <h4 className="text-lg font-bold text-wasfah-dark-teal">{post.recipe}</h4>
-              </div>
-              
-              <div className="relative h-64 bg-gray-100">
-                <img
-                  src={post.image}
-                  alt={post.recipe}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x400/CCCCCC/666666?text=No+Image"; }}
-                />
-              </div>
-              
-              <div className="p-4">
-                <div className="flex items-center gap-4 mb-3">
-                  <button 
-                    onClick={() => handleLike(post.id)}
-                    className="flex items-center gap-1"
-                    aria-label="Like post"
-                  >
-                    <Heart className={`w-5 h-5 ${likedPosts.includes(post.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-                    <span className="text-sm">{post.likes}</span>
-                  </button>
-                  <button 
-                    onClick={() => setCommentingOn(commentingOn === post.id ? null : post.id)}
-                    className="flex items-center gap-1"
-                    aria-label="Comment on post"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={commentingOn === post.id ? "#2F8B84" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span className="text-sm">{post.comments.length}</span>
-                  </button>
-                  <button className="flex items-center gap-1 ml-auto text-gray-400 hover:text-wasfah-deep-teal">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
-                    <span className="text-sm">Share</span>
-                  </button>
-                </div>
-                
-                {commentingOn === post.id && (
-                  <div className="mt-4">
-                    <div className="space-y-3 mb-3 max-h-48 overflow-y-auto">
-                      {post.comments.length > 0 ? (
-                        post.comments.map(comment => (
-                          <div key={comment.id} className="flex gap-2">
-                            <div className="flex-shrink-0">
-                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-                                {comment.user.charAt(0)}
-                              </div>
-                            </div>
-                            <div className="bg-gray-100 px-3 py-2 rounded-lg flex-1">
-                              <p className="font-medium text-sm">{comment.user}</p>
-                              <p className="text-sm">{comment.text}</p>
-                              <p className="text-xs text-gray-500 mt-1">{comment.time}</p>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-center text-gray-500 py-4">No comments yet</p>
-                      )}
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Add a comment..."
-                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-wasfah-deep-teal"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                      />
-                      <button
-                        onClick={() => handleAddComment(post.id)}
-                        disabled={!newComment.trim()}
-                        className="bg-wasfah-deep-teal text-white px-3 rounded-lg disabled:opacity-50"
-                      >
-                        Post
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h4 className="text-lg font-medium text-gray-700 mb-2">
-            {activeTab === 'saved' ? 'No saved posts yet' : 'No posts to show'}
-          </h4>
-          <p className="text-gray-500 mb-4">
-            {activeTab === 'saved' 
-              ? 'Save posts you love to find them here later' 
-              : 'Be the first to share your creation!'}
-          </p>
-          {activeTab !== 'saved' && (
-            <button className="bg-wasfah-deep-teal text-white py-2 px-4 rounded-lg text-sm hover:bg-wasfah-dark-teal transition-colors">
-              Create Your First Post
-            </button>
+              </CardContent>
+            </Card>
           )}
-        </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Recipe Browsing Component
+  const BrowsingTab = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            {t('Search & Filter', 'البحث والتصفية')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Input 
+            placeholder={t('Search drinks...', 'البحث عن المشروبات...')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          
+          <div className="grid grid-cols-2 gap-2">
+            <select 
+              className="p-2 border rounded-lg text-sm"
+              value={filters.type}
+              onChange={(e) => setFilters({...filters, type: e.target.value})}
+            >
+              <option value="">{t('All Types', 'جميع الأنواع')}</option>
+              <option value="cocktail">{t('Cocktails', 'كوكتيلات')}</option>
+              <option value="wine">{t('Wine', 'نبيذ')}</option>
+              <option value="beer">{t('Beer', 'بيرة')}</option>
+            </select>
+            
+            <select 
+              className="p-2 border rounded-lg text-sm"
+              value={filters.abv}
+              onChange={(e) => setFilters({...filters, abv: e.target.value})}
+            >
+              <option value="">{t('Any ABV', 'أي نسبة كحول')}</option>
+              <option value="low">{t('Low (0-15%)', 'منخفض (0-15%)')}</option>
+              <option value="medium">{t('Medium (15-30%)', 'متوسط (15-30%)')}</option>
+              <option value="high">{t('High (30%+)', 'عالي (30%+)')}</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4">
+        {mockDrinks.map((drink) => (
+          <Card key={drink.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex gap-4">
+                <img 
+                  src={drink.image} 
+                  alt={drink.name}
+                  className="w-20 h-20 rounded-lg object-cover"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">{drink.name}</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleFavorite(drink.id)}
+                    >
+                      <Heart 
+                        className={`h-4 w-4 ${favorites.includes(drink.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} 
+                      />
+                    </Button>
+                  </div>
+                  <div className="flex gap-2 mb-2">
+                    <Badge variant="secondary" className="text-xs">{drink.type}</Badge>
+                    <Badge variant="outline" className="text-xs">{drink.abv}</Badge>
+                    <Badge variant="outline" className="text-xs">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {drink.time}
+                    </Badge>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    className="bg-wasfah-bright-teal hover:bg-wasfah-teal"
+                    onClick={() => setSelectedRecipe(drink)}
+                  >
+                    {t('View Recipe', 'عرض الوصفة')}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Cook Mode Component
+  const CookModeTab = () => (
+    <div className="space-y-4">
+      {selectedRecipe ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Play className="h-5 w-5 text-wasfah-bright-teal" />
+              {t('Cook Mode', 'وضع الطبخ')} - {selectedRecipe.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <img 
+              src={selectedRecipe.image} 
+              alt={selectedRecipe.name}
+              className="w-full h-48 rounded-lg object-cover"
+            />
+            
+            <div>
+              <h4 className="font-semibold mb-2">{t('Ingredients', 'المكونات')}</h4>
+              <ul className="space-y-1">
+                {selectedRecipe.ingredients.map((ingredient: string, index: number) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <input type="checkbox" className="rounded" />
+                    <span className="text-sm">{ingredient}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-2">{t('Instructions', 'التعليمات')}</h4>
+              <ol className="space-y-2">
+                {selectedRecipe.instructions.map((step: string, index: number) => (
+                  <li key={index} className="flex gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 bg-wasfah-bright-teal text-white rounded-full flex items-center justify-center text-sm">
+                      {index + 1}
+                    </span>
+                    <span className="text-sm">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <ChefHat className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">{t('Select a recipe to start cooking', 'اختر وصفة لبدء الطبخ')}</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
+
+  // Community Component
+  const CommunityTab = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-wasfah-bright-teal" />
+            {t('Community Drinks', 'مشروبات المجتمع')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal mb-4">
+            <Plus className="h-4 w-4 mr-2" />
+            {t('Share Your Recipe', 'شارك وصفتك')}
+          </Button>
+          
+          <div className="space-y-4">
+            {mockDrinks.map((drink) => (
+              <div key={drink.id} className="border rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-wasfah-bright-teal rounded-full flex items-center justify-center text-white text-sm">
+                    U
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">@mixmaster</p>
+                    <p className="text-xs text-gray-500">2 hours ago</p>
+                  </div>
+                </div>
+                <p className="text-sm mb-2">Just made this amazing {drink.name}! Perfect for weekend vibes 🍹</p>
+                <div className="flex gap-4 text-sm text-gray-500">
+                  <button className="flex items-center gap-1">
+                    <Heart className="h-4 w-4" />
+                    24
+                  </button>
+                  <button>{t('Comment', 'تعليق')}</button>
+                  <button>{t('Share', 'مشاركة')}</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Additional tabs for other features
+  const FavoritesTab = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="h-5 w-5 text-red-500" />
+            {t('My Favorites', 'مفضلاتي')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {favorites.length === 0 ? (
+            <div className="text-center py-8">
+              <Heart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">{t('No favorites yet', 'لا توجد مفضلات بعد')}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {mockDrinks.filter(drink => favorites.includes(drink.id)).map((drink) => (
+                <div key={drink.id} className="border rounded-lg p-4">
+                  <h3 className="font-semibold">{drink.name}</h3>
+                  <p className="text-sm text-gray-600">{drink.type}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const PairingTab = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UtensilsCrossed className="h-5 w-5 text-wasfah-bright-teal" />
+            {t('Food Pairing', 'تناسق الطعام')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {selectedRecipe ? (
+            <div className="space-y-4">
+              <h3 className="font-semibold">{selectedRecipe.name}</h3>
+              <div>
+                <h4 className="font-medium mb-2">{t('Recommended Pairings', 'التناسقات الموصى بها')}</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedRecipe.pairing.map((item: string, index: number) => (
+                    <Badge key={index} variant="outline">{item}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">{t('Serving Suggestion', 'اقتراح التقديم')}</h4>
+                <p className="text-sm text-gray-600">{selectedRecipe.servingSuggestion}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <UtensilsCrossed className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">{t('Select a recipe to see pairings', 'اختر وصفة لرؤية التناسقات')}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const ABVInfoTab = () => (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wine className="h-5 w-5 text-wasfah-bright-teal" />
+            {t('ABV Information', 'معلومات نسبة الكحول')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold text-green-600">{t('Low ABV (0-15%)', 'نسبة منخفضة (0-15%)')}</h4>
+              <p className="text-sm text-gray-600">{t('Beer, Wine, Light cocktails', 'بيرة، نبيذ، كوكتيلات خفيفة')}</p>
+            </div>
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold text-yellow-600">{t('Medium ABV (15-30%)', 'نسبة متوسطة (15-30%)')}</h4>
+              <p className="text-sm text-gray-600">{t('Fortified wines, Liqueurs', 'نبيذ مقوى، مشروبات كحولية')}</p>
+            </div>
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold text-red-600">{t('High ABV (30%+)', 'نسبة عالية (30%+)')}</h4>
+              <p className="text-sm text-gray-600">{t('Spirits, Strong cocktails', 'مشروبات روحية، كوكتيلات قوية')}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  return (
+    <PageContainer
+      header={{
+        title: t('Alcohol Recipes & AI', 'وصفات المشروبات والذكاء الاصطناعي'),
+        showBackButton: true,
+      }}
+    >
+      <div className="space-y-6 pb-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4 md:grid-cols-8 w-full h-auto">
+            <TabsTrigger value="ai-creation" className="text-xs p-2">
+              <Brain className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('AI Create', 'إنشاء ذكي')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="browse" className="text-xs p-2">
+              <Search className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('Browse', 'تصفح')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="cook" className="text-xs p-2">
+              <Play className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('Cook', 'طبخ')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="community" className="text-xs p-2">
+              <Users className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('Community', 'مجتمع')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="favorites" className="text-xs p-2">
+              <Heart className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('Favorites', 'مفضلات')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="pairing" className="text-xs p-2">
+              <UtensilsCrossed className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('Pairing', 'تناسق')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="serving" className="text-xs p-2">
+              <GlassWater className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('Serving', 'تقديم')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="abv" className="text-xs p-2">
+              <Wine className="h-4 w-4 mb-1" />
+              <span className="hidden sm:inline">{t('ABV', 'نسبة كحول')}</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ai-creation" className="mt-6">
+            <AICreationTab />
+          </TabsContent>
+
+          <TabsContent value="browse" className="mt-6">
+            <BrowsingTab />
+          </TabsContent>
+
+          <TabsContent value="cook" className="mt-6">
+            <CookModeTab />
+          </TabsContent>
+
+          <TabsContent value="community" className="mt-6">
+            <CommunityTab />
+          </TabsContent>
+
+          <TabsContent value="favorites" className="mt-6">
+            <FavoritesTab />
+          </TabsContent>
+
+          <TabsContent value="pairing" className="mt-6">
+            <PairingTab />
+          </TabsContent>
+
+          <TabsContent value="serving" className="mt-6">
+            <PairingTab />
+          </TabsContent>
+
+          <TabsContent value="abv" className="mt-6">
+            <ABVInfoTab />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </PageContainer>
+  );
 };
+
+export default AlcoholRecipeAI;
