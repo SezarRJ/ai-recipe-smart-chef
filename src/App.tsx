@@ -49,18 +49,9 @@ import MoodBasedRecipes from '@/components/ai/MoodBasedRecipes';
 import SmartRecipeAdaptation from '@/components/ai/SmartRecipeAdaptation';
 import VoiceRecipeAssistantPage from '@/components/ai/VoiceRecipeAssistant';
 import ToolsPage from '@/pages/ToolsPage';
-// Note: These are likely placeholders if they refer to admin pages
-// If they are meant to be actual tools pages, ensure the correct component is imported.
-import NutritionCalculatorPage from '@/pages/admin/AdminAnalyticsPage'; // Potentially wrong import, check path
-import RecipeScalerPage from '@/pages/admin/AdminRecipesPage'; // Potentially wrong import, check path
-import CookingTimerPage from '@/pages/admin/AdminSettingsPage'; // Potentially wrong import, check path
-import UnitConverterPage from '@/pages/admin/AdminUsersPage'; // Potentially wrong import, check path
-import TemperatureGuidePage from '@/pages/admin/AdminSystemPage'; // Potentially wrong import, check path
-import SubstitutionGuidePage from '@/pages/admin/AdminSecurityPage'; // Potentially wrong import, check path
-import CookingTechniquesPage from '@/pages/admin/AdminMaintenancePage'; // Potentially wrong import, check path
-import QuickRecipesPage from '@/pages/admin/AdminRewardsPage'; // Potentially wrong import, check path
+import MealTimingPage from '@/pages/MealTimingPage';
 
-
+// Import admin components
 import AdminRoute from '@/components/admin/AdminAuthGuard';
 import AdminPage from '@/pages/AdminPage';
 import AdminDashboard from '@/pages/AdminDashboard';
@@ -90,21 +81,20 @@ import SupportTicketsPage from '@/pages/admin/SupportTicketsPage';
 import AdvertisementPage from '@/pages/admin/AdvertisementPage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import BottomToolbar from '@/components/layout/BottomToolbar';
-import MealTimingPage from '@/pages/MealTimingPage';
-import WeightManagementPage from '@/pages/WeightManagementPage';
-import ActivityMonitorPage from '@/pages/ActivityMonitorPage';
-import HealthGoalsPage from '@/pages/HealthGoalsPage';
-// import AlcoholDrinksPage from '@/pages/AlcoholDrinksPage'; // <--- REMOVE OR RENAME THIS LINE
-import HealthNutritionGoalsPage from '@/pages/HealthNutritionGoalsPage';
 
 // Import the newly refactored component for Alcohol Recipes
-import AlcoholRecipeAI from '@/pages/AlcoholRecipeAI'; // <--- ADD THIS LINE (Adjust path if needed)
-
+import AlcoholRecipeAI from '@/pages/AlcoholRecipeAI';
 
 // Import new pages
 import ShoppingListPage from '@/pages/ShoppingListPage';
 import CreateRecipePage from '@/pages/CreateRecipePage';
 import SharedRecipesPage from '@/pages/SharedRecipesPage';
+
+// Import additional health pages
+import WeightManagementPage from '@/pages/WeightManagementPage';
+import ActivityMonitorPage from '@/pages/ActivityMonitorPage';
+import HealthGoalsPage from '@/pages/HealthGoalsPage';
+import HealthNutritionGoalsPage from '@/pages/HealthNutritionGoalsPage';
 
 // Default recipe for VoiceRecipeAssistant
 const defaultRecipe = {
@@ -193,14 +183,6 @@ const App = () => {
 
                   {/* --- Tools Hub and Sub-pages --- */}
                   <Route path="/tools" element={<ToolsPage />} />
-                  <Route path="/tools/nutrition-calculator" element={<NutritionCalculatorPage />} />
-                  <Route path="/tools/recipe-scaler" element={<RecipeScalerPage />} />
-                  <Route path="/tools/cooking-timer" element={<CookingTimerPage />} />
-                  <Route path="/tools/unit-converter" element={<UnitConverterPage />} />
-                  <Route path="/tools/temperature-guide" element={<TemperatureGuidePage />} />
-                  <Route path="/tools/substitution-guide" element={<SubstitutionGuidePage />} />
-                  <Route path="/tools/cooking-techniques" element={<CookingTechniquesPage />} />
-                  <Route path="/tools/quick-recipes" element={<QuickRecipesPage />} />
 
                   {/* --- Admin Routes --- */}
                   <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>}>
