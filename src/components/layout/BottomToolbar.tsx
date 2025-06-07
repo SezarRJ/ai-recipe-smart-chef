@@ -4,11 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
   Compass,
-  UtensilsCrossed,
   Sparkles,
   Activity,
   Settings,
-  Shield,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -30,12 +28,6 @@ const BottomToolbar = () => {
       isActive: pathname === '/home'
     },
     {
-      icon: UtensilsCrossed,
-      label: 'Recipes',
-      href: '/recipes',
-      isActive: pathname === '/recipes' || pathname.startsWith('/recipe/')
-    },
-    {
       icon: Compass,
       label: 'Cuisine',
       href: '/global-cuisine',
@@ -51,7 +43,7 @@ const BottomToolbar = () => {
       icon: Activity,
       label: 'Health',
       href: '/health-tracking-home',
-      isActive: pathname === '/health-tracking-home' || pathname.startsWith('/health-tracking')
+      isActive: pathname === '/health-tracking-home' || pathname.startsWith('/health/')
     },
     {
       icon: Settings,
