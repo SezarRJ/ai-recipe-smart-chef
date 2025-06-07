@@ -36,6 +36,18 @@ export interface Recipe {
   tips?: string[];
 }
 
+export interface RecipeFilters {
+  category?: string;
+  cuisine?: string;
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
+  maxPrepTime?: number;
+  maxCookTime?: number;
+  ingredients?: string[];
+  tags?: string[];
+  status?: 'draft' | 'published' | 'pending_review';
+  isFavorite?: boolean;
+}
+
 export interface RecipeIngredient {
   id: string;
   name: string;
