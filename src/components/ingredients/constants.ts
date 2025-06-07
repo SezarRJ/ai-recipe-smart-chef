@@ -1,79 +1,88 @@
-import { Utensils, Pizza, Leaf, Carrot, Apple, Fish, Egg, Wheat, Coffee } from 'lucide-react';
 
-export const mainCategories = [
+export const INGREDIENT_CATEGORIES = [
   {
-    id: 'food',
-    name: 'Food & Recipes',
-    nameAr: 'الطعام والوصفات',
-    icon: Utensils,
-    subcategories: [
-      { name: 'Main Dishes', icon: Pizza },
-      { name: 'Appetizers', icon: Leaf },
-      { name: 'Desserts', icon: Apple },
-      { name: 'Salads', icon: Carrot },
-    ]
+    id: 'vegetables',
+    name: 'Vegetables',
+    icon: '🥕',
+    subcategories: ['Root Vegetables', 'Leafy Greens', 'Nightshades', 'Squash', 'Cruciferous']
   },
   {
-    id: 'ingredients',
-    name: 'By Ingredients',
-    nameAr: 'حسب المكونات',
-    icon: Carrot,
-    subcategories: [
-      { name: 'Vegetables', icon: Carrot },
-      { name: 'Fruits', icon: Apple },
-      { name: 'Proteins', icon: Fish },
-      { name: 'Dairy & Eggs', icon: Egg },
-      { name: 'Grains & Cereals', icon: Wheat },
-    ]
+    id: 'fruits',
+    name: 'Fruits',
+    icon: '🍎',
+    subcategories: ['Citrus', 'Berries', 'Stone Fruits', 'Tropical', 'Apples & Pears']
   },
   {
-    id: 'beverages',
-    name: 'Non-Alcoholic Beverages',
-    nameAr: 'المشروبات غير الكحولية',
-    icon: Coffee,
-    subcategories: [
-      { name: 'Hot Beverages', icon: Coffee },
-      { name: 'Cold Beverages', icon: Coffee },
-      { name: 'Smoothies', icon: Apple },
-      { name: 'Juices', icon: Apple },
-    ]
+    id: 'proteins',
+    name: 'Proteins',
+    icon: '🥩',
+    subcategories: ['Meat', 'Poultry', 'Seafood', 'Eggs', 'Plant-based']
+  },
+  {
+    id: 'grains',
+    name: 'Grains & Starches',
+    icon: '🌾',
+    subcategories: ['Rice', 'Pasta', 'Bread', 'Quinoa', 'Potatoes']
+  },
+  {
+    id: 'dairy',
+    name: 'Dairy',
+    icon: '🥛',
+    subcategories: ['Milk', 'Cheese', 'Yogurt', 'Butter', 'Cream']
+  },
+  {
+    id: 'spices',
+    name: 'Herbs & Spices',
+    icon: '🌿',
+    subcategories: ['Fresh Herbs', 'Dried Spices', 'Spice Blends', 'Aromatics']
+  },
+  {
+    id: 'pantry',
+    name: 'Pantry Staples',
+    icon: '🥫',
+    subcategories: ['Oils & Vinegars', 'Condiments', 'Canned Goods', 'Baking', 'Nuts & Seeds']
   }
 ];
 
-// Alcohol subcategories for drink customization
-export const alcoholSubcategories = [
-  { 
-    name: 'Spirits', 
-    items: ['Vodka', 'Gin', 'Rum', 'Whiskey', 'Tequila', 'Brandy']
-  },
-  { 
-    name: 'Wine', 
-    items: ['Red Wine', 'White Wine', 'Rosé', 'Sparkling Wine', 'Champagne']
-  },
-  { 
-    name: 'Beer', 
-    items: ['Lager', 'Ale', 'Stout', 'IPA', 'Wheat Beer']
-  },
-  { 
-    name: 'Liqueurs', 
-    items: ['Triple Sec', 'Amaretto', 'Kahlua', 'Bailey\'s', 'Grand Marnier']
-  }
+export const COMMON_INGREDIENTS = [
+  // Vegetables
+  'onion', 'garlic', 'tomato', 'carrot', 'celery', 'bell pepper', 'mushroom', 'spinach', 'broccoli', 'potato',
+  
+  // Proteins  
+  'chicken breast', 'ground beef', 'salmon', 'eggs', 'tofu', 'chicken thighs', 'shrimp', 'pork', 'beans', 'lentils',
+  
+  // Dairy
+  'milk', 'cheese', 'butter', 'yogurt', 'cream', 'mozzarella', 'parmesan', 'cheddar',
+  
+  // Pantry Staples
+  'olive oil', 'salt', 'black pepper', 'flour', 'sugar', 'rice', 'pasta', 'soy sauce', 'vinegar', 'lemon',
+  
+  // Herbs & Spices
+  'basil', 'oregano', 'thyme', 'rosemary', 'paprika', 'cumin', 'ginger', 'cilantro', 'parsley', 'bay leaves'
 ];
 
-export const AI_FILTER_OPTIONS = {
-  dietary: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Keto', 'Paleo', 'Dairy-Free'],
-  cookTime: ['Under 15 min', '15-30 min', '30-60 min', 'Over 1 hour'],
-  difficulty: ['Easy', 'Medium', 'Hard'],
-  cuisine: ['Italian', 'Asian', 'Mexican', 'Indian', 'Mediterranean', 'American']
-};
+export const DIETARY_PREFERENCES = [
+  'Vegetarian',
+  'Vegan', 
+  'Gluten-Free',
+  'Dairy-Free',
+  'Keto',
+  'Paleo',
+  'Low-Carb',
+  'Mediterranean',
+  'Whole30',
+  'Nut-Free'
+];
 
-export const PANTRY_ITEMS = [
-  { id: 'chicken', name: 'Chicken Breast', quantity: '2 lbs', unit: 'pounds', icon: Fish },
-  { id: 'rice', name: 'Basmati Rice', quantity: '2', unit: 'cups', icon: Wheat },
-  { id: 'onions', name: 'Yellow Onions', quantity: '3', unit: 'pieces', icon: Carrot },
-  { id: 'tomatoes', name: 'Roma Tomatoes', quantity: '4', unit: 'pieces', icon: Apple },
-  { id: 'garlic', name: 'Garlic Cloves', quantity: '6', unit: 'pieces', icon: Carrot },
-  { id: 'olive-oil', name: 'Olive Oil', quantity: '500', unit: 'ml', icon: Coffee },
-  { id: 'eggs', name: 'Fresh Eggs', quantity: '12', unit: 'pieces', icon: Egg },
-  { id: 'milk', name: 'Whole Milk', quantity: '1', unit: 'liter', icon: Egg }
+export const CUISINE_TYPES = [
+  'Italian',
+  'Mexican', 
+  'Asian',
+  'Indian',
+  'Mediterranean',
+  'American',
+  'French',
+  'Thai',
+  'Japanese',
+  'Greek'
 ];
