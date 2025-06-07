@@ -76,54 +76,7 @@ const ServicesPage = () => {
           icon: Package,
           path: "/pantry",
           isPremium: false
-        }
-      ]
-    },
-    {
-      title: t("AI Features", "ميزات الذكاء الاصطناعي"),
-      description: t("Advanced AI-powered cooking assistance", "مساعدة الطبخ المتقدمة بالذكاء الاصطناعي"),
-      services: [
-        {
-          name: t("AI Cooking Assistant", "مساعد الطبخ الذكي"),
-          description: t("Get instant cooking help and advice", "احصل على مساعدة ونصائح فورية للطبخ"),
-          icon: Bot,
-          path: "/ai/cooking-assistant",
-          isPremium: false
-        },
-        {
-          name: t("Recipe Finder", "باحث الوصفات"),
-          description: t("Find recipes by ingredients you have", "ابحث عن الوصفات بالمكونات المتوفرة"),
-          icon: Search,
-          path: "/ai/recipe-finder",
-          isPremium: false
-        },
-        {
-          name: t("Voice Assistant", "المساعد الصوتي"),
-          description: t("Voice-guided cooking experience", "تجربة طبخ موجهة صوتياً"),
-          icon: Smartphone,
-          path: "/ai/voice-assistant",
-          isPremium: true
-        }
-      ]
-    },
-    {
-      title: t("Health & Wellness", "الصحة والعافية"),
-      description: t("Track your nutrition and health goals", "تتبع تغذيتك وأهدافك الصحية"),
-      services: [
-        {
-          name: t("Health Tracking", "تتبع الصحة"),
-          description: t("Monitor your nutritional intake", "راقب مدخولك الغذائي"),
-          icon: Heart,
-          path: "/health-tracking-home",
-          isPremium: false
-        },
-        {
-          name: t("Recipe Collection", "مجموعة الوصفات"),
-          description: t("Browse our extensive recipe database", "تصفح قاعدة بيانات الوصفات الواسعة"),
-          icon: BookOpen,
-          path: "/recipes",
-          isPremium: false
-        }
+                }
       ]
     }
   ];
