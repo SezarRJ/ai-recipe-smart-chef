@@ -5,7 +5,6 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { TodayMealPlan } from '@/components/home/TodayMealPlan';
 import { LoyaltyCard } from '@/components/home/LoyaltyCard';
 import { SubscriptionBanner } from '@/components/home/SubscriptionBanner';
-import { ServicesSection } from '@/components/home/ServicesSection';
 import { mockMealPlan } from '@/data/mockData';
 import { useRTL } from '@/contexts/RTLContext';
 
@@ -36,6 +35,12 @@ const HomePage = () => {
       label: t("Alcohol Drinks", "المشروبات الكحولية"),
       path: "/alcohol-drinks",
       color: "bg-amber-500/10"
+    },
+    {
+      image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=150&h=150&fit=crop&crop=center",
+      label: t("Services", "الخدمات"),
+      path: "/services",
+      color: "bg-purple-500/10"
     }
   ];
 
@@ -96,11 +101,6 @@ const HomePage = () => {
               </Link>
             ))}
           </div>
-        </div>
-
-        {/* Services Section */}
-        <div className="px-4">
-          <ServicesSection />
         </div>
 
         {/* Your meal plan today */}
