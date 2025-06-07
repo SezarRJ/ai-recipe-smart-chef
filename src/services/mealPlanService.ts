@@ -1,157 +1,126 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Recipe } from '@/types/index';
-import recipeService from './recipeService';
 
 export interface MealPlan {
   id: string;
-  date: string;
-  breakfast?: Recipe;
-  lunch?: Recipe;
-  dinner?: Recipe;
-  snack?: Recipe;
   user_id: string;
+  date: string;
+  meal_type: string;
+  recipe_id?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
+  recipe?: {
+    id: string;
+    title: string;
+    image_url?: string;
+    prep_time?: number;
+    cooking_time?: number;
+    calories?: number;
+  };
 }
 
-class MealPlanService {
-  async getMealPlan(date: string, userId: string): Promise<MealPlan | null> {
+export class MealPlanService {
+  async getMealPlans(userId: string, startDate?: string, endDate?: string): Promise<MealPlan[]> {
+    try {
+      let query = supabase
+        .from('meal_plans')
+        .select(`
+          *,
+          recipe:recipes (
+            id,
+            title,
+            image_url,
+            prep_time,
+            cooking_time,
+            calories
+          )
+        `)
+        .eq('user_id', userId)
+        .order('date', { ascending: true });
+
+      if (startDate) {
+        query = query.gte('date', startDate);
+      }
+      if (endDate) {
+        query = query.lte('date', endDate);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return data?.map(plan => ({
+        id: plan.id,
+        user_id: plan.user_id,
+        date: plan.date,
+        meal_type: plan.meal_type,
+        recipe_id: plan.recipe_id,
+        notes: plan.notes,
+        created_at: plan.created_at,
+        updated_at: plan.updated_at,
+        recipe: plan.recipe ? {
+          id: plan.recipe.id,
+          title: plan.recipe.title,
+          image_url: plan.recipe.image_url,
+          prep_time: plan.recipe.prep_time || 0,
+          cooking_time: plan.recipe.cooking_time || 0,
+          calories: plan.recipe.calories || 0
+        } : undefined
+      })) || [];
+    } catch (error) {
+      console.error('Error fetching meal plans:', error);
+      return [];
+    }
+  }
+
+  async createMealPlan(mealPlan: Omit<MealPlan, 'id' | 'created_at' | 'updated_at'>): Promise<MealPlan | null> {
     try {
       const { data, error } = await supabase
         .from('meal_plans')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('date', date)
+        .insert(mealPlan)
+        .select()
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      if (!data) return null;
-
-      // Since the current schema has recipe_id, meal_type structure
-      // We need to query all meals for this date and group them
-      const { data: meals, error: mealsError } = await supabase
-        .from('meal_plans')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('date', date);
-
-      if (mealsError) throw mealsError;
-
-      const mealPlan: MealPlan = {
-        id: data.id,
-        date: data.date,
-        user_id: data.user_id,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      };
-
-      // Group meals by type
-      if (meals) {
-        for (const meal of meals) {
-          if (meal.recipe_id && meal.meal_type) {
-            const recipe = await this.getRecipeById(meal.recipe_id);
-            if (recipe) {
-              switch (meal.meal_type) {
-                case 'breakfast':
-                  mealPlan.breakfast = recipe;
-                  break;
-                case 'lunch':
-                  mealPlan.lunch = recipe;
-                  break;
-                case 'dinner':
-                  mealPlan.dinner = recipe;
-                  break;
-                case 'snack':
-                  mealPlan.snack = recipe;
-                  break;
-              }
-            }
-          }
-        }
-      }
-
-      return mealPlan;
+      if (error) throw error;
+      return data;
     } catch (error) {
-      console.error('Error fetching meal plan:', error);
+      console.error('Error creating meal plan:', error);
       return null;
     }
   }
 
-  private async getRecipeById(recipeId: string): Promise<Recipe | undefined> {
+  async updateMealPlan(id: string, updates: Partial<MealPlan>): Promise<MealPlan | null> {
     try {
       const { data, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .eq('id', recipeId)
+        .from('meal_plans')
+        .update(updates)
+        .eq('id', id)
+        .select()
         .single();
 
       if (error) throw error;
-
-      // Convert Json[] to string[] for instructions
-      const instructionsArray = Array.isArray(data.instructions) 
-        ? data.instructions.map(instruction => String(instruction))
-        : [];
-
-      return {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        image: data.image_url,
-        image_url: data.image_url,
-        prepTime: data.prep_time || 0,
-        prep_time: data.prep_time || 0,
-        cookTime: data.cooking_time || 0,
-        cook_time: data.cooking_time || 0,
-        servings: data.servings,
-        difficulty: data.difficulty as 'Easy' | 'Medium' | 'Hard',
-        calories: data.calories,
-        rating: 4.5,
-        ratingCount: 89,
-        cuisineType: data.cuisine_type,
-        cuisine_type: data.cuisine_type,
-        categories: [], // Database doesn't have categories field, so use empty array
-        tags: [], // Database doesn't have tags field, so use empty array
-        ingredients: [],
-        instructions: instructionsArray,
-        isFavorite: false,
-        status: 'published' as const,
-        author_id: data.user_id,
-        is_verified: true,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      };
+      return data;
     } catch (error) {
-      console.error('Error fetching recipe:', error);
-      return undefined;
+      console.error('Error updating meal plan:', error);
+      return null;
     }
   }
 
-  async updateMealPlan(
-    date: string,
-    userId: string,
-    mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
-    recipeId: string
-  ): Promise<boolean> {
+  async deleteMealPlan(id: string): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('meal_plans')
-        .upsert({
-          user_id: userId,
-          date,
-          meal_type: mealType,
-          recipe_id: recipeId,
-          updated_at: new Date().toISOString(),
-        });
+        .delete()
+        .eq('id', id);
 
-      if (error) throw error;
-      return true;
+      return !error;
     } catch (error) {
-      console.error('Error updating meal plan:', error);
+      console.error('Error deleting meal plan:', error);
       return false;
     }
   }
 }
 
-export const mealPlanService = new MealPlanService();
+const mealPlanService = new MealPlanService();
+export default mealPlanService;

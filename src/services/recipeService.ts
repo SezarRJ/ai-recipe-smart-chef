@@ -46,7 +46,7 @@ export class RecipeService {
           categories: [], // Database doesn't have categories field, use empty array
           tags: [], // Database doesn't have tags field, use empty array
           status: 'published' as const,
-          author_id: recipe.user_id,
+          author_id: recipe.user_id || 'unknown',
           is_verified: recipe.is_verified || false,
           created_at: recipe.created_at,
           updated_at: recipe.updated_at,

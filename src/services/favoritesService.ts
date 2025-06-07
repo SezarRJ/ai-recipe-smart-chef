@@ -11,7 +11,7 @@ export interface Favorite {
 export const favoritesService = {
   async getFavorites(userId: string): Promise<string[]> {
     const { data, error } = await supabase
-      .from('user_favorites')
+      .from('favorites')
       .select('recipe_id')
       .eq('user_id', userId);
 
@@ -25,7 +25,7 @@ export const favoritesService = {
 
   async addToFavorites(userId: string, recipeId: string): Promise<boolean> {
     const { error } = await supabase
-      .from('user_favorites')
+      .from('favorites')
       .insert({ user_id: userId, recipe_id: recipeId });
 
     if (error) {
@@ -38,7 +38,7 @@ export const favoritesService = {
 
   async removeFromFavorites(userId: string, recipeId: string): Promise<boolean> {
     const { error } = await supabase
-      .from('user_favorites')
+      .from('favorites')
       .delete()
       .eq('user_id', userId)
       .eq('recipe_id', recipeId);
@@ -53,7 +53,7 @@ export const favoritesService = {
 
   async isFavorite(userId: string, recipeId: string): Promise<boolean> {
     const { data, error } = await supabase
-      .from('user_favorites')
+      .from('favorites')
       .select('id')
       .eq('user_id', userId)
       .eq('recipe_id', recipeId)
