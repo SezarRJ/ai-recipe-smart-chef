@@ -1,253 +1,179 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Wine, Beer, Martini, Flame } from 'lucide-react';
-import { useRTL } from '@/contexts/RTLContext';
-import { alcoholSubcategories } from '@/components/ingredients/constants';
-
-export interface DrinkOptions {
-  category: string;
-  subcategory?: string;
-  type?: string;
-  characteristics?: string[];
-  customIngredients?: string[];
-  abv?: string;
-  servingStyle?: string;
-  occasion?: string;
-}
+import { Plus, Minus } from 'lucide-react';
 
 interface DrinkCustomizationFormProps {
-  onGenerateDrink: (options: DrinkOptions) => void;
-  onBack: () => void;
+  onCustomize: (customizations: any) => void;
 }
 
-export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({
-  onGenerateDrink,
-  onBack,
-}) => {
-  const { t } = useRTL();
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
-  const [selectedType, setSelectedType] = useState<string>('');
-  const [selectedCharacteristics, setSelectedCharacteristics] = useState<string[]>([]);
-  const [customIngredients, setCustomIngredients] = useState<string[]>([]);
-  const [step, setStep] = useState(1);
+export const DrinkCustomizationForm: React.FC<DrinkCustomizationFormProps> = ({ onCustomize }) => {
+  const [selectedBase, setSelectedBase] = useState('');
+  const [selectedMixers, setSelectedMixers] = useState<string[]>([]);
+  const [selectedGarnishes, setSelectedGarnishes] = useState<string[]>([]);
+  const [strength, setStrength] = useState(50);
 
-  const categories = Object.keys(alcoholSubcategories);
+  const drinkBases = [
+    { name: 'Vodka', category: 'Spirit' },
+    { name: 'Gin', category: 'Spirit' },
+    { name: 'Rum', category: 'Spirit' },
+    { name: 'Whiskey', category: 'Spirit' },
+    { name: 'Tequila', category: 'Spirit' },
+    { name: 'Beer', category: 'Low ABV' },
+    { name: 'Wine', category: 'Low ABV' }
+  ];
 
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-    setSelectedSubcategory('');
-    setSelectedType('');
-    setSelectedCharacteristics([]);
-    setStep(2);
-  };
+  const mixers = [
+    { name: 'Tonic Water', items: ['Regular Tonic', 'Diet Tonic', 'Flavored Tonic'] },
+    { name: 'Soda Water', items: ['Plain', 'Lime', 'Lemon'] },
+    { name: 'Juices', items: ['Orange', 'Cranberry', 'Pineapple', 'Lime', 'Lemon'] },
+    { name: 'Syrups', items: ['Simple', 'Grenadine', 'Blue Curacao', 'Elderflower'] }
+  ];
 
-  const handleSubcategorySelect = (subcategory: string) => {
-    setSelectedSubcategory(subcategory);
-    setSelectedType('');
-    setSelectedCharacteristics([]);
-    setStep(3);
-  };
+  const garnishes = [
+    'Lime Wedge', 'Lemon Twist', 'Orange Peel', 'Mint Sprig', 
+    'Cherry', 'Olive', 'Salt Rim', 'Sugar Rim'
+  ];
 
-  const handleTypeSelect = (type: string) => {
-    setSelectedType(type);
-    setStep(4);
-  };
-
-  const handleCharacteristicToggle = (characteristic: string) => {
-    setSelectedCharacteristics(prev =>
-      prev.includes(characteristic)
-        ? prev.filter(c => c !== characteristic)
-        : [...prev, characteristic]
+  const toggleMixer = (mixer: string) => {
+    setSelectedMixers(prev => 
+      prev.includes(mixer) 
+        ? prev.filter(m => m !== mixer)
+        : [...prev, mixer]
     );
   };
 
-  const handleGenerateDrink = () => {
-    const drinkOptions: DrinkOptions = {
-      category: selectedCategory,
-      subcategory: selectedSubcategory,
-      type: selectedType,
-      characteristics: selectedCharacteristics,
-      customIngredients,
+  const toggleGarnish = (garnish: string) => {
+    setSelectedGarnishes(prev => 
+      prev.includes(garnish) 
+        ? prev.filter(g => g !== garnish)
+        : [...prev, garnish]
+    );
+  };
+
+  const handleCustomize = () => {
+    const customizations = {
+      base: selectedBase,
+      mixers: selectedMixers,
+      garnishes: selectedGarnishes,
+      strength
     };
-    onGenerateDrink(drinkOptions);
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'Fermented Beverages':
-        return Beer;
-      case 'Distilled Spirits':
-        return Flame;
-      case 'Mixed Drinks & Cocktails':
-        return Martini;
-      default:
-        return Wine;
-    }
-  };
-
-  const getCurrentSubcategories = () => {
-    if (!selectedCategory) return [];
-    return alcoholSubcategories[selectedCategory as keyof typeof alcoholSubcategories] || [];
-  };
-
-  const getCurrentSubcategory = () => {
-    const subcategories = getCurrentSubcategories();
-    return subcategories.find(sub => sub.name === selectedSubcategory);
-  };
-
-  const renderStep1 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wine className="h-5 w-5" />
-          {t('Choose Alcohol Category', 'اختر فئة المشروبات الكحولية')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {categories.map((category) => {
-          const IconComponent = getCategoryIcon(category);
-          return (
-            <Button
-              key={category}
-              variant="outline"
-              className="w-full h-16 justify-start text-left"
-              onClick={() => handleCategorySelect(category)}
-            >
-              <IconComponent className="h-6 w-6 mr-3" />
-              <div>
-                <div className="font-medium">{category}</div>
-                <div className="text-sm text-gray-500">
-                  {category === 'Fermented Beverages' && 'Beer, Wine, Mead, Sake'}
-                  {category === 'Distilled Spirits' && 'Whiskey, Vodka, Rum, Gin, Tequila'}
-                  {category === 'Mixed Drinks & Cocktails' && 'Cocktails, Shots, Punches'}
-                </div>
-              </div>
-            </Button>
-          );
-        })}
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep2 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="mr-2">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          {selectedCategory}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {getCurrentSubcategories().map((subcategory) => {
-          const IconComponent = subcategory.icon;
-          return (
-            <Button
-              key={subcategory.name}
-              variant="outline"
-              className="w-full h-12 justify-start text-left"
-              onClick={() => handleSubcategorySelect(subcategory.name)}
-            >
-              <IconComponent className="h-5 w-5 mr-3" />
-              {subcategory.name}
-            </Button>
-          );
-        })}
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep3 = () => {
-    const subcategory = getCurrentSubcategory();
-    if (!subcategory) return null;
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="mr-2">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            {subcategory.name} Types
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {subcategory.types.map((type, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              className="w-full text-left justify-start"
-              onClick={() => handleTypeSelect(type)}
-            >
-              {type}
-            </Button>
-          ))}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderStep4 = () => {
-    const subcategory = getCurrentSubcategory();
-    if (!subcategory) return null;
-
-    return (
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setStep(3)} className="mr-2">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              Characteristics & Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Selected Type:</h4>
-              <Badge variant="secondary">{selectedType}</Badge>
-            </div>
-            
-            <div>
-              <h4 className="font-medium mb-2">Characteristics:</h4>
-              <div className="flex flex-wrap gap-2">
-                {subcategory.characteristics.map((characteristic) => (
-                  <Badge
-                    key={characteristic}
-                    variant={selectedCharacteristics.includes(characteristic) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => handleCharacteristicToggle(characteristic)}
-                  >
-                    {characteristic}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Button 
-          onClick={handleGenerateDrink}
-          className="w-full"
-          size="lg"
-        >
-          {t('Generate Drink Recipe', 'إنشاء وصفة المشروب')}
-        </Button>
-      </div>
-    );
+    onCustomize(customizations);
   };
 
   return (
-    <div className="space-y-4">
-      {step === 1 && renderStep1()}
-      {step === 2 && renderStep2()}
-      {step === 3 && renderStep3()}
-      {step === 4 && renderStep4()}
+    <div className="space-y-6">
+      {/* Base Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Base Spirit</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2">
+            {drinkBases.map((base) => (
+              <Button
+                key={base.name}
+                variant={selectedBase === base.name ? "default" : "outline"}
+                onClick={() => setSelectedBase(base.name)}
+                className="justify-start"
+              >
+                {base.name}
+                <Badge variant="secondary" className="ml-2">
+                  {base.category}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Mixer Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Choose Mixers</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {mixers.map((mixerCategory) => (
+            <div key={mixerCategory.name}>
+              <h4 className="font-medium mb-2">{mixerCategory.name}</h4>
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(mixerCategory.items) && mixerCategory.items.map((item) => (
+                  <Button
+                    key={item}
+                    variant={selectedMixers.includes(item) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleMixer(item)}
+                  >
+                    {selectedMixers.includes(item) && <Minus className="h-3 w-3 mr-1" />}
+                    {!selectedMixers.includes(item) && <Plus className="h-3 w-3 mr-1" />}
+                    {item}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Garnish Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Add Garnishes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {garnishes.map((garnish) => (
+              <Button
+                key={garnish}
+                variant={selectedGarnishes.includes(garnish) ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleGarnish(garnish)}
+              >
+                {selectedGarnishes.includes(garnish) && <Minus className="h-3 w-3 mr-1" />}
+                {!selectedGarnishes.includes(garnish) && <Plus className="h-3 w-3 mr-1" />}
+                {garnish}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Strength Control */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Adjust Strength</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Weak</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={strength}
+                onChange={(e) => setStrength(Number(e.target.value))}
+                className="flex-1 mx-4"
+              />
+              <span>Strong</span>
+            </div>
+            <p className="text-center text-sm text-gray-600">
+              Strength: {strength}%
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Customize Button */}
+      <Button 
+        onClick={handleCustomize}
+        className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
+        disabled={!selectedBase}
+      >
+        Create My Custom Drink
+      </Button>
     </div>
   );
 };

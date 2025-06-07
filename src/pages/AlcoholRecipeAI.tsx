@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useRTL } from '@/contexts/RTLContext';
 import { GlassWater, Brain, Users, Heart, ChefHat } from 'lucide-react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Placeholder component for BasicSearch
 const BasicSearch = ({ setRecipes, filters, setFilters, t }) => {
@@ -142,7 +142,6 @@ const AIDrinkGenerator = ({ setRecipes, t }) => {
 // Placeholder component for CommunityFeed
 const CommunityFeed = ({ recipes, t, navigateToCommunity }) => {
   const handleShareRecipe = async () => {
-    // Placeholder for sharing logic (e.g., social media, email, in-app)
     console.log('Share recipe');
   };
 
@@ -184,7 +183,7 @@ const FavoritesList = ({ recipes, saveToFavorites, navigateToCookMode, t }) => {
   const handleAddNote = async (recipeId, note) => {
     const updatedNotes = { ...notes, [recipeId]: note };
     setNotes(updatedNotes);
-    await AsyncStorage.setItem('recipeNotes', JSON.stringify(updatedNotes));
+    localStorage.setItem('recipeNotes', JSON.stringify(updatedNotes));
   };
 
   return (
@@ -245,7 +244,6 @@ const CookMode = ({ recipe, t }) => {
   };
 
   const handleVoiceNarration = () => {
-    // Placeholder for text-to-speech integration
     console.log('Narrate:', recipe.instructions[currentStep]);
   };
 
@@ -362,9 +360,9 @@ const AlcoholRecipeAI = () => {
 
   const saveToFavorites = async (recipeId) => {
     try {
-      const favorites = await AsyncStorage.getItem('favorites') || '[]';
+      const favorites = localStorage.getItem('favorites') || '[]';
       const updatedFavorites = [...JSON.parse(favorites), recipeId];
-      await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+      localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
       alert(t('Recipe saved to favorites!', 'تم حفظ الوصفة في المفضلة!'));
     } catch (error) {
       console.error('Error saving to favorites:', error);
@@ -386,10 +384,9 @@ const AlcoholRecipeAI = () => {
         title: t('Alcohol Recipes & AI', 'وصفات الكحول والذكاء الاصطناعي'),
         showBackButton: true,
       }}
-      className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
-      style={{ direction }}
+      className={`bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
     >
-      <div className="space-y-6 pb-6">
+      <div className="space-y-6 pb-6" dir={direction}>
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold mb-2 text-wasfah-deep-teal">
             {t('Craft Your Perfect Drink', 'اصنع مشروبك المثالي')}

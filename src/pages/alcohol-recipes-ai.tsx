@@ -387,10 +387,9 @@ const AlcoholRecipesAI = () => {
         title: t('Alcohol Recipes & AI', 'وصفات الكحول والذكاء الاصطناعي'),
         showBackButton: true,
       }}
-      className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
-      style={{ direction }}
+      className={`bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
     >
-      <div className="space-y-6 pb-6 px-4">
+      <div className="space-y-6 pb-6 px-4" dir={direction}>
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold mb-2 text-wasfah-deep-teal">
             {t('Craft Your Perfect Drink', 'اصنع مشروبك المثالي')}

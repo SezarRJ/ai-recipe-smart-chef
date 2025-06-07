@@ -79,10 +79,9 @@ const GlobalCuisinePage = () => {
         showBackButton: true,
         showSearch: true
       }}
-      className={direction === 'rtl' ? 'text-right' : 'text-left'}
-      style={{ direction }}
+      className={`${direction === 'rtl' ? 'text-right' : 'text-left'}`}
     >
-      <div className="space-y-4 pb-20 px-4">
+      <div className="space-y-4 pb-20 px-4" dir={direction}>
         {/* Mobile-optimized Filter Section - Cuisine Country */}
         <Card className="p-3">
           <div className="flex items-center mb-3">
