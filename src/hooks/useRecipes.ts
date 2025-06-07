@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Recipe, RecipeFilters } from '@/types/recipe';
+import { Recipe, RecipeFilters } from '@/types/index';
 import {
   fetchRecipesFromDB,
   createRecipeInDB,
