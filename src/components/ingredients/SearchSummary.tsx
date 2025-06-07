@@ -61,10 +61,24 @@ export const SearchSummary: React.FC<SearchSummaryProps> = ({
             <div className="border-t pt-3">
               <div className="text-sm text-gray-600 mb-2">Custom Drink Options:</div>
               <div className="text-xs space-y-1">
-                <div>Type: {customDrinkOptions.type}</div>
-                <div>Strength: {customDrinkOptions.strength < 33 ? 'Mild' : customDrinkOptions.strength > 66 ? 'Strong' : 'Medium'}</div>
-                <div>Flavor: {customDrinkOptions.flavor}</div>
-                <div>Temperature: {customDrinkOptions.temperature}</div>
+                {customDrinkOptions.type && (
+                  <div>Type: {customDrinkOptions.type}</div>
+                )}
+                {customDrinkOptions.subcategory && (
+                  <div>Subcategory: {customDrinkOptions.subcategory}</div>
+                )}
+                {customDrinkOptions.abv && (
+                  <div>ABV: {customDrinkOptions.abv}</div>
+                )}
+                {customDrinkOptions.servingStyle && (
+                  <div>Serving Style: {customDrinkOptions.servingStyle}</div>
+                )}
+                {customDrinkOptions.occasion && (
+                  <div>Occasion: {customDrinkOptions.occasion}</div>
+                )}
+                {customDrinkOptions.characteristics && customDrinkOptions.characteristics.length > 0 && (
+                  <div>Characteristics: {customDrinkOptions.characteristics.join(', ')}</div>
+                )}
               </div>
             </div>
           )}
