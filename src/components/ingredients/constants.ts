@@ -1,4 +1,3 @@
-
 import { Utensils, Pizza, Leaf, Carrot, Apple, Fish, Egg, Wheat, Coffee } from 'lucide-react';
 
 export const mainCategories = [
@@ -38,6 +37,26 @@ export const mainCategories = [
       { name: 'Smoothies', icon: Apple },
       { name: 'Juices', icon: Apple },
     ]
+  }
+];
+
+// Alcohol subcategories for drink customization
+export const alcoholSubcategories = [
+  { 
+    name: 'Spirits', 
+    items: ['Vodka', 'Gin', 'Rum', 'Whiskey', 'Tequila', 'Brandy']
+  },
+  { 
+    name: 'Wine', 
+    items: ['Red Wine', 'White Wine', 'Rosé', 'Sparkling Wine', 'Champagne']
+  },
+  { 
+    name: 'Beer', 
+    items: ['Lager', 'Ale', 'Stout', 'IPA', 'Wheat Beer']
+  },
+  { 
+    name: 'Liqueurs', 
+    items: ['Triple Sec', 'Amaretto', 'Kahlua', 'Bailey\'s', 'Grand Marnier']
   }
 ];
 
