@@ -67,7 +67,7 @@ const HomePage = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-3">
             {t("Main Features", "الميزات الرئيسية")}
           </h2>
-          {/* Update the grid to display one feature per row */}
+          {/* Each icon takes one row, image shown only without frame */}
           <div className="grid grid-cols-1 gap-3">
             {mainFeatures.map((feature, index) => (
               <Link
@@ -75,11 +75,18 @@ const HomePage = () => {
                 to={feature.path}
                 className="flex flex-col items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
               >
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
+                <div className="mb-2 flex items-center justify-center" style={{ width: 48, height: 48 }}>
                   <img 
                     src={feature.image} 
                     alt={feature.label}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-12 h-12 object-cover rounded-none shadow-none border-none"
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 0,
+                      boxShadow: 'none',
+                      background: 'none'
+                    }}
                   />
                 </div>
                 <span className="text-xs font-medium text-gray-700 text-center leading-tight">
