@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Camera, BarChart3, Menu } from 'lucide-react';
+import { Home, Utensils, Sparkles, Activity, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRTL } from '@/contexts/RTLContext';
 
@@ -16,24 +16,24 @@ export const MobileNavbar: React.FC = () => {
       href: '/home',
     },
     {
-      icon: Search,
-      label: t('Find', 'البحث'),
-      href: '/ai-find-by-ingredients',
+      icon: Utensils,
+      label: t('Cuisine', 'المطبخ'),
+      href: '/global-cuisine',
     },
     {
-      icon: Camera,
-      label: t('Scan', 'المسح'),
-      href: '/scan-dish',
+      icon: Sparkles,
+      label: t('AI Features', 'ميزات الذكاء'),
+      href: '/ai-features',
     },
     {
-      icon: BarChart3,
-      label: t('Track', 'التتبع'),
+      icon: Activity,
+      label: t('Health', 'الصحة'),
       href: '/health-tracking-home',
     },
     {
-      icon: Menu,
-      label: t('Menu', 'القائمة'),
-      href: '/menu',
+      icon: Settings,
+      label: t('Settings', 'الإعدادات'),
+      href: '/settings',
     },
   ];
 

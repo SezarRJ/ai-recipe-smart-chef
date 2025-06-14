@@ -67,12 +67,12 @@ const HomePage = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-3">
             {t("Main Features", "الميزات الرئيسية")}
           </h2>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-2">
             {mainFeatures.map((feature, index) => (
               <Link
                 key={index}
                 to={feature.path}
-                className="flex flex-col items-center p-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+                className="flex flex-col items-center p-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 min-w-[60px] flex-shrink-0"
               >
                 <div className={`w-10 h-10 ${feature.color} rounded-lg flex items-center justify-center mb-1 overflow-hidden`}>
                   <img 
