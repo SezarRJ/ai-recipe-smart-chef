@@ -75,14 +75,14 @@ const HomePage = () => {
                 to={feature.path}
                 className="flex flex-col items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
               >
-                <div className="mb-2 flex items-center justify-center" style={{ width: 80, height: 80 }}>
+                <div className="mb-2 flex items-center justify-center" style={{ width: 200, height: 200 }}>
                   <img 
                     src={feature.image} 
                     alt={feature.label}
                     className="w-12 h-12 object-cover rounded-none shadow-none border-none"
                     style={{
-                      width: 80,
-                      height: 80,
+                      width: 200,
+                      height: 200,
                       borderRadius: 0,
                       boxShadow: 'none',
                       background: 'none'
