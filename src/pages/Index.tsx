@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MobileLayout } from '@/components/layout/MobileLayout';
@@ -79,11 +78,10 @@ const HomePage = () => {
                   <img 
                     src={feature.image} 
                     alt={feature.label}
-                    className="w-12 h-12 object-cover rounded-none shadow-none border-none"
+                    className="w-12 h-12 object-cover rounded-xl shadow-none border-none"
                     style={{
                       width: 200,
                       height: 200,
-                      borderRadius: 0,
                       boxShadow: 'none',
                       background: 'none'
                     }}
