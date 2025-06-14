@@ -1,6 +1,5 @@
 
 import React, { ElementType } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 
@@ -30,24 +29,39 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   onSubcategorySelect,
   onBack,
 }) => {
+  // Step 1: Main Category selection
   if (currentStep === 1) {
     return (
-      <Card>
+      <Card className="bg-white rounded-xl shadow-md border border-gray-100">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Choose Category</h3>
-          <div className="grid grid-cols-1 gap-3">
+          <h3 className="text-xl font-bold mb-4 text-gray-900">Choose Category</h3>
+          <div className="grid grid-cols-1 gap-4">
             {categories.map((category) => {
               const IconComponent = category.icon;
+              const isSelected = selectedCategory?.id === category.id;
               return (
-                <Button
+                <button
                   key={category.id}
-                  variant="outline"
-                  className="h-16 justify-start text-left"
                   onClick={() => onCategorySelect(category)}
+                  className={`
+                    flex flex-col items-center w-full bg-white rounded-xl
+                    shadow-sm border border-gray-100
+                    transition duration-200 hover:shadow-lg hover:scale-105 active:scale-98
+                    p-3 outline-none
+                    ${isSelected ? "ring-2 ring-wasfah-bright-teal" : ""}
+                    focus-visible:ring-2 focus-visible:ring-wasfah-bright-teal
+                  `}
+                  type="button"
                 >
-                  <IconComponent className="h-6 w-6 mr-3" />
-                  <span className="text-lg">{category.name}</span>
-                </Button>
+                  <div className="mb-2 flex items-center justify-center" style={{ width: 120, height: 100 }}>
+                    <div className="w-[120px] h-[100px] rounded-xl bg-gray-100 flex items-center justify-center">
+                      <IconComponent className="h-12 w-12 text-wasfah-bright-teal" />
+                    </div>
+                  </div>
+                  <span className="text-base font-medium text-gray-700 text-center leading-tight">
+                    {category.name}
+                  </span>
+                </button>
               );
             })}
           </div>
@@ -56,29 +70,49 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     );
   }
 
+  // Step 2: Subcategory selection
   if (currentStep === 2 && selectedCategory) {
     return (
-      <Card>
+      <Card className="bg-white rounded-xl shadow-md border border-gray-100">
         <CardContent className="p-6">
           <div className="flex items-center mb-4">
-            <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="mr-2 flex items-center px-2 py-1 rounded-lg hover:bg-gray-50 transition"
+              aria-label="Back"
+            >
               <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h3 className="text-lg font-semibold">Choose {selectedCategory.name} Type</h3>
+            </button>
+            <h3 className="text-xl font-bold text-gray-900">Choose {selectedCategory.name} Type</h3>
           </div>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {selectedCategory.subcategories.map((subcategory) => {
               const IconComponent = subcategory.icon;
+              const isSelected = selectedSubcategory?.name === subcategory.name;
               return (
-                <Button
+                <button
                   key={subcategory.name}
-                  variant="outline"
-                  className="h-12 justify-start text-left"
+                  className={`
+                    flex flex-col items-center w-full bg-white rounded-xl
+                    shadow-sm border border-gray-100
+                    transition duration-200 hover:shadow-lg hover:scale-105 active:scale-98
+                    p-3 outline-none
+                    ${isSelected ? "ring-2 ring-wasfah-bright-teal" : ""}
+                    focus-visible:ring-2 focus-visible:ring-wasfah-bright-teal
+                  `}
+                  type="button"
                   onClick={() => onSubcategorySelect(subcategory)}
                 >
-                  <IconComponent className="h-5 w-5 mr-3" />
-                  <span>{subcategory.name}</span>
-                </Button>
+                  <div className="mb-2 flex items-center justify-center" style={{ width: 120, height: 100 }}>
+                    <div className="w-[120px] h-[100px] rounded-xl bg-gray-100 flex items-center justify-center">
+                      <IconComponent className="h-12 w-12 text-wasfah-bright-teal" />
+                    </div>
+                  </div>
+                  <span className="text-base font-medium text-gray-700 text-center leading-tight">
+                    {subcategory.name}
+                  </span>
+                </button>
               );
             })}
           </div>
