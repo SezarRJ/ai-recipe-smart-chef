@@ -23,8 +23,8 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   const { direction } = useRTL();
   const location = useLocation();
   
-  // Hide navbar on home page
-  const shouldHideNavbar = hideNavbar || location.pathname === '/home' || location.pathname === '/';
+  // Don't hide navbar anymore - show it on all pages including home
+  const shouldHideNavbar = hideNavbar;
 
   return (
     <div className="mobile-container" dir={direction}>
