@@ -74,7 +74,7 @@ const HomePage = () => {
                 to={feature.path}
                 className="flex flex-col items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
               >
-                <div className={`w-12 h-12 ${feature.color} rounded-lg flex items-center justify-center mb-2 overflow-hidden`}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
                   <img 
                     src={feature.image} 
                     alt={feature.label}
