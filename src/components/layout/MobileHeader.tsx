@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Bell, Share2 } from 'lucide-react';
@@ -39,8 +38,23 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             size="sm"
             onClick={handleBackClick}
             className="p-2 hover:bg-gray-100 rounded-lg"
+            aria-label="Back"
           >
-            <ChevronLeft className={`h-5 w-5 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
+            {/* Responsive chevron: rotate 180deg for RTL */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`lucide lucide-chevron-left h-5 w-5 transition-transform duration-150 ${direction === 'rtl' ? 'rotate-180' : ''}`}
+              viewBox="0 0 24 24"
+            >
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
           </Button>
         )}
         
