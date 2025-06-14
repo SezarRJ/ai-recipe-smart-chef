@@ -22,6 +22,9 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
 }) => {
   const { direction } = useRTL();
   const location = useLocation();
+  
+  // Hide navbar on home page
+  const shouldHideNavbar = hideNavbar || location.pathname === '/home' || location.pathname === '/';
 
   return (
     <div className="mobile-container" dir={direction}>
@@ -40,7 +43,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
       </div>
 
       {/* Fixed Bottom Toolbar */}
-      {!hideNavbar && (
+      {!shouldHideNavbar && (
         <div className="mobile-toolbar">
           <MobileNavbar />
         </div>
