@@ -25,9 +25,6 @@ export const SubscriptionBanner: React.FC = () => {
                   {t("Unlock Premium Features", "اكتشف الميزات المميزة")}
                 </h3>
               </div>
-              <p className="text-sm text-gray-600 mb-3">
-                {t("Get access to exclusive recipes, AI nutrition advice, and personalized meal plans", "احصل على وصفات حصرية ونصائح غذائية بالذكاء الاصطناعي وخطط وجبات شخصية")}
-              </p>
               <div className={`flex items-center space-x-4 text-xs text-gray-500 ${direction === 'rtl' ? 'space-x-reverse' : ''}`}>
                 <div className={`flex items-center ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
                   <Sparkles className="h-3 w-3 mr-1 text-yellow-500" />

@@ -81,21 +81,21 @@ const HomePage = () => {
               {t("Main Features", "الميزات الرئيسية")}
             </h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-5 gap-4 mb-8">
             {mainFeatures.map((feature, index) => (
               <Link
                 key={index}
                 to={feature.path}
-                className="group flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100 dark:border-gray-700 min-h-[140px] justify-center"
+                className="group flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100 dark:border-gray-700 min-h-[120px] justify-center"
               >
-                <div className={`w-16 h-16 ${feature.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 overflow-hidden`}>
+                <div className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 overflow-hidden`}>
                   <img 
                     src={feature.image} 
                     alt={feature.label}
                     className="w-full h-full object-cover rounded-xl"
                   />
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
                   {feature.label}
                 </span>
               </Link>
