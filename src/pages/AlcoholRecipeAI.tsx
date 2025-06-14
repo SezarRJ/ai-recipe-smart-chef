@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,7 @@ import {
   Scan, Check, CheckCircle2, Droplet, Wine, Volume2, VolumeX, Play, Pause, 
   SkipForward, SkipBack, Timer as TimerIcon, RotateCcw, ArrowLeft, ArrowRight, 
   ChevronLeft, ChevronRight, Heart, Star, Search, Package, Users, Share2,
-  Clock, Chef, Sparkles, Volume1, ChefHat, PlayCircle, PauseCircle
+  Clock, ChefHat, Sparkles, Volume1, PlayCircle, PauseCircle
 } from 'lucide-react';
 
 // Enhanced recipe type
