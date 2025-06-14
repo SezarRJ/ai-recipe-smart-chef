@@ -1,72 +1,136 @@
-// src/pages/AIFeaturesPage.tsx
+
 import React from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Bot,
-  Camera,
-  Sparkles,
-  Brain,
-  MessageSquare, // For AI Cooking Assistant
-  BookOpen,      // For Recipe Personalizer
-  Lightbulb,     // For Smart Meal Planner
-  Leaf,          // For Dietary AI Advisor
-  Dumbbell,      // For Fitness & Nutrition Coach
-  Smile,         // For Mood-Based Recipes
-  Mic            // For Voice Recipe Assistant
-} from 'lucide-react';
+import { MobileLayout } from '@/components/layout/MobileLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Brain, Sparkles, Camera, Mic, Search, Utensils, Crown } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 import { Link } from 'react-router-dom';
 
-export default function AIFeaturesPage() {
-  const { t } = useRTL();
+const AIFeaturesPage = () => {
+  const { t, direction } = useRTL();
 
   const features = [
     {
-      icon: <Camera className="h-8 w-8 text-green-500" />,
-      title: t('Dish Scanner', 'ماسح الأطباق'),
-      description: t('Identify dishes from photos and get nutrition facts', 'تحديد الأطباق من الصور والحصول على الحقائق الغذائية'),
-      path: '/ai/scan-dish',
+      icon: Search,
+      title: t("AI Recipe Finder", "مكتشف الوصفات بالذكاء الاصطناعي"),
+      description: t("Find recipes by ingredients you have", "اعثر على وصفات بالمكونات المتوفرة لديك"),
+      path: "/ai-find-by-ingredients",
+      premium: false
     },
     {
-      icon: <Leaf className="h-8 w-8 text-emerald-500" />,
-      title: t('Dietary AI Advisor', 'مستشار الحمية بالذكاء الاصطناعي'),
-      description: t('Get AI-driven advice for specific diets (Keto, Vegan, Gluten-Free, etc.)', 'احصل على نصائح مدعومة بالذكاء الاصطناعي لأنظمة غذائية محددة (كيتو، نباتي، خالي من الغلوتين، إلخ.)'),
-      path: '/ai/dietary-advisor',
+      icon: Camera,
+      title: t("Visual Recipe Search", "البحث المرئي للوصفات"),
+      description: t("Scan ingredients or dishes with camera", "امسح المكونات أو الأطباق بالكاميرا"),
+      path: "/scan-ingredients",
+      premium: true
     },
     {
-      icon: <Dumbbell className="h-8 w-8 text-red-500" />,
-      title: t('Fitness & Nutrition Coach', 'مدرب اللياقة والتغذية'),
-      description: t('AI guidance for fitness goals, calorie tracking, and macros', 'توجيهات الذكاء الاصطناعي لأهداف اللياقة البدنية، تتبع السعرات الحرارية، والمغذيات الكبرى'),
-      path: '/ai/fitness-coach',
-      },
+      icon: Mic,
+      title: t("Voice Assistant", "المساعد الصوتي"),
+      description: t("Cook hands-free with voice commands", "اطبخ دون استخدام اليدين بالأوامر الصوتية"),
+      path: "/voice-assistant",
+      premium: true
+    },
+    {
+      icon: Brain,
+      title: t("Smart Meal Planner", "مخطط الوجبات الذكي"),
+      description: t("AI-powered weekly meal planning", "تخطيط الوجبات الأسبوعي بالذكاء الاصطناعي"),
+      path: "/smart-meal-planner",
+      premium: true
+    },
+    {
+      icon: Utensils,
+      title: t("Recipe Personalization", "تخصيص الوصفات"),
+      description: t("Adapt recipes to your preferences", "كيّف الوصفات حسب تفضيلاتك"),
+      path: "/recipe-personalizer",
+      premium: false
+    }
   ];
 
   return (
-    <PageContainer header={{ title: t('AI Features', 'ميزات الذكاء الاصطناعي'), showBackButton: true }}>
-      <div className="space-y-6 pb-20">
-        <div className="bg-gradient-to-br from-purple-500 to-blue-600 p-6 rounded-lg text-white text-center mb-6">
-          <Sparkles className="h-12 w-12 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">{t('AI-Powered Features', 'الميزات المدعومة بالذكاء الاصطناعي')}</h1>
-          <p className="opacity-90">{t('Discover intelligent cooking assistance designed to make your life easier and healthier.', 'اكتشف المساعدة الذكية في الطبخ المصممة لجعل حياتك أسهل وأكثر صحة.')}</p>
+    <MobileLayout
+      header={{
+        title: t("AI Features", "ميزات الذكاء الاصطناعي"),
+        showBackButton: true
+      }}
+    >
+      <div className={`space-y-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        {/* Header */}
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-wasfah-bright-teal to-wasfah-teal rounded-full flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {t("AI-Powered Cooking", "الطبخ بالذكاء الاصطناعي")}
+          </h2>
+          <p className="text-gray-600 text-sm">
+            {t("Experience the future of cooking with AI assistance", "اختبر مستقبل الطبخ مع مساعدة الذكاء الاصطناعي")}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Features Grid */}
+        <div className="space-y-3">
           {features.map((feature, index) => (
-            <Link to={feature.path} key={index}>
-              <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.03] h-full">
-                <CardContent className="p-6 flex flex-col items-center text-center h-full">
-                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-full mb-4">
-                    {feature.icon}
+            <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-wasfah-bright-teal/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <feature.icon className="h-6 w-6 text-wasfah-bright-teal" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 flex-1">{feature.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900 text-sm">{feature.title}</h3>
+                      {feature.premium && (
+                        <Badge variant="outline" className="text-xs">
+                          <Crown className="h-3 w-3 mr-1" />
+                          {t("Premium", "مميز")}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-gray-600 text-xs leading-relaxed mb-3">
+                      {feature.description}
+                    </p>
+                    <Link to={feature.path}>
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-wasfah-bright-teal hover:bg-wasfah-teal"
+                        disabled={feature.premium}
+                      >
+                        {feature.premium 
+                          ? t("Upgrade to Access", "ترقية للوصول") 
+                          : t("Try Now", "جرب الآن")
+                        }
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
+
+        {/* Premium Upgrade Card */}
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200">
+          <CardContent className="p-6 text-center">
+            <Crown className="h-8 w-8 text-yellow-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {t("Unlock All AI Features", "افتح جميع ميزات الذكاء الاصطناعي")}
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              {t("Get access to premium AI features and enhanced cooking experience", "احصل على الوصول لميزات الذكاء الاصطناعي المميزة وتجربة طبخ محسنة")}
+            </p>
+            <Link to="/subscription">
+              <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600">
+                {t("Upgrade Now", "ترقية الآن")}
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
-    </PageContainer>
+    </MobileLayout>
   );
-}
+};
+
+export default AIFeaturesPage;

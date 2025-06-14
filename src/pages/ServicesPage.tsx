@@ -1,165 +1,146 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MobileLayout } from '@/components/layout/MobileLayout';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Calendar, 
-  ShoppingCart, 
-  ChefHat, 
-  Share2, 
-  Users, 
-  Camera,
-  Package,
-  Bot,
-  Heart,
-  Search,
-  Smartphone,
-  BookOpen
+  Truck, ShoppingCart, Calendar, Users, 
+  Clock, MapPin, Star, Crown 
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
 
 const ServicesPage = () => {
   const { t, direction } = useRTL();
 
-  const serviceCategories = [
+  const services = [
     {
-      title: t("Core Services", "الخدمات الأساسية"),
-      description: t("Essential tools for your culinary journey", "الأدوات الأساسية لرحلتك الطبخية"),
-      services: [
-        {
-          name: t("Meal Plan", "خطة الوجبات"),
-          description: t("Plan your weekly meals efficiently", "خطط وجباتك الأسبوعية بكفاءة"),
-          icon: Calendar,
-          path: "/meal-plan",
-          isPremium: false
-        },
-        {
-          name: t("Shopping List", "قائمة التسوق"),
-          description: t("Organize your grocery shopping", "نظم تسوق البقالة"),
-          icon: ShoppingCart,
-          path: "/shopping-list",
-          isPremium: false
-        },
-        {
-          name: t("Create Recipe", "إنشاء وصفة"),
-          description: t("Share your culinary creations", "شارك إبداعاتك الطبخية"),
-          icon: ChefHat,
-          path: "/create-recipe",
-          isPremium: false
-        },
-        {
-          name: t("Shared Recipes", "الوصفات المشتركة"),
-          description: t("Discover community recipes", "اكتشف وصفات المجتمع"),
-          icon: Share2,
-          path: "/shared-recipes",
-          isPremium: false
-        },
-        {
-          name: t("Community", "المجتمع"),
-          description: t("Connect with food lovers", "تواصل مع محبي الطعام"),
-          icon: Users,
-          path: "/community",
-          isPremium: false
-        },
-        {
-          name: t("Scan Dish", "مسح الطبق"),
-          description: t("Identify dishes with AI", "تحديد الأطباق بالذكاء الاصطناعي"),
-          icon: Camera,
-          path: "/scan-dish",
-          isPremium: false
-        },
-        {
-          name: t("Smart Pantry", "المخزن الذكي"),
-          description: t("Manage your ingredients efficiently", "إدارة مكوناتك بكفاءة"),
-          icon: Package,
-          path: "/pantry",
-          isPremium: false
-                }
-      ]
+      icon: Truck,
+      title: t("Grocery Delivery", "توصيل البقالة"),
+      description: t("Fresh ingredients delivered to your door", "مكونات طازجة توصل لباب منزلك"),
+      price: t("From $5", "من 5$"),
+      premium: false
+    },
+    {
+      icon: ShoppingCart,
+      title: t("Smart Shopping Lists", "قوائم التسوق الذكية"),
+      description: t("AI-generated shopping lists from recipes", "قوائم تسوق مُولدة بالذكاء الاصطناعي من الوصفات"),
+      price: t("Free", "مجاني"),
+      premium: false
+    },
+    {
+      icon: Calendar,
+      title: t("Meal Planning Service", "خدمة تخطيط الوجبات"),
+      description: t("Personalized weekly meal plans", "خطط وجبات أسبوعية مخصصة"),
+      price: t("$9.99/month", "9.99$/شهر"),
+      premium: true
+    },
+    {
+      icon: Users,
+      title: t("Personal Chef Consultation", "استشارة طاهي شخصي"),
+      description: t("One-on-one cooking guidance", "إرشاد طبخ فردي"),
+      price: t("$29.99/session", "29.99$/جلسة"),
+      premium: true
     }
   ];
 
   return (
-    <PageContainer
+    <MobileLayout
       header={{
         title: t("Services", "الخدمات"),
         showBackButton: true
       }}
     >
-      <div className={`space-y-8 pb-24 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-        
+      <div className={`space-y-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            {t("All Features & Services", "جميع الميزات والخدمات")}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            {t("Explore all the features and services available in WasfahAI to enhance your cooking experience", "استكشف جميع الميزات والخدمات المتاحة في وصفة الذكاء الاصطناعي لتعزيز تجربة الطبخ")}
-          </p>
-        </div>
-
-        {/* Service Categories */}
-        {serviceCategories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {category.title}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                {category.description}
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {category.services.map((service, serviceIndex) => (
-                <Link key={serviceIndex} to={service.path}>
-                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border border-gray-100 dark:border-gray-700">
-                    <CardHeader className="pb-3">
-                      <div className={`flex items-center justify-between ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`flex items-center gap-3 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                          <div className="p-3 bg-wasfah-bright-teal/10 rounded-lg">
-                            <service.icon className="h-6 w-6 text-wasfah-bright-teal" />
-                          </div>
-                          <CardTitle className="text-lg">{service.name}</CardTitle>
-                        </div>
-                        {service.isPremium && (
-                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
-                            {t("Premium", "مميز")}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {service.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-wasfah-bright-teal to-wasfah-teal rounded-full flex items-center justify-center mx-auto mb-3">
+            <Star className="h-8 w-8 text-white" />
           </div>
-        ))}
-
-        {/* Call to Action */}
-        <div className="text-center bg-gradient-to-r from-wasfah-bright-teal to-wasfah-teal text-white rounded-2xl p-8">
-          <h2 className="text-2xl font-bold mb-4">
-            {t("Ready to Start Cooking?", "جاهز لبدء الطبخ؟")}
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {t("Premium Services", "الخدمات المميزة")}
           </h2>
-          <p className="mb-6 opacity-90">
-            {t("Join thousands of home cooks using AI to create amazing meals", "انضم إلى آلاف الطهاة المنزليين الذين يستخدمون الذكاء الاصطناعي لإعداد وجبات رائعة")}
+          <p className="text-gray-600 text-sm">
+            {t("Enhance your cooking experience with our services", "عزز تجربة الطبخ مع خدماتنا")}
           </p>
-          <Link 
-            to="/ai-features" 
-            className="inline-block bg-white text-wasfah-bright-teal px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-          >
-            {t("Start Cooking with AI", "ابدأ الطبخ مع الذكاء الاصطناعي")}
-          </Link>
         </div>
+
+        {/* Services List */}
+        <div className="space-y-3">
+          {services.map((service, index) => (
+            <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-wasfah-bright-teal/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <service.icon className="h-6 w-6 text-wasfah-bright-teal" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">{service.title}</h3>
+                      {service.premium && (
+                        <Badge variant="outline" className="text-xs">
+                          <Crown className="h-3 w-3 mr-1" />
+                          {t("Premium", "مميز")}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-gray-600 text-sm leading-relaxed mb-2">
+                      {service.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-wasfah-bright-teal">
+                        {service.price}
+                      </span>
+                      <Button 
+                        size="sm" 
+                        className="bg-wasfah-bright-teal hover:bg-wasfah-teal"
+                      >
+                        {service.premium 
+                          ? t("Subscribe", "اشترك") 
+                          : t("Get Started", "ابدأ")
+                        }
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Featured Service */}
+        <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200">
+          <CardContent className="p-6 text-center">
+            <MapPin className="h-8 w-8 text-orange-600 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {t("Local Partner Restaurants", "المطاعم الشريكة المحلية")}
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              {t("Order ingredients or ready meals from local restaurants", "اطلب المكونات أو الوجبات الجاهزة من المطاعم المحلية")}
+            </p>
+            <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600">
+              {t("Find Restaurants", "اعثر على المطاعم")}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Contact Support */}
+        <Card className="bg-gradient-to-r from-wasfah-bright-teal/10 to-wasfah-mint/10 border-wasfah-bright-teal/20">
+          <CardContent className="p-6 text-center">
+            <Clock className="h-8 w-8 text-wasfah-bright-teal mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              {t("Need Help?", "تحتاج مساعدة؟")}
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              {t("Contact our support team for assistance", "اتصل بفريق الدعم للمساعدة")}
+            </p>
+            <Button variant="outline" className="border-wasfah-bright-teal text-wasfah-bright-teal">
+              {t("Contact Support", "اتصل بالدعم")}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </PageContainer>
+    </MobileLayout>
   );
 };
 

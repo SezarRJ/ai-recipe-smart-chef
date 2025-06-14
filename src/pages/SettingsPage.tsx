@@ -1,118 +1,141 @@
 
 import React from 'react';
-import { PageContainer } from '@/components/layout/PageContainer';
+import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
-import { User, CreditCard, Bell, Moon, Settings, Languages,
-  HelpCircle, Smartphone, UserX, Award, Globe, Shield
+import { Button } from '@/components/ui/button';
+import { 
+  User, Bell, Globe, Shield, HelpCircle, Star, 
+  ChevronRight, Moon, Smartphone, Volume2 
 } from 'lucide-react';
-import { SignOut } from '@/components/auth/SignOut';
 import { useRTL } from '@/contexts/RTLContext';
-import { LanguageSelector } from '@/components/language/LanguageSelector';
-import { useAuth } from '@/hooks/useAuth';
 
 const SettingsPage = () => {
-  const { direction, language, t } = useRTL();
-  const { user } = useAuth();
+  const { t, direction } = useRTL();
 
-  const settingGroups = [
+  const settingsGroups = [
     {
-      title: t("User Settings", "إعدادات المستخدم", "Kullanıcı Ayarları"),
+      title: t("Account", "الحساب"),
       items: [
-        { id: 'profile', icon: <User className="h-6 w-6 text-wasfah-deep-teal" />, label: t("Profile", "الملف الشخصي", "Profil"), path: "/profile" },
-        { id: 'body-info', icon: <User className="h-6 w-6 text-pink-600" />, label: t("Body Information", "معلومات الجسم", "Vücut Bilgileri"), path: "/body-information" },
-        { id: 'preferences', icon: <UserX className="h-6 w-6 text-gray-600" />, label: t("Dietary Preferences", "التفضيلات الغذائية", "Beslenme Tercihleri"), path: "/dietary-preferences" },
+        {
+          icon: User,
+          label: t("Profile", "الملف الشخصي"),
+          description: t("Manage your personal information", "إدارة معلوماتك الشخصية")
+        },
+        {
+          icon: Bell,
+          label: t("Notifications", "الإشعارات"),
+          description: t("Configure notification preferences", "تكوين تفضيلات الإشعارات")
+        }
       ]
     },
     {
-      title: t("App Settings", "إعدادات التطبيق", "Uygulama Ayarları"),
+      title: t("Preferences", "التفضيلات"),
       items: [
-        { id: 'notifications', icon: <Bell className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Notifications", "الإشعارات", "Bildirimler"), path: "/notifications" },
-        { id: 'appearance', icon: <Moon className="h-6 w-6 text-purple-600" />, label: t("Appearance", "المظهر", "Görünüm"), path: "/appearance" },
-        { id: 'connected-devices', icon: <Smartphone className="h-6 w-6 text-green-600" />, label: t("Connected Devices", "الأجهزة المتصلة", "Bağlı Cihazlar"), path: "/connected-devices" },
+        {
+          icon: Globe,
+          label: t("Language", "اللغة"),
+          description: t("العربية / English", "العربية / English")
+        },
+        {
+          icon: Moon,
+          label: t("Theme", "المظهر"),
+          description: t("Light / Dark mode", "النمط الفاتح / الداكن")
+        },
+        {
+          icon: Volume2,
+          label: t("Sound", "الصوت"),
+          description: t("Audio and voice settings", "إعدادات الصوت والنطق")
+        }
       ]
     },
     {
-      title: t("Services", "الخدمات", "Hizmetler"),
+      title: t("App", "التطبيق"),
       items: [
-        { id: 'loyalty-program', icon: <Award className="h-6 w-6 text-amber-500" />, label: t("Loyalty Program", "برنامج الولاء", "Sadakat Programı"), path: "/loyalty-program" },
-        { id: 'subscription', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Subscription", "الاشتراك", "Abonelik"), path: "/subscription" },
+        {
+          icon: Smartphone,
+          label: t("App Preferences", "تفضيلات التطبيق"),
+          description: t("Customize app behavior", "تخصيص سلوك التطبيق")
+        },
+        {
+          icon: Shield,
+          label: t("Privacy & Security", "الخصوصية والأمان"),
+          description: t("Manage your privacy settings", "إدارة إعدادات الخصوصية")
+        }
       ]
     },
     {
-      title: t("Account & Support", "الحساب والدعم", "Hesap ve Destek"),
+      title: t("Support", "الدعم"),
       items: [
-        { id: 'privacy', icon: <Shield className="h-6 w-6 text-green-600" />, label: t("Privacy & Data", "الخصوصية والبيانات", "Gizlilik ve Veri"), path: "/privacy" },
-        { id: 'payment-methods', icon: <CreditCard className="h-6 w-6 text-wasfah-bright-teal" />, label: t("Payment Methods", "طرق الدفع", "Ödeme Yöntemleri"), path: "/payment-methods" },
-        { id: 'help', icon: <HelpCircle className="h-6 w-6 text-orange-500" />, label: t("Help & Support", "المساعدة والدعم", "Yardım ve Destek"), path: "/help" },
-        { id: 'delete-account', icon: <UserX className="h-6 w-6 text-red-500" />, label: t("Delete Account", "حذف الحساب", "Hesabı Sil"), path: "/delete-account" },
+        {
+          icon: HelpCircle,
+          label: t("Help & Support", "المساعدة والدعم"),
+          description: t("Get help and contact support", "احصل على المساعدة واتصل بالدعم")
+        },
+        {
+          icon: Star,
+          label: t("Rate App", "قيم التطبيق"),
+          description: t("Share your feedback", "شارك ملاحظاتك")
+        }
       ]
     }
   ];
 
-  // Add admin panel if user is admin
-  if (user?.user_metadata?.isAdmin) {
-    settingGroups.unshift({
-      title: t("Administration", "الإدارة", "Yönetim"),
-      items: [
-        { id: 'admin-panel', icon: <Settings className="h-6 w-6 text-purple-600" />, label: t("Admin Panel", "لوحة الإدارة", "Yönetici Paneli"), path: "/admin" },
-      ]
-    });
-  }
-
   return (
-    <PageContainer header={{ title: t("Settings", "الإعدادات", "Ayarlar"), showBackButton: true }}>
-      <div className="p-4 pb-24 space-y-6">
-        <div className="bg-gradient-to-br from-wasfah-bright-teal to-wasfah-deep-teal p-6 rounded-lg text-white text-center mb-6">
-          <h1 className="text-2xl font-bold mb-2">{t("Settings", "الإعدادات", "Ayarlar")}</h1>
-          <p className="opacity-90">{t("Customize your WasfahAI experience", "خصص تجربتك مع وصفة الذكية", "WasfahAI deneyiminizi özelleştirin")}</p>
-        </div>
-
-        {/* Active Language Card */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Globe className="h-6 w-6 text-wasfah-bright-teal mr-3 rtl:ml-3 rtl:mr-0" />
-                <div>
-                  <h3 className="font-medium">{t("Language", "اللغة", "Dil")}</h3>
-                  <p className="text-xs text-gray-500">
-                    {language === 'ar' ? 'العربية' : language === 'en' ? 'English' : language === 'tr' ? 'Türkçe' : language}
-                  </p>
-                </div>
-              </div>
-              <LanguageSelector />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Render setting groups */}
-        {settingGroups.map((group, groupIndex) => (
-          <div className="space-y-3" key={groupIndex}>
-            <h2 className="text-lg font-bold text-wasfah-deep-teal">{group.title}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {group.items.map((item) => (
-                <Link to={item.path} key={item.id}>
-                  <Card className="hover:shadow-md transition-all duration-300 card-3d">
-                    <CardContent className="p-4 flex items-center space-x-3 rtl:space-x-reverse">
-                      <div className="rounded-full p-2 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                        {item.icon}
+    <MobileLayout
+      header={{
+        title: t("Settings", "الإعدادات"),
+        showBackButton: true
+      }}
+    >
+      <div className={`space-y-6 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        {settingsGroups.map((group, groupIndex) => (
+          <div key={groupIndex} className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-900 px-1">
+              {group.title}
+            </h3>
+            <Card>
+              <CardContent className="p-0">
+                {group.items.map((item, itemIndex) => (
+                  <div
+                    key={itemIndex}
+                    className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
+                      itemIndex !== group.items.length - 1 ? 'border-b border-gray-100' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-10 h-10 bg-wasfah-bright-teal/10 rounded-lg flex items-center justify-center">
+                        <item.icon className="h-5 w-5 text-wasfah-bright-teal" />
                       </div>
-                      <span className="font-medium">{item.label}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900">{item.label}</h4>
+                        <p className="text-sm text-gray-600 truncate">{item.description}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 text-gray-400 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         ))}
 
-        {/* Sign Out Button */}
-        <div className="pt-4">
-          <SignOut />
-        </div>
+        {/* App Info */}
+        <Card className="bg-gradient-to-r from-wasfah-bright-teal/10 to-wasfah-mint/10 border-wasfah-bright-teal/20">
+          <CardContent className="p-6 text-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-wasfah-bright-teal to-wasfah-teal rounded-xl flex items-center justify-center mx-auto mb-3">
+              <span className="text-white font-bold text-lg">W</span>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">WasfahAI</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {t("Version 1.0.0", "الإصدار 1.0.0")}
+            </p>
+            <p className="text-xs text-gray-500">
+              {t("Made with ❤️ for food lovers", "صُنع بـ ❤️ لعشاق الطعام")}
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </PageContainer>
+    </MobileLayout>
   );
 };
 
