@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PageContainer } from '@/components/layout/PageContainer';
+import { MobileLayout } from '@/components/layout/MobileLayout';
 import { TodayMealPlan } from '@/components/home/TodayMealPlan';
 import { LoyaltyCard } from '@/components/home/LoyaltyCard';
 import { SubscriptionBanner } from '@/components/home/SubscriptionBanner';
@@ -45,57 +45,43 @@ const HomePage = () => {
   ];
 
   return (
-    <PageContainer
+    <MobileLayout
       header={{
         title: "WasfahAI",
         showBackButton: false
       }}
-      className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
     >
-      <div className={`space-y-6 pb-24 pt-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`} dir={direction}>
+      <div className={`space-y-4 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
+        {/* Premium Features Banner */}
+        <Link to="/subscription" className="block">
+          <SubscriptionBanner />
+        </Link>
 
-        {/* --- Unlock Premium Features Button --- */}
-        <div className="px-4">
-          <Link
-            to="/subscription"
-            className="block group rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-          >
-            <SubscriptionBanner />
-          </Link>
-        </div>
-
-        {/* --- Gold Level Member Button --- */}
-        <div className="px-4">
-          <Link
-            to="/loyalty-program"
-            className="block group rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-          >
-            <LoyaltyCard />
-          </Link>
-        </div>
+        {/* Loyalty Card */}
+        <Link to="/loyalty-program" className="block">
+          <LoyaltyCard />
+        </Link>
 
         {/* Main Features */}
-        <div className="px-4">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {t("Main Features", "الميزات الرئيسية")}
-            </h2>
-          </div>
-          <div className="grid grid-cols-5 gap-4 mb-8">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            {t("Main Features", "الميزات الرئيسية")}
+          </h2>
+          <div className="grid grid-cols-5 gap-2">
             {mainFeatures.map((feature, index) => (
               <Link
                 key={index}
                 to={feature.path}
-                className="group flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100 dark:border-gray-700 min-h-[120px] justify-center"
+                className="flex flex-col items-center p-2 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
               >
-                <div className={`w-12 h-12 ${feature.color} rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 overflow-hidden`}>
+                <div className={`w-10 h-10 ${feature.color} rounded-lg flex items-center justify-center mb-1 overflow-hidden`}>
                   <img 
                     src={feature.image} 
                     alt={feature.label}
-                    className="w-full h-full object-cover rounded-xl"
+                    className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
+                <span className="text-xs font-medium text-gray-700 text-center leading-tight">
                   {feature.label}
                 </span>
               </Link>
@@ -103,12 +89,10 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Your meal plan today */}
-        <div className="px-4">
-          <TodayMealPlan mealPlan={mockMealPlan} />
-        </div>
+        {/* Today's Meal Plan */}
+        <TodayMealPlan mealPlan={mockMealPlan} />
       </div>
-    </PageContainer>
+    </MobileLayout>
   );
 };
 

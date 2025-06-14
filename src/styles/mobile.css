@@ -1,0 +1,98 @@
+
+/* Mobile-first CSS with fixed dimensions */
+:root {
+  --mobile-width: 375px;
+  --mobile-height: 667px;
+  --header-height: 60px;
+  --toolbar-height: 64px;
+  --content-height: calc(var(--mobile-height) - var(--header-height) - var(--toolbar-height));
+}
+
+/* Mobile container with fixed dimensions */
+.mobile-container {
+  width: var(--mobile-width);
+  height: var(--mobile-height);
+  max-width: 100vw;
+  max-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow: hidden;
+  background: #ffffff;
+}
+
+/* Prevent all scrolling */
+html, body {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Mobile header */
+.mobile-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile content area */
+.mobile-content {
+  position: absolute;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  height: var(--content-height);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile toolbar */
+.mobile-toolbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--toolbar-height);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* RTL adjustments */
+[dir="rtl"] .mobile-container {
+  direction: rtl;
+}
+
+[dir="rtl"] .mobile-toolbar .nav-item {
+  flex-direction: row-reverse;
+}
+
+/* Responsive adjustments for larger screens */
+@media (min-width: 768px) {
+  .mobile-container {
+    width: var(--mobile-width);
+    height: var(--mobile-height);
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+}
