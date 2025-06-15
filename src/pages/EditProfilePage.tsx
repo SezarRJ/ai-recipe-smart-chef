@@ -1,54 +1,124 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { UserRound, ChefHat, Heart, Mail, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { mockUser } from '@/data/mockData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Heart, ChefHat } from 'lucide-react';
+import { useProfile } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function EditProfilePage() {
-  const navigate = useNavigate();
-
+  const { profile, updateProfile, fetchProfile, loading } = useProfile();
   const [formData, setFormData] = useState({
-    name: mockUser.name,
-    email: mockUser.email,
-    dietaryPreferences: mockUser.dietaryPreferences?.join(', ') || '',
-    cuisinePreferences: mockUser.cuisinePreferences?.join(', ') || '',
-    allergies: mockUser.allergies?.join(', ') || '',
-    chefAvatar: mockUser.chefAvatar || '',
-    calories: mockUser.nutritionalGoals?.calories || 2000,
-    protein: mockUser.nutritionalGoals?.protein || 150
+    full_name: "",
+    bio: "",
+    avatar_url: "",
+    chef_avatar: "",
+    dietary_preferences: "",
+    cuisine_preferences: "",
+    allergies: "",
+    calories: "",
+    protein: "",
   });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleInputChange = (field: string, value: string | number) => {
+  // Load the profile into the form
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || "",
+        bio: profile.bio || "",
+        avatar_url: profile.avatar_url || "",
+        chef_avatar: (profile as any).chef_avatar || "",
+        dietary_preferences: profile.dietary_preferences?.join(", ") || "",
+        cuisine_preferences: profile.cuisine_preferences?.join(", ") || "",
+        allergies: profile.allergies?.join(", ") || "",
+        calories: (profile as any).nutritional_goals?.calories?.toString() || "",
+        protein: (profile as any).nutritional_goals?.protein?.toString() || "",
+      });
+    }
+  }, [profile]);
+
+  // Handle form input changes
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveChanges = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const updatedUser = {
-      ...mockUser,
-      name: formData.name,
-      email: formData.email,
-      dietaryPreferences: formData.dietaryPreferences.split(',').map(s => s.trim()).filter(Boolean),
-      cuisinePreferences: formData.cuisinePreferences.split(',').map(s => s.trim()).filter(Boolean),
-      allergies: formData.allergies.split(',').map(s => s.trim()).filter(Boolean),
-      chefAvatar: formData.chefAvatar,
-      nutritionalGoals: {
-        ...mockUser.nutritionalGoals,
-        calories: formData.calories,
-        protein: formData.protein
-      }
-    };
+  // Handle avatar upload
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    console.log("Saving updated user data:", updatedUser);
-    toast.success("Profile updated successfully!");
-    navigate('/profile');
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `avatars/${profile?.id}-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('avatars')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, avatar_url: data.publicUrl || "" }));
+
+      // Optionally update immediately in the DB
+      await updateProfile({ avatar_url: data.publicUrl });
+
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture was updated successfully."
+      });
+    } catch (err: any) {
+      toast({
+        title: "Avatar Upload Error",
+        description: err.message,
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSaveChanges = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const updates = {
+        full_name: formData.full_name,
+        bio: formData.bio,
+        avatar_url: formData.avatar_url,
+        chef_avatar: formData.chef_avatar,
+        dietary_preferences: formData.dietary_preferences.split(',').map(s => s.trim()).filter(Boolean),
+        cuisine_preferences: formData.cuisine_preferences.split(',').map(s => s.trim()).filter(Boolean),
+        allergies: formData.allergies.split(',').map(s => s.trim()).filter(Boolean),
+        nutritional_goals: {
+          calories: Number(formData.calories) || undefined,
+          protein: Number(formData.protein) || undefined,
+        }
+      };
+      await updateProfile(updates);
+      await fetchProfile();
+      toast({
+        title: "Profile updated successfully!"
+      });
+      navigate("/profile");
+    } catch (err: any) {
+      toast({
+        title: "Failed to update profile",
+        description: err.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -67,116 +137,154 @@ export default function EditProfilePage() {
         ),
       }}
     >
-      <div className="container px-4 py-6 space-y-6">
+      <div className="max-w-xl mx-auto px-4 py-6 space-y-7">
         <form onSubmit={handleSaveChanges} className="space-y-6">
+          {/* Avatar, Name, Bio */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <User size={20} className="mr-2" />
+              <CardTitle className="flex items-center gap-2">
+                <UserRound size={22} className="text-wasfah-bright-teal" />
                 Personal Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Your Name"
-                  required
-                />
+              <div className="flex flex-col sm:flex-row gap-5 items-center">
+                <div className="relative">
+                  <Avatar className="h-20 w-20 shadow border border-wasfah-bright-teal">
+                    {formData.avatar_url
+                      ? <AvatarImage src={formData.avatar_url} alt="User Avatar" />
+                      : <AvatarFallback><UserRound size={36} /></AvatarFallback>
+                    }
+                  </Avatar>
+                  <button
+                    type="button"
+                    className="absolute bottom-1 right-1 bg-white rounded-full p-1 border shadow hover:bg-gray-50"
+                    aria-label="Change avatar"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <Camera size={18} className="text-wasfah-bright-teal" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
+                </div>
+                <div className="flex-1 w-full space-y-3">
+                  <div>
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={e => handleInputChange('full_name', e.target.value)}
+                      placeholder="Your Name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      value={profile?.id || ""}
+                      disabled
+                    />
+                  </div>
+                </div>
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="Your Email"
-                  required
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={e => handleInputChange('bio', e.target.value)}
+                  placeholder="Tell us about yourself..."
+                  className="resize-none"
+                  maxLength={180}
                 />
+                <div className="text-xs text-gray-500 text-end">{formData.bio.length}/180</div>
               </div>
               <div>
-                <Label htmlFor="chefAvatar">Chef Personality</Label>
+                <Label htmlFor="chef_avatar">Chef Persona</Label>
                 <Input
-                  id="chefAvatar"
-                  value={formData.chefAvatar}
-                  onChange={(e) => handleInputChange('chefAvatar', e.target.value)}
-                  placeholder="e.g., The Grill Master"
+                  id="chef_avatar"
+                  value={formData.chef_avatar}
+                  onChange={e => handleInputChange('chef_avatar', e.target.value)}
+                  placeholder="e.g., The Grill Master, Vegan Queen"
                 />
               </div>
             </CardContent>
           </Card>
 
+          {/* Preferences */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Heart size={20} className="mr-2" />
-                Food Preferences
+              <CardTitle className="flex items-center gap-2">
+                <Heart size={20} className="text-wasfah-orange" />
+                Food & Cuisine Preferences
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="dietaryPreferences">Dietary Preferences</Label>
+                <Label>Dietary Preferences</Label>
                 <Input
-                  id="dietaryPreferences"
-                  value={formData.dietaryPreferences}
-                  onChange={(e) => handleInputChange('dietaryPreferences', e.target.value)}
+                  value={formData.dietary_preferences}
+                  onChange={e => handleInputChange("dietary_preferences", e.target.value)}
                   placeholder="e.g., Vegetarian, Gluten-Free"
                 />
-                <p className="text-sm text-gray-500 mt-1">Separate multiple preferences with commas</p>
+                <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
               </div>
               <div>
-                <Label htmlFor="cuisinePreferences">Cuisine Preferences</Label>
+                <Label>Cuisine Preferences</Label>
                 <Input
-                  id="cuisinePreferences"
-                  value={formData.cuisinePreferences}
-                  onChange={(e) => handleInputChange('cuisinePreferences', e.target.value)}
+                  value={formData.cuisine_preferences}
+                  onChange={e => handleInputChange("cuisine_preferences", e.target.value)}
                   placeholder="e.g., Italian, Mexican"
                 />
-                <p className="text-sm text-gray-500 mt-1">Separate multiple cuisines with commas</p>
+                <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
               </div>
               <div>
-                <Label htmlFor="allergies">Allergies</Label>
+                <Label>Allergies</Label>
                 <Input
-                  id="allergies"
                   value={formData.allergies}
-                  onChange={(e) => handleInputChange('allergies', e.target.value)}
+                  onChange={e => handleInputChange("allergies", e.target.value)}
                   placeholder="e.g., Peanuts, Dairy"
                 />
-                <p className="text-sm text-gray-500 mt-1">Separate multiple allergies with commas</p>
+                <p className="text-xs text-gray-500 mt-1">Separate with commas</p>
               </div>
             </CardContent>
           </Card>
 
+          {/* Nutrition */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <ChefHat size={20} className="mr-2" />
-                Nutritional Goals
+              <CardTitle className="flex items-center gap-2">
+                <ChefHat size={20} className="text-wasfah-bright-teal" />
+                Nutrition Goals
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="calories">Daily Calories Goal</Label>
+            <CardContent>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="calories">Calories Goal</Label>
                   <Input
                     id="calories"
                     type="number"
+                    min={0}
                     value={formData.calories}
-                    onChange={(e) => handleInputChange('calories', parseInt(e.target.value) || 0)}
+                    onChange={e => handleInputChange("calories", e.target.value)}
                     placeholder="2000"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="protein">Daily Protein Goal (g)</Label>
+                <div className="flex-1">
+                  <Label htmlFor="protein">Protein Goal (g)</Label>
                   <Input
                     id="protein"
                     type="number"
+                    min={0}
                     value={formData.protein}
-                    onChange={(e) => handleInputChange('protein', parseInt(e.target.value) || 0)}
+                    onChange={e => handleInputChange("protein", e.target.value)}
                     placeholder="150"
                   />
                 </div>
@@ -188,8 +296,12 @@ export default function EditProfilePage() {
             <Button variant="outline" onClick={handleCancel} type="button">
               Cancel
             </Button>
-            <Button type="submit" className="bg-wasfah-bright-teal hover:bg-wasfah-teal">
-              Save Changes
+            <Button
+              type="submit"
+              className="bg-wasfah-bright-teal hover:bg-wasfah-teal"
+              disabled={loading || uploading}
+            >
+              {loading || uploading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -197,3 +309,4 @@ export default function EditProfilePage() {
     </PageContainer>
   );
 }
+
