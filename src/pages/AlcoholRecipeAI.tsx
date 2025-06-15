@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -541,17 +542,19 @@ const CookMode = ({ recipe }: { recipe: AlcoholRecipe }) => {
 };
 
 // Main App Component
-const App = () => {
+const AlcoholRecipeAI = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<AlcoholRecipe | null>(null);
   const [cookModeRecipe, setCookModeRecipe] = useState<AlcoholRecipe | null>(null);
+  const navigate = useNavigate();
 
-  const startCookMode = (recipe: AlcoholRecipe) => {
-    setCookModeRecipe(recipe);
+  const handleBack = () => {
+    navigate(-1);
   };
 
   if (cookModeRecipe) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 p-4">
+        {/* Back Button */}
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center gap-4 mb-6">
             <Button
@@ -572,6 +575,34 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 p-4">
       <div className="container mx-auto max-w-4xl">
+        {/* Back Button for /alcohol-drinks */}
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 hover:bg-gray-100 rounded-lg"
+            aria-label="Back"
+            onClick={handleBack}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-chevron-left h-5 w-5"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            <span className="ml-2 hidden sm:inline font-medium">Back</span>
+          </Button>
+          <h1 className="text-xl font-bold text-primary">Alcohol Drinks AI</h1>
+        </div>
+        {/* Existing Content */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
             AI Mixology Assistant
@@ -645,4 +676,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default AlcoholRecipeAI;
