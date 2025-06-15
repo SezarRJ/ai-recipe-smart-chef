@@ -22,28 +22,28 @@ const AIFeaturesPage = () => {
     {
       icon: Camera,
       title: t("Visual Recipe Search", "البحث المرئي للوصفات"),
-      description: t("Scan ingredients or dishes with camera", "امسح المكونات أو الأطباق بالكاميرا"),
-      path: "/scan-ingredients",
+      description: t("Scan ingredients or dishes with your camera and find matching recipes", "امسح المكونات أو الأطباق بالكاميرا للعثور على وصفات مطابقة"),
+      path: "/scan-dish",
       premium: true
     },
     {
       icon: Mic,
       title: t("Voice Assistant", "المساعد الصوتي"),
-      description: t("Cook hands-free with voice commands", "اطبخ دون استخدام اليدين بالأوامر الصوتية"),
+      description: t("Use voice commands to search and get recipe help", "ابحث وتحكم بالوصفات باستخدام أوامر صوتية"),
       path: "/voice-assistant",
       premium: true
     },
     {
       icon: Brain,
       title: t("Smart Meal Planner", "مخطط الوجبات الذكي"),
-      description: t("AI-powered weekly meal planning", "تخطيط الوجبات الأسبوعي بالذكاء الاصطناعي"),
+      description: t("Let AI create your personalized meal plan", "اسمح للذكاء الاصطناعي بإنشاء خطة وجباتك الشخصية"),
       path: "/smart-meal-planner",
       premium: true
     },
     {
       icon: Utensils,
       title: t("Recipe Personalization", "تخصيص الوصفات"),
-      description: t("Adapt recipes to your preferences", "كيّف الوصفات حسب تفضيلاتك"),
+      description: t("Personalize any recipe for your tastes & dietary needs", "خصص أي وصفة حسب ذوقك واحتياجاتك الغذائية"),
       path: "/recipe-personalizer",
       premium: false
     }

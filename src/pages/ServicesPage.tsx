@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,31 +14,17 @@ const ServicesPage = () => {
 
   const services = [
     {
-      icon: Truck,
-      title: t("Grocery Delivery", "توصيل البقالة"),
-      description: t("Fresh ingredients delivered to your door", "مكونات طازجة توصل لباب منزلك"),
-      price: t("From $5", "من 5$"),
-      premium: false
-    },
-    {
       icon: ShoppingCart,
       title: t("Smart Shopping Lists", "قوائم التسوق الذكية"),
-      description: t("AI-generated shopping lists from recipes", "قوائم تسوق مُولدة بالذكاء الاصطناعي من الوصفات"),
+      description: t("AI-generated shopping lists from your recipes", "قوائم تسوق مُولدة بالذكاء الاصطناعي من وصفاتك"),
       price: t("Free", "مجاني"),
       premium: false
     },
     {
       icon: Calendar,
       title: t("Meal Planning Service", "خدمة تخطيط الوجبات"),
-      description: t("Personalized weekly meal plans", "خطط وجبات أسبوعية مخصصة"),
+      description: t("Get personalized weekly meal plans from AI", "احصل على خطط وجبات أسبوعية مخصصة من الذكاء الاصطناعي"),
       price: t("$9.99/month", "9.99$/شهر"),
-      premium: true
-    },
-    {
-      icon: Users,
-      title: t("Personal Chef Consultation", "استشارة طاهي شخصي"),
-      description: t("One-on-one cooking guidance", "إرشاد طبخ فردي"),
-      price: t("$29.99/session", "29.99$/جلسة"),
       premium: true
     }
   ];
