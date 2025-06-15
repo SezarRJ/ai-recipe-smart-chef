@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { RTLProvider } from '@/contexts/RTLContext';
@@ -13,6 +12,15 @@ import AIFindByIngredientsPage from '@/pages/AIFindByIngredientsPage';
 import ServicesPage from '@/pages/ServicesPage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
 import LoyaltyProgramPage from '@/pages/LoyaltyProgramPage';
+import ProfilePage from '@/pages/ProfilePage';
+import NotificationsPage from '@/pages/NotificationsPage';
+import LanguagePage from '@/pages/LanguagePage';
+import AppearancePage from '@/pages/AppearancePage';
+import SoundSettingsPage from '@/pages/SoundSettingsPage';
+import AppPreferencesPage from '@/pages/AppPreferencesPage';
+import PrivacyPage from '@/pages/PrivacyPage';
+import HelpPage from '@/pages/HelpPage';
+import RateAppPage from '@/pages/RateAppPage';
 
 const App = () => {
   return (
@@ -31,6 +39,15 @@ const App = () => {
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="/loyalty-program" element={<LoyaltyProgramPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/language" element={<LanguagePage />} />
+            <Route path="/appearance" element={<AppearancePage />} />
+            <Route path="/sound-settings" element={<SoundSettingsPage />} />
+            <Route path="/app-preferences" element={<AppPreferencesPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/rate-app" element={<RateAppPage />} />
           </Routes>
           <Toaster />
         </div>
