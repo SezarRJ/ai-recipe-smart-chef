@@ -4,11 +4,13 @@ import { MobileLayout } from '@/components/layout/MobileLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Activity, Heart, Target, TrendingUp, Apple, Droplets, Zap } from 'lucide-react';
+import { Activity, Heart, Target, TrendingUp, Apple, Droplets, Zap, PlusCircle, ListTodo } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
+import { useNavigate } from 'react-router-dom';
 
 const HealthTrackingHomePage = () => {
   const { t, direction } = useRTL();
+  const navigate = useNavigate();
 
   const healthStats = [
     {
@@ -37,23 +39,33 @@ const HealthTrackingHomePage = () => {
     }
   ];
 
+  // Updated Quick Actions
   const quickActions = [
     {
       icon: Target,
       title: t("Set Goals", "ضع الأهداف"),
-      description: t("Customize your health targets", "خصص أهدافك الصحية")
+      description: t("Customize your health targets", "خصص أهدافك الصحية"),
+      onClick: () => navigate("/health-tracking?tab=goals")
     },
     {
-      icon: Activity,
+      icon: PlusCircle,
       title: t("Log Meal", "سجل وجبة"),
-      description: t("Track your nutrition intake", "تتبع تناولك الغذائي")
+      description: t("Track your nutrition intake", "تتبع تناولك الغذائي"),
+      onClick: () => navigate("/health-tracking?tab=daily")
     },
     {
-      icon: TrendingUp,
+      icon: ListTodo,
       title: t("View Progress", "عرض التقدم"),
-      description: t("See your health trends", "شاهد اتجاهاتك الصحية")
+      description: t("See your health trends", "شاهد اتجاهاتك الصحية"),
+      onClick: () => navigate("/health-tracking?tab=progress")
     }
   ];
+
+  // Updated summary content
+  const weeklySummaryText = t(
+    "You've met your calorie goal 5/7 days this week. Keep up the great work and try to increase your water intake!",
+    "لقد حققت هدف السعرات الحرارية لمدة 5 من 7 أيام هذا الأسبوع. واصل العمل الجيد وحاول زيادة تناول الماء!"
+  );
 
   return (
     <MobileLayout
@@ -111,14 +123,18 @@ const HealthTrackingHomePage = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Improved Quick Actions */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
             {t("Quick Actions", "إجراءات سريعة")}
           </h3>
           <div className="space-y-3">
             {quickActions.map((action, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+              <Card
+                key={index}
+                className="hover:shadow-lg transition-all duration-300 cursor-pointer"
+                onClick={action.onClick}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-wasfah-bright-teal/10 rounded-lg flex items-center justify-center">
@@ -137,15 +153,13 @@ const HealthTrackingHomePage = () => {
 
         {/* Weekly Summary */}
         <Card className="bg-gradient-to-r from-wasfah-bright-teal/10 to-wasfah-mint/10 border-wasfah-bright-teal/20">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-6 text-center space-y-2">
             <TrendingUp className="h-8 w-8 text-wasfah-bright-teal mx-auto mb-3" />
             <h3 className="text-lg font-bold text-gray-900 mb-2">
               {t("Weekly Summary", "ملخص الأسبوع")}
             </h3>
-            <p className="text-gray-600 text-sm mb-4">
-              {t("You're doing great! Keep up the healthy habits.", "أنت تبلي بلاءً حسناً! واصل العادات الصحية.")}
-            </p>
-            <Button className="bg-wasfah-bright-teal">
+            <p className="text-gray-600 text-sm mb-4">{weeklySummaryText}</p>
+            <Button className="bg-wasfah-bright-teal" onClick={() => navigate("/health-tracking?tab=progress")}>
               {t("View Details", "عرض التفاصيل")}
             </Button>
           </CardContent>
