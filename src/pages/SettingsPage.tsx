@@ -8,10 +8,12 @@ import {
   ChevronRight, Moon, Smartphone, Volume2 
 } from 'lucide-react';
 import { useRTL } from '@/contexts/RTLContext';
+import { Link } from 'react-router-dom';
 
 const SettingsPage = () => {
   const { t, direction } = useRTL();
 
+  // Add a `path` for all items that should navigate
   const settingsGroups = [
     {
       title: t("Account", "الحساب"),
@@ -19,12 +21,14 @@ const SettingsPage = () => {
         {
           icon: User,
           label: t("Profile", "الملف الشخصي"),
-          description: t("Manage your personal information", "إدارة معلوماتك الشخصية")
+          description: t("Manage your personal information", "إدارة معلوماتك الشخصية"),
+          path: "/profile"
         },
         {
           icon: Bell,
           label: t("Notifications", "الإشعارات"),
-          description: t("Configure notification preferences", "تكوين تفضيلات الإشعارات")
+          description: t("Configure notification preferences", "تكوين تفضيلات الإشعارات"),
+          path: "/notifications"
         }
       ]
     },
@@ -34,17 +38,20 @@ const SettingsPage = () => {
         {
           icon: Globe,
           label: t("Language", "اللغة"),
-          description: t("العربية / English", "العربية / English")
+          description: t("العربية / English", "العربية / English"),
+          path: "/language"
         },
         {
           icon: Moon,
           label: t("Theme", "المظهر"),
-          description: t("Light / Dark mode", "النمط الفاتح / الداكن")
+          description: t("Light / Dark mode", "النمط الفاتح / الداكن"),
+          path: "/appearance"
         },
         {
           icon: Volume2,
           label: t("Sound", "الصوت"),
-          description: t("Audio and voice settings", "إعدادات الصوت والنطق")
+          description: t("Audio and voice settings", "إعدادات الصوت والنطق"),
+          path: "/sound-settings"
         }
       ]
     },
@@ -54,12 +61,14 @@ const SettingsPage = () => {
         {
           icon: Smartphone,
           label: t("App Preferences", "تفضيلات التطبيق"),
-          description: t("Customize app behavior", "تخصيص سلوك التطبيق")
+          description: t("Customize app behavior", "تخصيص سلوك التطبيق"),
+          path: "/app-preferences"
         },
         {
           icon: Shield,
           label: t("Privacy & Security", "الخصوصية والأمان"),
-          description: t("Manage your privacy settings", "إدارة إعدادات الخصوصية")
+          description: t("Manage your privacy settings", "إدارة إعدادات الخصوصية"),
+          path: "/privacy"
         }
       ]
     },
@@ -69,12 +78,14 @@ const SettingsPage = () => {
         {
           icon: HelpCircle,
           label: t("Help & Support", "المساعدة والدعم"),
-          description: t("Get help and contact support", "احصل على المساعدة واتصل بالدعم")
+          description: t("Get help and contact support", "احصل على المساعدة واتصل بالدعم"),
+          path: "/help"
         },
         {
           icon: Star,
           label: t("Rate App", "قيم التطبيق"),
-          description: t("Share your feedback", "شارك ملاحظاتك")
+          description: t("Share your feedback", "شارك ملاحظاتك"),
+          path: "/rate-app"
         }
       ]
     }
@@ -95,25 +106,35 @@ const SettingsPage = () => {
             </h3>
             <Card>
               <CardContent className="p-0">
-                {group.items.map((item, itemIndex) => (
-                  <div
-                    key={itemIndex}
-                    className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                      itemIndex !== group.items.length - 1 ? 'border-b border-gray-100' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 bg-wasfah-bright-teal/10 rounded-lg flex items-center justify-center">
-                        <item.icon className="h-5 w-5 text-wasfah-bright-teal" />
+                {group.items.map((item, itemIndex) => {
+                  const rowContent = (
+                    <div
+                      className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
+                        itemIndex !== group.items.length - 1 ? 'border-b border-gray-100' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-wasfah-bright-teal/10 rounded-lg flex items-center justify-center">
+                          <item.icon className="h-5 w-5 text-wasfah-bright-teal" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900">{item.label}</h4>
+                          <p className="text-sm text-gray-600 truncate">{item.description}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900">{item.label}</h4>
-                        <p className="text-sm text-gray-600 truncate">{item.description}</p>
-                      </div>
+                      <ChevronRight className={`h-5 w-5 text-gray-400 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
                     </div>
-                    <ChevronRight className={`h-5 w-5 text-gray-400 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
-                  </div>
-                ))}
+                  );
+
+                  // Wrap with <Link> if a path is defined
+                  return item.path ? (
+                    <Link to={item.path} key={itemIndex} className="block">
+                      {rowContent}
+                    </Link>
+                  ) : (
+                    <div key={itemIndex}>{rowContent}</div>
+                  );
+                })}
               </CardContent>
             </Card>
           </div>
