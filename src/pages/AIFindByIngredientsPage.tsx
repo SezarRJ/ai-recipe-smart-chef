@@ -169,8 +169,7 @@ export default function FindByIngredients() {
     <PageContainer
       header={{
         title: t('Find Recipe', 'ابحث عن وصفة'),
-        showBackButton: true,
-        onBackClick: () => navigate(-1),
+        showBackButton: true
       }}
       className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
     >
