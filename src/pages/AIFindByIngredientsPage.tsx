@@ -14,11 +14,13 @@ import { RecipeSearchResults } from '@/components/ingredients/RecipeSearchResult
 import { useRecipeSearch } from '@/hooks/useRecipeSearch';
 import { mainCategories, AI_FILTER_OPTIONS, PANTRY_ITEMS } from '@/components/ingredients/constants';
 import { AIFilters, Ingredient } from '@/components/ingredients/types';
+import { useNavigate } from 'react-router-dom';
 
 export default function FindByIngredients() {
   const { toast } = useToast();
   const { t } = useRTL();
   const location = useLocation();
+  const navigate = useNavigate();
   const { 
     searchResults, setSearchResults,
     isSearching, setIsSearching,
@@ -168,6 +170,7 @@ export default function FindByIngredients() {
       header={{
         title: t('Find Recipe', 'ابحث عن وصفة'),
         showBackButton: true,
+        onBackClick: () => navigate(-1),
       }}
       className="bg-gradient-to-br from-wasfah-light-gray to-white min-h-screen"
     >
