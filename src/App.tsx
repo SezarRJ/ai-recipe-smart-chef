@@ -21,6 +21,12 @@ import AppPreferencesPage from '@/pages/AppPreferencesPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import HelpPage from '@/pages/HelpPage';
 import RateAppPage from '@/pages/RateAppPage';
+import ScanDishPage from "@/pages/ScanDishPage";
+import VoiceAssistantPage from "@/pages/VoiceAssistantPage";
+import RecipePersonalizerPage from "@/pages/RecipePersonalizerPage";
+import SmartMealPlannerPage from "@/components/ai/SmartMealPlannerPage";
+import SmartShoppingListsPage from "@/pages/SmartShoppingListsPage";
+import MealPlanningServicePage from "@/pages/MealPlanningServicePage";
 
 const App = () => {
   return (
@@ -48,6 +54,13 @@ const App = () => {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/rate-app" element={<RateAppPage />} />
+            {/* ADDED AI SERVICE ROUTES */}
+            <Route path="/scan-dish" element={<ScanDishPage />} />
+            <Route path="/voice-assistant" element={<VoiceAssistantPage />} />
+            <Route path="/recipe-personalizer" element={<RecipePersonalizerPage />} />
+            <Route path="/smart-meal-planner" element={<SmartMealPlannerPage />} />
+            <Route path="/smart-shopping-lists" element={<SmartShoppingListsPage />} />
+            <Route path="/meal-planning-service" element={<MealPlanningServicePage />} />
           </Routes>
           <Toaster />
         </div>
